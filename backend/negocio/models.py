@@ -1,0 +1,48 @@
+from django.db import models
+
+class ConfiguracionSitio(models.Model):
+    # Usamos blank=True y null=True para que no de error si aún no subieron la imagen
+    logo = models.ImageField(upload_to='sitio/logos/', null=True, blank=True)
+    # Este negocio opera con dos marcas a la vez (ej. "Hierbas Medicinales Cba" y "La Paz
+    # Hierbas Serranas"): el segundo logo se muestra junto al principal en el header.
+    logo_secundario = models.ImageField(upload_to='sitio/logos/', null=True, blank=True)
+    logo_precarga = models.ImageField(
+        upload_to='sitio/logos/',
+        null=True,
+        blank=True,
+        help_text="Imagen que se muestra en la pantalla de carga inicial (recomendado: PNG sin fondo)",
+    )
+    imagen_principal = models.ImageField(upload_to='sitio/portadas/', null=True, blank=True)
+    whatsapp = models.CharField(max_length=20, blank=True, default='')
+    instagram = models.URLField(blank=True, default='')
+    video_principal = models.FileField(
+        upload_to='videos/', 
+        null=True, 
+        blank=True, 
+        help_text="Video de fondo para el inicio (Formato 9:16 recomendado)"
+    )
+
+    # Programa de puntos: cuántos pesos gastados valen 1 punto, y cuánto vale 1 punto
+    # al canjearlo. Con los defaults: gastás $100 → 1 punto; 1 punto = $1 de descuento.
+    pesos_por_punto = models.PositiveIntegerField(default=100)
+    valor_punto = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+
+    # Colores de la vista del cliente (código hex, ej. "#eaf0e6"). Los defaults son
+    # la paleta "Apothecary Harvest" (pergamino + verde bosque) del diseño de
+    # referencia, así que mientras nadie los cambie desde el admin la tienda
+    # arranca ya con ese tono.
+    color_navbar = models.CharField(max_length=7, default='#f2f7ef')
+    color_fondo = models.CharField(max_length=7, default='#eaf0e6')
+    color_superficie = models.CharField(max_length=7, default='#f2f7ef')
+    color_acento = models.CharField(max_length=7, default='#1a361b')
+
+    # Apagar esto bloquea los pedidos nuevos de la tienda web (no los cargados a mano
+    # en el admin): ver PedidoSerializer.validate en la app "pedidos".
+    tienda_abierta = models.BooleanField(default=True)
+    mensaje_cerrado = models.CharField(
+        max_length=200, blank=True, default='Volvemos pronto, gracias por tu paciencia.'
+    )
+    color_boton_agregar = models.CharField(max_length=7, default='#1a361b')
+
+    def __str__(self):
+        return "Configuración General del Sitio"

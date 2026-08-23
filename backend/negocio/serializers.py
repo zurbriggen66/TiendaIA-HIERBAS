@@ -1,0 +1,23 @@
+from rest_framework import serializers
+from .models import ConfiguracionSitio
+
+class ConfiguracionSitioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConfiguracionSitio
+        fields = [
+            'id',
+            'logo',
+            'logo_secundario',
+            'logo_precarga',
+            'imagen_principal',
+            'video_principal',
+            'whatsapp',
+            'instagram',
+            'color_navbar',
+            'color_fondo',
+            'color_superficie',
+            'color_acento',
+            'color_boton_agregar',
+            'tienda_abierta',
+            'mensaje_cerrado',
+        ]

@@ -34,9 +34,19 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# Necesario para el /admin/ de Django (formularios con sesión + CSRF) en cuanto se
+# sirve por HTTPS detrás de un proxy — sin esto, Django 4+ rechaza el login del admin
+# con "CSRF verification failed". Se arma solo a partir de ALLOWED_HOSTS.
+CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in ALLOWED_HOSTS if host not in ('localhost', '127.0.0.1')]
+
 # Endurecimiento de seguridad que solo aplica cuando DEBUG está apagado (producción) —
 # en local (DEBUG=True) se dejan desactivados para no romper el runserver por http.
 if not DEBUG:
+    # PythonAnywhere (y la mayoría de los hosts con HTTPS) terminan el TLS en un proxy
+    # y le mandan a Django la request en HTTP plano, marcando este header. Sin esto,
+    # Django no reconoce la request como segura y SECURE_SSL_REDIRECT la redirige de
+    # nuevo a HTTPS en un loop infinito.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

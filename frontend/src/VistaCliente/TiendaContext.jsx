@@ -138,6 +138,11 @@ export function TiendaProvider({ children }) {
     setCliente(null);
   };
 
+  const [toast, setToast] = useState(null);
+  const mostrarToast = (mensaje) => {
+    setToast({ mensaje, key: Date.now() });
+  };
+
   const agregarAlCarrito = (producto, cantidad) => {
     const lineaId = `producto-${producto.id}`;
     setItems((prev) => {
@@ -147,7 +152,10 @@ export function TiendaProvider({ children }) {
       }
       return [...prev, { lineaId, producto, cantidad }];
     });
-    setCarritoAbierto(true);
+    // No abrimos el carrito solo: interrumpir a alguien que sigue eligiendo productos
+    // para mostrarle el carrito entero cada vez que agrega algo es molesto. Un aviso
+    // chico alcanza — "Ver mi pedido" (la barra flotante) ya está para cuando quiera abrirlo.
+    mostrarToast(`${producto.nombre} agregado al carrito`);
   };
 
   const cambiarCantidad = (lineaId, cantidad) => {
@@ -176,6 +184,8 @@ export function TiendaProvider({ children }) {
     cambiarCantidad,
     quitarDelCarrito,
     vaciarCarrito: () => setItems([]),
+    toast,
+    limpiarToast: () => setToast(null),
     cliente,
     setCliente,
     cerrarSesion,

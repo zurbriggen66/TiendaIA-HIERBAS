@@ -46,12 +46,39 @@ export function resumenPorCategoria(items, categoriasPorId) {
       }
     }
 
-    return { ...grupo, precioEscalon, faltante, minimoVariedad, variedadesBajoMinimo };
+    // Modo "a granel" (precio dual por producto, ej: Hierbas Medicinales por Kg): NO
+    // bloquea el pedido como `faltante`/`variedadesBajoMinimo` — solo decide qué precio
+    // se muestra. Mismo criterio que el backend (pedidos/serializers.py): todo o nada,
+    // si una sola variedad elegida no llega a su mínimo, ninguna entra en modo granel.
+    const granelMinimoTotal = Number(grupo.categoria.granel_cantidad_minima || 0);
+    const granelMinimoVariedad = Number(grupo.categoria.granel_cantidad_minima_variedad || 0);
+    let enModoGranel = false;
+    let variedadesBajoMinimoGranel = [];
+    if (granelMinimoTotal > 0) {
+      const vistos = new Set();
+      for (const item of grupo.items) {
+        if (vistos.has(item.producto.id)) continue;
+        vistos.add(item.producto.id);
+        const cantidad = grupo.cantidadPorProducto.get(item.producto.id) || 0;
+        if (cantidad < granelMinimoVariedad) {
+          variedadesBajoMinimoGranel.push({ nombre: item.producto.nombre, cantidad, falta: granelMinimoVariedad - cantidad });
+        }
+      }
+      enModoGranel = grupo.cantidadTotal >= granelMinimoTotal && variedadesBajoMinimoGranel.length === 0;
+    }
+    const faltaParaGranel = Math.max(0, granelMinimoTotal - grupo.cantidadTotal);
+
+    return {
+      ...grupo, precioEscalon, faltante, minimoVariedad, variedadesBajoMinimo,
+      enModoGranel, granelMinimoTotal, granelMinimoVariedad, faltaParaGranel,
+      variedadesBajoMinimoGranel: enModoGranel ? [] : variedadesBajoMinimoGranel,
+    };
   });
 }
 
 export function precioUnitarioItem(item, resumen) {
   const grupo = resumen.find((g) => g.categoria.id === item.producto.categoria);
+  if (grupo && grupo.enModoGranel && item.producto.precio_granel != null) return Number(item.producto.precio_granel);
   if (grupo && grupo.precioEscalon != null) return Number(grupo.precioEscalon);
   return Number(item.producto.precio_base) || 0;
 }

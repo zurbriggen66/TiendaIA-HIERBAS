@@ -175,35 +175,53 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
                   {!tieneAviso && grupo.precioEscalon != null && (
                     <span className="categoria-resumen-precio">Precio vigente: {formatearPrecio(grupo.precioEscalon)} c/u</span>
                   )}
+                  {grupo.granelMinimoTotal > 0 && (
+                    grupo.enModoGranel ? (
+                      <span className="categoria-resumen-precio">🎉 ¡Llegaste al precio a granel!</span>
+                    ) : grupo.faltaParaGranel > 0 ? (
+                      <span className="categoria-resumen-tip">
+                        Sumá {grupo.faltaParaGranel} {unidadEtiqueta} más (con al menos {grupo.granelMinimoVariedad} {unidadEtiqueta} de cada variedad) para el precio a granel
+                      </span>
+                    ) : grupo.variedadesBajoMinimoGranel.length > 0 ? (
+                      <span className="categoria-resumen-tip">
+                        Ya juntaste el total para precio a granel: llevá al menos {grupo.granelMinimoVariedad} {unidadEtiqueta} de cada variedad elegida para que se aplique
+                      </span>
+                    ) : null
+                  )}
                 </div>
               );
             })}
 
             <div className="pedido-items">
-              {items.map((item) => (
-                <div key={item.lineaId} className="pedido-item">
-                  <div className="pedido-item-imagen">
-                    {item.producto.imagen ? <img src={item.producto.imagen} alt={item.producto.nombre} /> : <span>🌿</span>}
-                  </div>
-
-                  <div className="pedido-item-info">
-                    <div className="pedido-item-titulo">
-                      <strong>{item.producto.nombre}</strong>
+              {items.map((item) => {
+                const precioUnitario = precioUnitarioItem(item, resumen);
+                const subtotalItem = precioUnitario * item.cantidad;
+                return (
+                  <div key={item.lineaId} className="pedido-item">
+                    <div className="pedido-item-imagen">
+                      {item.producto.imagen ? <img src={item.producto.imagen} alt={item.producto.nombre} /> : <span>🌿</span>}
                     </div>
-                    {item.producto.contenido && <span className="pedido-item-extras">{item.producto.contenido}</span>}
-                    <span className="pedido-item-precio">{formatearPrecio(precioUnitarioItem(item, resumen))} c/u</span>
-                  </div>
 
-                  <div className="pedido-item-acciones">
-                    <button type="button" className="pedido-item-quitar" onClick={() => onQuitar(item.lineaId)} aria-label="Quitar producto">🗑</button>
-                    <div className="pedido-item-cantidad">
-                      <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad - 1)} aria-label="Restar">−</button>
-                      <span>{item.cantidad}</span>
-                      <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad + 1)} aria-label="Sumar">+</button>
+                    <div className="pedido-item-info">
+                      <div className="pedido-item-titulo">
+                        <strong>{item.producto.nombre}</strong>
+                      </div>
+                      {item.producto.contenido && <span className="pedido-item-extras">{item.producto.contenido}</span>}
+                      <span className="pedido-item-precio">{formatearPrecio(precioUnitario)} c/u</span>
+                    </div>
+
+                    <div className="pedido-item-acciones">
+                      <button type="button" className="pedido-item-quitar" onClick={() => onQuitar(item.lineaId)} aria-label="Quitar producto">🗑</button>
+                      <div className="pedido-item-cantidad">
+                        <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad - 1)} aria-label="Restar">−</button>
+                        <span>{item.cantidad}</span>
+                        <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad + 1)} aria-label="Sumar">+</button>
+                      </div>
+                      <span className="pedido-item-subtotal">{formatearPrecio(subtotalItem)}</span>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {cliente && cliente.puntos > 0 && (
@@ -420,6 +438,7 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
         .categoria-resumen-fila { display: flex; justify-content: space-between; font-size: 0.85rem; color: #1a2333; }
         .categoria-resumen-aviso { font-size: 0.76rem; font-weight: 700; color: #b45309; }
         .categoria-resumen-precio { font-size: 0.76rem; font-weight: 700; color: #3f6212; }
+        .categoria-resumen-tip { font-size: 0.76rem; font-weight: 600; color: #6b7684; }
 
         .pedido-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 
@@ -456,6 +475,8 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
         }
         .pedido-item-cantidad button:hover { background: #e4e7ec; }
         .pedido-item-cantidad span { min-width: 14px; text-align: center; font-size: 0.82rem; font-weight: 700; color: #1a2333; }
+
+        .pedido-item-subtotal { font-size: 0.85rem; font-weight: 800; color: #1a2333; }
 
         .carrito-puntos {
           display: flex; align-items: center; gap: 10px; background: #fffaeb; border: 1px solid #fde68a;

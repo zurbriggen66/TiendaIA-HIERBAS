@@ -6,6 +6,7 @@ export default function ProductoModal({ producto, categorias, categoriaPreselecc
   const [descripcion, setDescripcion] = useState(producto ? producto.descripcion : '');
   const [contenido, setContenido] = useState(producto ? producto.contenido : '');
   const [precioBase, setPrecioBase] = useState(producto ? producto.precio_base ?? '' : '');
+  const [precioGranel, setPrecioGranel] = useState(producto ? producto.precio_granel ?? '' : '');
   const [categoriaId, setCategoriaId] = useState(
     producto ? producto.categoria : (categoriaPreseleccionada || (categorias[0] && categorias[0].id) || '')
   );
@@ -44,6 +45,7 @@ export default function ProductoModal({ producto, categorias, categoriaPreselecc
     formData.append('destacado', destacado);
     formData.append('activo', activo);
     if (precioBase !== '') formData.append('precio_base', precioBase);
+    if (precioGranel !== '') formData.append('precio_granel', precioGranel);
     if (imagen) formData.append('imagen', imagen);
 
     setGuardando(true);
@@ -138,6 +140,26 @@ export default function ProductoModal({ producto, categorias, categoriaPreselecc
               </p>
             </div>
           </div>
+
+          {categoriaSeleccionada && Number(categoriaSeleccionada.granel_cantidad_minima) > 0 && (
+            <div className="form-group">
+              <label className="form-label">Precio a granel</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="input-vibrante"
+                placeholder="0.00"
+                value={precioGranel}
+                onChange={(e) => setPrecioGranel(e.target.value)}
+              />
+              <p className="form-ayuda">
+                Precio por unidad cuando el pedido de esta categoría llega al mínimo a granel ({categoriaSeleccionada.granel_cantidad_minima}
+                {' '}{categoriaSeleccionada.unidad_medida} en total, {categoriaSeleccionada.granel_cantidad_minima_variedad} por variedad).
+                Dejalo vacío si este producto no tiene precio a granel propio.
+              </p>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="checkbox-vibrante">

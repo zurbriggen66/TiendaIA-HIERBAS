@@ -136,19 +136,41 @@ class PedidoSerializer(serializers.ModelSerializer):
         # las variedades del pedido que caen en esa categoría), y ese precio se congela
         # en cada línea.
         cantidades_por_categoria = {}
+        cantidades_por_producto = {}
         for item in items_data:
-            categoria = item['producto'].categoria
-            cantidades_por_categoria.setdefault(categoria, Decimal('0'))
-            cantidades_por_categoria[categoria] += item['cantidad']
+            producto = item['producto']
+            cantidades_por_categoria.setdefault(producto.categoria, Decimal('0'))
+            cantidades_por_categoria[producto.categoria] += item['cantidad']
+            cantidades_por_producto.setdefault(producto, Decimal('0'))
+            cantidades_por_producto[producto] += item['cantidad']
+
+        # Modo "a granel" (ej: Hierbas Medicinales por Kg): TODO el pedido de esa
+        # categoría pasa a precio_granel si junta el mínimo total Y cada variedad
+        # elegida llega a su propio mínimo — si una sola variedad no llega, ninguna
+        # línea de esa categoría entra en modo granel (no se mezclan los dos precios).
+        categorias_en_modo_granel = set()
+        for categoria, cantidad_total in cantidades_por_categoria.items():
+            if not categoria.granel_cantidad_minima or cantidad_total < categoria.granel_cantidad_minima:
+                continue
+            productos_de_categoria = [p for p in cantidades_por_producto if p.categoria_id == categoria.id]
+            if all(
+                cantidades_por_producto[p] >= categoria.granel_cantidad_minima_variedad
+                for p in productos_de_categoria
+            ):
+                categorias_en_modo_granel.add(categoria.id)
 
         for item in items_data:
             producto = item['producto']
             cantidad_categoria = cantidades_por_categoria[producto.categoria]
+            if producto.categoria_id in categorias_en_modo_granel and producto.precio_granel is not None:
+                precio_unitario = producto.precio_granel
+            else:
+                precio_unitario = producto.precio_para_cantidad_categoria(cantidad_categoria)
             DetallePedido.objects.create(
                 pedido=pedido,
                 producto=producto,
                 cantidad=item['cantidad'],
-                precio_unitario=producto.precio_para_cantidad_categoria(cantidad_categoria),
+                precio_unitario=precio_unitario,
             )
 
         # El canje va al final: recién acá se conoce el total real del pedido.

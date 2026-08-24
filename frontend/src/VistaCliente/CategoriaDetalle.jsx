@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTienda } from './TiendaContext';
+import { precioPorEscalon } from '../utils/escalones';
 
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -59,32 +60,41 @@ export default function CategoriaDetalle() {
         <p className="menu-vacio">Todavía no hay productos cargados en esta categoría.</p>
       ) : (
         <div className="categoria-detalle-grid">
-          {productosCategoria.map((producto) => (
-            <button
-              key={producto.id}
-              type="button"
-              className="categoria-detalle-producto"
-              onClick={() => navigate(`/producto/${producto.id}`)}
-            >
-              <div className="categoria-detalle-producto-imagen">
-                {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
-              </div>
-              <div className="categoria-detalle-producto-info">
-                <h3>{producto.nombre}</h3>
-                {!categoria.escalones?.length && producto.precio_base && (
-                  <strong>{formatearPrecio(producto.precio_base)} / {unidadLabel}</strong>
-                )}
-                {producto.contenido && <span className="categoria-detalle-producto-contenido">{producto.contenido}</span>}
-              </div>
-              <span
-                className="material-symbols-outlined categoria-detalle-producto-agregar"
-                aria-hidden="true"
-                onClick={(e) => { e.stopPropagation(); agregarAlCarrito(producto, 1); }}
+          {productosCategoria.map((producto) => {
+            // Precio minorista (sin descuento por volumen): si la categoría tiene
+            // escalones, el más bajo es el que rige comprando de a poco; si no, el
+            // precio propio del producto.
+            const precioMinorista = categoria.escalones?.length
+              ? (precioPorEscalon(categoria, 1) ?? categoria.escalones[0].precio_unitario)
+              : Number(producto.precio_base) || 0;
+            return (
+              <button
+                key={producto.id}
+                type="button"
+                className="categoria-detalle-producto"
+                onClick={() => navigate(`/producto/${producto.id}`)}
               >
-                add_shopping_cart
-              </span>
-            </button>
-          ))}
+                <div className="categoria-detalle-producto-imagen">
+                  {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
+                </div>
+                <div className="categoria-detalle-producto-info">
+                  <h3>{producto.nombre}</h3>
+                  {producto.descripcion && <p className="categoria-detalle-producto-descripcion">{producto.descripcion}</p>}
+                  {precioMinorista > 0 && (
+                    <strong>{formatearPrecio(precioMinorista)} / {unidadLabel}</strong>
+                  )}
+                  {producto.contenido && <span className="categoria-detalle-producto-contenido">{producto.contenido}</span>}
+                </div>
+                <span
+                  className="material-symbols-outlined categoria-detalle-producto-agregar"
+                  aria-hidden="true"
+                  onClick={(e) => { e.stopPropagation(); agregarAlCarrito(producto, 1); }}
+                >
+                  add_shopping_cart
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -267,6 +277,17 @@ export default function CategoriaDetalle() {
           font-size: 0.98rem;
           color: var(--text);
           margin: 0;
+        }
+
+        .categoria-detalle-producto-descripcion {
+          margin: 2px 0 0;
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          line-height: 1.35;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
 
         .categoria-detalle-producto-info strong {

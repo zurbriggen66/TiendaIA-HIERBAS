@@ -23,6 +23,10 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
   const [unidadMedida, setUnidadMedida] = useState(categoria ? categoria.unidad_medida : 'kg');
   const [cantidadMinima, setCantidadMinima] = useState(categoria ? categoria.cantidad_minima : 0);
   const [cantidadMinimaVariedad, setCantidadMinimaVariedad] = useState(categoria ? categoria.cantidad_minima_variedad : 0);
+  const [granelCantidadMinima, setGranelCantidadMinima] = useState(categoria ? categoria.granel_cantidad_minima : 0);
+  const [granelCantidadMinimaVariedad, setGranelCantidadMinimaVariedad] = useState(
+    categoria ? categoria.granel_cantidad_minima_variedad : 0
+  );
   const [activa, setActiva] = useState(categoria ? categoria.activa : true);
   const [imagen, setImagen] = useState(null);
   const [guardando, setGuardando] = useState(false);
@@ -71,6 +75,8 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
     formData.append('unidad_medida', unidadMedida);
     formData.append('cantidad_minima', cantidadMinima || 0);
     formData.append('cantidad_minima_variedad', cantidadMinimaVariedad || 0);
+    formData.append('granel_cantidad_minima', granelCantidadMinima || 0);
+    formData.append('granel_cantidad_minima_variedad', granelCantidadMinimaVariedad || 0);
     formData.append('activa', activa);
     if (imagen) formData.append('imagen', imagen);
 
@@ -179,6 +185,40 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
               Si lo cargás, cada variedad que el cliente elija de esta categoría tiene que llegar sola a este mínimo
               (ej: al menos 10kg de cada hierba, no solo el total). Dejalo en 0 si no aplica.
             </p>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Precio a granel (opcional)</label>
+            <p className="form-ayuda">
+              Si cargás esto, cada producto de esta categoría puede tener un segundo precio ("Precio a granel" en el
+              producto) que se aplica a TODO el pedido de esta categoría cuando junta el mínimo total de acá abajo Y
+              cada variedad elegida llega al mínimo por variedad. Si una sola variedad no llega, se cobra el precio
+              normal para todas. Dejalo en 0 si esta categoría no tiene precio a granel.
+            </p>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Mínimo total para el precio a granel</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input-vibrante"
+                  value={granelCantidadMinima}
+                  onChange={(e) => setGranelCantidadMinima(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mínimo por variedad para el precio a granel</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input-vibrante"
+                  value={granelCantidadMinimaVariedad}
+                  onChange={(e) => setGranelCantidadMinimaVariedad(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-group">

@@ -15,7 +15,8 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = [
             'id', 'nombre', 'slug', 'descripcion', 'imagen', 'unidad_medida',
-            'cantidad_minima', 'cantidad_minima_variedad', 'orden', 'activa', 'escalones', 'creado',
+            'cantidad_minima', 'cantidad_minima_variedad', 'granel_cantidad_minima',
+            'granel_cantidad_minima_variedad', 'orden', 'activa', 'escalones', 'creado',
         ]
 
 
@@ -27,5 +28,5 @@ class ProductoSerializer(serializers.ModelSerializer):
         model = Producto
         fields = [
             'id', 'categoria', 'categoria_nombre', 'unidad_medida', 'nombre', 'descripcion',
-            'contenido', 'precio_base', 'imagen', 'destacado', 'activo', 'orden', 'creado',
+            'contenido', 'precio_base', 'precio_granel', 'imagen', 'destacado', 'activo', 'orden', 'creado',
         ]

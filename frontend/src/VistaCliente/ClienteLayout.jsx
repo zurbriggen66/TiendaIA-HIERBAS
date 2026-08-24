@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useTienda } from './TiendaContext';
 import { aclararColor, colorContraste } from '../utils/colores';
@@ -31,13 +31,38 @@ export default function ClienteLayout() {
   const {
     configuracion, cargando, totalItems, items, categorias,
     carritoAbierto, abrirCarrito, cerrarCarrito, cambiarCantidad, quitarDelCarrito, vaciarCarrito,
+    toast, limpiarToast,
     cliente, setCliente, cerrarSesion, mostrarCuenta, abrirCuenta, cerrarCuenta,
   } = useTienda();
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(limpiarToast, 2200);
+    return () => clearTimeout(id);
+  }, [toast, limpiarToast]);
 
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  // Alto real de la barra flotante "Ver mi pedido" (cambia según pantalla/breakpoint):
+  // se mide en vez de adivinarlo, así cualquier otra barra fija de una página (ej. el
+  // "Agregar al carrito" del detalle de producto) puede apilarse arriba sin superponerse.
+  const barraCarritoRef = useRef(null);
+  const [alturaBarraCarrito, setAlturaBarraCarrito] = useState(0);
+  useEffect(() => {
+    const el = barraCarritoRef.current;
+    if (!el) {
+      setAlturaBarraCarrito(0);
+      return;
+    }
+    // getBoundingClientRect (no entry.contentRect: ese excluye el padding, y esta barra
+    // tiene padding vertical propio que hay que contar para que no queden pisadas).
+    const observer = new ResizeObserver(() => setAlturaBarraCarrito(el.getBoundingClientRect().height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [totalItems > 0]);
 
   if (cargando) return <Preloader configuracion={configuracion} />;
 
@@ -51,6 +76,7 @@ export default function ClienteLayout() {
     '--accent-gradient': `linear-gradient(135deg, ${colorAcentoClaro}, ${configuracion.color_acento})`,
     '--boton-agregar': configuracion.color_boton_agregar,
     '--boton-agregar-texto': colorContraste(configuracion.color_boton_agregar),
+    '--altura-barra-carrito': `${alturaBarraCarrito}px`,
   };
 
   const pedirPorWhatsapp = () => {
@@ -59,7 +85,7 @@ export default function ClienteLayout() {
   };
 
   return (
-    <div className="cliente-container" style={{ ...estiloTema, ...(totalItems > 0 ? { paddingBottom: 76 } : null) }}>
+    <div className="cliente-container" style={{ ...estiloTema, ...(totalItems > 0 ? { paddingBottom: alturaBarraCarrito } : null) }}>
       <NavBar
         configuracion={configuracion}
         totalItems={totalItems}
@@ -81,8 +107,15 @@ export default function ClienteLayout() {
 
       <Outlet />
 
+      {toast && (
+        <div className="toast-agregado" key={toast.key} role="status">
+          <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
+          {toast.mensaje}
+        </div>
+      )}
+
       {totalItems > 0 && (
-        <button type="button" className="carrito-barra-flotante" onClick={abrirCarrito}>
+        <button type="button" className="carrito-barra-flotante" onClick={abrirCarrito} ref={barraCarritoRef}>
           <span className="carrito-barra-info">
             <span className="carrito-barra-badge">{totalItems}</span>
             Ver mi pedido

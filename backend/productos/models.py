@@ -27,6 +27,15 @@ class Categoria(models.Model):
     # exige al menos 10kg de cada hierba elegida, no solo 50kg en total). 0 = sin piso
     # por variedad, solo importa el total de la categoría.
     cantidad_minima_variedad = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Modo "a granel": no rechaza el pedido como cantidad_minima_variedad, sino que
+    # DESBLOQUEA un precio más barato (Producto.precio_granel) para TODA la categoría
+    # cuando el pedido junta al menos granel_cantidad_minima en total Y cada variedad
+    # elegida llega a granel_cantidad_minima_variedad. Si una sola variedad no llega,
+    # el pedido entero se cobra al precio normal (precio_base) — es todo o nada, no se
+    # mezclan precios de a granel y por kg en un mismo pedido. 0 = esta categoría no
+    # tiene modo granel.
+    granel_cantidad_minima = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    granel_cantidad_minima_variedad = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     orden = models.PositiveIntegerField(default=0)
     activa = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
@@ -79,6 +88,10 @@ class Producto(models.Model):
     # precio fijo de Yuyitos). Si la categoría tiene escalones, esos mandan y este campo
     # se ignora — ver Producto.precio_para_cantidad_categoria.
     precio_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Precio por unidad cuando el pedido entero califica para el modo granel de su
+    # categoría (ver Categoria.granel_cantidad_minima). Si es null, este producto no
+    # tiene precio a granel propio (aunque la categoría tenga el modo activado).
+    precio_granel = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     imagen = models.ImageField(upload_to='productos/productos/', null=True, blank=True)
     destacado = models.BooleanField(default=False)
     activo = models.BooleanField(default=True)

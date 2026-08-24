@@ -2869,6 +2869,38 @@ body {
   color: #f4a35c;
 }
 
+.toast-agregado {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #1a361b;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 10px 24px -10px rgba(28, 28, 22, 0.5);
+  max-width: calc(100% - 32px);
+  text-align: center;
+  animation: toastAgregadoAparece 0.25s ease-out;
+}
+
+.toast-agregado .material-symbols-outlined {
+  font-size: 18px;
+  flex-shrink: 0;
+  color: #8caa78;
+}
+
+@keyframes toastAgregadoAparece {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 .carrito-barra-flotante {
   position: fixed;
   left: 0;

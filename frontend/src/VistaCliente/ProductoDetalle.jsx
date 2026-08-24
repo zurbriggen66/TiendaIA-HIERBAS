@@ -12,7 +12,7 @@ const PASO_POR_UNIDAD = { kg: 0.5, pack: 1, caja: 1, unidad: 1 };
 export default function ProductoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { categorias, productos, agregarAlCarrito } = useTienda();
+  const { categorias, productos, agregarAlCarrito, totalItems } = useTienda();
 
   const producto = productos.find((p) => String(p.id) === id);
   const categoria = producto ? categorias.find((c) => c.id === producto.categoria) : null;
@@ -44,7 +44,10 @@ export default function ProductoDetalle() {
   };
 
   return (
-    <section className="producto-detalle-seccion">
+    <section
+      className="producto-detalle-seccion"
+      style={totalItems > 0 ? { paddingBottom: 'calc(110px + var(--altura-barra-carrito, 0px) + 10px)' } : null}
+    >
       <button type="button" className="producto-detalle-volver" onClick={() => navigate(-1)} aria-label="Volver">
         <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
       </button>
@@ -105,7 +108,7 @@ export default function ProductoDetalle() {
         </p>
       )}
 
-      <div className="producto-detalle-barra-inferior">
+      <div className={`producto-detalle-barra-inferior ${totalItems > 0 ? 'producto-detalle-barra-inferior-con-carrito' : ''}`}>
         <div className="producto-detalle-stepper">
           <button type="button" onClick={() => ajustar(-paso)} aria-label="Restar">
             <span className="material-symbols-outlined" aria-hidden="true">remove</span>
@@ -382,6 +385,14 @@ export default function ProductoDetalle() {
           cursor: pointer;
         }
 
+        /* Cuando ya hay algo en el carrito, ClienteLayout muestra su propia barra
+           flotante "Ver mi pedido" pegada abajo (z-index 40, por encima de esta) — esta
+           barra sube el alto REAL de esa barra (medido en ClienteLayout, no adivinado)
+           más un margen chico, para quedar apiladas en vez de superpuestas. */
+        .producto-detalle-barra-inferior-con-carrito {
+          bottom: calc(var(--altura-barra-carrito, 0px) + 10px);
+        }
+
         @media (min-width: 700px) {
           .producto-detalle-barra-inferior {
             max-width: 640px;
@@ -390,6 +401,10 @@ export default function ProductoDetalle() {
             border-radius: 999px;
             border: 1px solid var(--border);
             bottom: 24px;
+          }
+
+          .producto-detalle-barra-inferior-con-carrito {
+            bottom: calc(24px + var(--altura-barra-carrito, 0px) + 10px);
           }
         }
       `}</style>

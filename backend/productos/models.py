@@ -22,6 +22,11 @@ class Categoria(models.Model):
     # repartidos como se quiera entre variedades). Se valida contra la suma del carrito
     # para la categoría, no contra cada producto por separado.
     cantidad_minima = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # A diferencia de cantidad_minima (que se suma entre todas las variedades), este
+    # mínimo aplica a CADA variedad que el cliente decida incluir (ej: Hierbas a Granel
+    # exige al menos 10kg de cada hierba elegida, no solo 50kg en total). 0 = sin piso
+    # por variedad, solo importa el total de la categoría.
+    cantidad_minima_variedad = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     orden = models.PositiveIntegerField(default=0)
     activa = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)

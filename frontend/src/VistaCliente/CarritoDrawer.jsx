@@ -63,7 +63,7 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
 
   const categoriasPorId = useMemo(() => new Map(categorias.map((c) => [c.id, c])), [categorias]);
   const resumen = useMemo(() => resumenPorCategoria(items, categoriasPorId), [items, categoriasPorId]);
-  const faltaAlgunMinimo = resumen.some((g) => g.faltante > 0);
+  const faltaAlgunMinimo = resumen.some((g) => g.faltante > 0 || g.variedadesBajoMinimo.length > 0);
 
   const total = items.reduce((acc, item) => acc + precioUnitarioItem(item, resumen) * item.cantidad, 0);
   const descuentoPuntos = Math.min(Number(cliente?.puntos_en_pesos) || 0, total);
@@ -153,21 +153,31 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
           </div>
         ) : (
           <form onSubmit={enviarPedido} className="pedido-form">
-            {resumen.map((grupo) => (
-              <div key={grupo.categoria.id} className={`categoria-resumen ${grupo.faltante > 0 ? 'categoria-resumen-falta' : 'categoria-resumen-ok'}`}>
-                <div className="categoria-resumen-fila">
-                  <strong>{grupo.categoria.nombre}</strong>
-                  <span>{grupo.cantidadTotal} {ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida}</span>
+            {resumen.map((grupo) => {
+              const unidadEtiqueta = ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida;
+              const tieneAviso = grupo.faltante > 0 || grupo.variedadesBajoMinimo.length > 0;
+              return (
+                <div key={grupo.categoria.id} className={`categoria-resumen ${tieneAviso ? 'categoria-resumen-falta' : 'categoria-resumen-ok'}`}>
+                  <div className="categoria-resumen-fila">
+                    <strong>{grupo.categoria.nombre}</strong>
+                    <span>{grupo.cantidadTotal} {unidadEtiqueta}</span>
+                  </div>
+                  {grupo.faltante > 0 && (
+                    <span className="categoria-resumen-aviso">
+                      Faltan {grupo.faltante} {unidadEtiqueta} para el mínimo de {grupo.categoria.cantidad_minima}
+                    </span>
+                  )}
+                  {grupo.variedadesBajoMinimo.map((v) => (
+                    <span key={v.nombre} className="categoria-resumen-aviso">
+                      Faltan {v.falta} {unidadEtiqueta} de {v.nombre} (mínimo {grupo.minimoVariedad} por variedad)
+                    </span>
+                  ))}
+                  {!tieneAviso && grupo.precioEscalon != null && (
+                    <span className="categoria-resumen-precio">Precio vigente: {formatearPrecio(grupo.precioEscalon)} c/u</span>
+                  )}
                 </div>
-                {grupo.faltante > 0 ? (
-                  <span className="categoria-resumen-aviso">
-                    Faltan {grupo.faltante} {ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida} para el mínimo de {grupo.categoria.cantidad_minima}
-                  </span>
-                ) : grupo.precioEscalon != null ? (
-                  <span className="categoria-resumen-precio">Precio vigente: {formatearPrecio(grupo.precioEscalon)} c/u</span>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
 
             <div className="pedido-items">
               {items.map((item) => (

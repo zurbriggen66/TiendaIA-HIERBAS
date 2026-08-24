@@ -53,3 +53,35 @@ class MinimoYEscalonPorCategoriaTests(TestCase):
         pedido = Pedido.objects.get(id=respuesta.data['id'])
         for detalle in pedido.items.all():
             self.assertEqual(detalle.precio_unitario, 400)
+
+
+class MinimoPorVariedadTests(TestCase):
+    """Cubre la regla de "Hierbas a Granel" (10kg de cada variedad elegida, no solo el
+    total de la categoría): a diferencia del mínimo de categoría, este es por producto."""
+
+    def setUp(self):
+        self.categoria = Categoria.objects.create(
+            nombre='Granel de prueba', unidad_medida='kg', cantidad_minima=50, cantidad_minima_variedad=10,
+        )
+        self.manzanilla = Producto.objects.create(categoria=self.categoria, nombre='Manzanilla', precio_base=100)
+        self.tilo = Producto.objects.create(categoria=self.categoria, nombre='Tilo', precio_base=100)
+
+    def test_rechaza_si_alguna_variedad_elegida_no_llega_a_su_propio_minimo(self):
+        respuesta = self.client.post('/api/pedidos/', data={
+            'items': [
+                {'producto': self.manzanilla.id, 'cantidad': 45},
+                {'producto': self.tilo.id, 'cantidad': 5},  # cumple el total (50) pero no el mínimo por variedad (10)
+            ],
+        }, content_type='application/json')
+
+        self.assertEqual(respuesta.status_code, 400)
+
+    def test_pasa_si_cada_variedad_elegida_llega_a_su_propio_minimo(self):
+        respuesta = self.client.post('/api/pedidos/', data={
+            'items': [
+                {'producto': self.manzanilla.id, 'cantidad': 40},
+                {'producto': self.tilo.id, 'cantidad': 10},
+            ],
+        }, content_type='application/json')
+
+        self.assertEqual(respuesta.status_code, 201, respuesta.content)

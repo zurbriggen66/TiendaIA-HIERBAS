@@ -17,15 +17,36 @@ export function resumenPorCategoria(items, categoriasPorId) {
     const categoriaId = item.producto.categoria;
     const categoria = categoriasPorId.get(categoriaId);
     if (!categoria) continue;
-    if (!grupos.has(categoria.id)) grupos.set(categoria.id, { categoria, cantidadTotal: 0, items: [] });
+    if (!grupos.has(categoria.id)) {
+      grupos.set(categoria.id, { categoria, cantidadTotal: 0, items: [], cantidadPorProducto: new Map() });
+    }
     const grupo = grupos.get(categoria.id);
     grupo.cantidadTotal += Number(item.cantidad) || 0;
     grupo.items.push(item);
+    const previa = grupo.cantidadPorProducto.get(item.producto.id) || 0;
+    grupo.cantidadPorProducto.set(item.producto.id, previa + (Number(item.cantidad) || 0));
   }
   return Array.from(grupos.values()).map((grupo) => {
     const precioEscalon = precioPorEscalon(grupo.categoria, grupo.cantidadTotal);
     const faltante = Math.max(0, Number(grupo.categoria.cantidad_minima || 0) - grupo.cantidadTotal);
-    return { ...grupo, precioEscalon, faltante };
+
+    // Mínimo por variedad (ej: Hierbas a Granel exige al menos 10kg de CADA hierba
+    // elegida, no solo el total): a diferencia de `faltante`, es por producto individual.
+    const minimoVariedad = Number(grupo.categoria.cantidad_minima_variedad || 0);
+    const variedadesBajoMinimo = [];
+    if (minimoVariedad > 0) {
+      const vistos = new Set();
+      for (const item of grupo.items) {
+        if (vistos.has(item.producto.id)) continue;
+        vistos.add(item.producto.id);
+        const cantidad = grupo.cantidadPorProducto.get(item.producto.id) || 0;
+        if (cantidad < minimoVariedad) {
+          variedadesBajoMinimo.push({ nombre: item.producto.nombre, cantidad, falta: minimoVariedad - cantidad });
+        }
+      }
+    }
+
+    return { ...grupo, precioEscalon, faltante, minimoVariedad, variedadesBajoMinimo };
   });
 }
 

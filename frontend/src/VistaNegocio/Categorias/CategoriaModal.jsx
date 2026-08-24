@@ -22,6 +22,7 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
   const [descripcion, setDescripcion] = useState(categoria ? categoria.descripcion : '');
   const [unidadMedida, setUnidadMedida] = useState(categoria ? categoria.unidad_medida : 'kg');
   const [cantidadMinima, setCantidadMinima] = useState(categoria ? categoria.cantidad_minima : 0);
+  const [cantidadMinimaVariedad, setCantidadMinimaVariedad] = useState(categoria ? categoria.cantidad_minima_variedad : 0);
   const [activa, setActiva] = useState(categoria ? categoria.activa : true);
   const [imagen, setImagen] = useState(null);
   const [guardando, setGuardando] = useState(false);
@@ -69,6 +70,7 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
     formData.append('descripcion', descripcion);
     formData.append('unidad_medida', unidadMedida);
     formData.append('cantidad_minima', cantidadMinima || 0);
+    formData.append('cantidad_minima_variedad', cantidadMinimaVariedad || 0);
     formData.append('activa', activa);
     if (imagen) formData.append('imagen', imagen);
 
@@ -161,6 +163,22 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
               />
               <p className="form-ayuda">Se suma entre todas las variedades que el cliente elija de esta categoría.</p>
             </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Mínimo por variedad (opcional)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              className="input-vibrante"
+              value={cantidadMinimaVariedad}
+              onChange={(e) => setCantidadMinimaVariedad(e.target.value)}
+            />
+            <p className="form-ayuda">
+              Si lo cargás, cada variedad que el cliente elija de esta categoría tiene que llegar sola a este mínimo
+              (ej: al menos 10kg de cada hierba, no solo el total). Dejalo en 0 si no aplica.
+            </p>
           </div>
 
           <div className="form-group">

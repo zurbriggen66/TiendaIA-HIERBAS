@@ -15,7 +15,7 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = [
             'id', 'nombre', 'slug', 'descripcion', 'imagen', 'unidad_medida',
-            'cantidad_minima', 'orden', 'activa', 'escalones', 'creado',
+            'cantidad_minima', 'cantidad_minima_variedad', 'orden', 'activa', 'escalones', 'creado',
         ]
 
 

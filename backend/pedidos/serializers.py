@@ -96,15 +96,30 @@ class PedidoSerializer(serializers.ModelSerializer):
         # los productos del pedido que pertenecen a una misma categoría (no por producto
         # individual) — así se puede "armar" el pedido combinando variedades.
         cantidades_por_categoria = {}
+        cantidades_por_producto = {}
         for item in data.get('items', []):
             producto = item['producto']
             cantidades_por_categoria.setdefault(producto.categoria, Decimal('0'))
             cantidades_por_categoria[producto.categoria] += item['cantidad']
+            cantidades_por_producto.setdefault(producto, Decimal('0'))
+            cantidades_por_producto[producto] += item['cantidad']
         for categoria, cantidad in cantidades_por_categoria.items():
             if categoria.cantidad_minima and cantidad < categoria.cantidad_minima:
                 raise serializers.ValidationError(
                     f'"{categoria.nombre}" tiene un mínimo de compra de {categoria.cantidad_minima} '
                     f'{categoria.get_unidad_medida_display().lower()}(s); el pedido junta {cantidad}.'
+                )
+
+        # Mínimo por variedad (ej: Hierbas a Granel exige al menos 10kg de CADA hierba
+        # elegida, no solo el total de la categoría): a diferencia del chequeo de arriba,
+        # este es por producto individual dentro de la categoría.
+        for producto, cantidad in cantidades_por_producto.items():
+            minimo_variedad = producto.categoria.cantidad_minima_variedad
+            if minimo_variedad and cantidad < minimo_variedad:
+                raise serializers.ValidationError(
+                    f'"{producto.nombre}" tiene un mínimo de {minimo_variedad} '
+                    f'{producto.categoria.get_unidad_medida_display().lower()}(s) si se incluye en el pedido; '
+                    f'el pedido tiene {cantidad}.'
                 )
         return data
 

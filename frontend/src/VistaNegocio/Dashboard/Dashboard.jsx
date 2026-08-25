@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [logoPrecarga, setLogoPrecarga] = useState(null);
   const [portada, setPortada] = useState(null);
   const [bannerMayorista, setBannerMayorista] = useState(null);
+  const [quienesSomos, setQuienesSomos] = useState(null);
   const [qrCarta, setQrCarta] = useState(null);
 
   // Guardamos el ID para saber si tenemos que actualizar (PATCH) o crear (POST)
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const [logoPrecargaActivo, setLogoPrecargaActivo] = useState(null);
   const [portadaActiva, setPortadaActiva] = useState(null);
   const [bannerMayoristaActivo, setBannerMayoristaActivo] = useState(null);
+  const [quienesSomosActiva, setQuienesSomosActiva] = useState(null);
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
   const [colorNavbar, setColorNavbar] = useState('#f2f7ef');
@@ -61,6 +63,7 @@ export default function Dashboard() {
           setLogoPrecargaActivo(ultimaConfig.logo_precarga);
           setPortadaActiva(ultimaConfig.imagen_principal);
           setBannerMayoristaActivo(ultimaConfig.imagen_banner_mayorista);
+          setQuienesSomosActiva(ultimaConfig.imagen_quienes_somos);
           setWhatsapp(ultimaConfig.whatsapp || '');
           setInstagram(ultimaConfig.instagram || '');
           setColorNavbar(ultimaConfig.color_navbar || '#f2f7ef');
@@ -126,6 +129,11 @@ export default function Dashboard() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) setBannerMayorista(e.dataTransfer.files[0]);
   };
 
+  const handleDropQuienesSomos = (e) => {
+    prevenirNavegador(e);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) setQuienesSomos(e.dataTransfer.files[0]);
+  };
+
   const guardarCambios = async (e) => {
     e.preventDefault();
 
@@ -135,6 +143,7 @@ export default function Dashboard() {
     if (logoPrecarga) formData.append('logo_precarga', logoPrecarga);
     if (portada) formData.append('imagen_principal', portada);
     if (bannerMayorista) formData.append('imagen_banner_mayorista', bannerMayorista);
+    if (quienesSomos) formData.append('imagen_quienes_somos', quienesSomos);
     formData.append('whatsapp', whatsapp);
     formData.append('instagram', instagram);
     formData.append('color_navbar', colorNavbar);
@@ -169,6 +178,7 @@ export default function Dashboard() {
   const previewLogoPrecarga = logoPrecarga ? URL.createObjectURL(logoPrecarga) : logoPrecargaActivo;
   const previewPortada = portada ? URL.createObjectURL(portada) : portadaActiva;
   const previewBannerMayorista = bannerMayorista ? URL.createObjectURL(bannerMayorista) : bannerMayoristaActivo;
+  const previewQuienesSomos = quienesSomos ? URL.createObjectURL(quienesSomos) : quienesSomosActiva;
 
   return (
     <>
@@ -352,6 +362,40 @@ export default function Dashboard() {
                     className="input-file-hidden"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) setBannerMayorista(e.target.files[0]);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* Input de la imagen "¿Quiénes somos?" (reemplaza los 2 logos) */}
+              <div className="form-group">
+                <label className="form-label">Imagen "¿Quiénes somos?" (reemplaza los 2 logos)</label>
+                <label
+                  className="upload-box upload-box-vibrante"
+                  onDragOver={prevenirNavegador}
+                  onDrop={handleDropQuienesSomos}
+                >
+                  {previewQuienesSomos ? (
+                    <img src={previewQuienesSomos} alt="Preview quiénes somos" className="upload-preview" />
+                  ) : (
+                    <div className="upload-icon">🖼️</div>
+                  )}
+
+                  <p className="upload-text">
+                    {quienesSomos ? (
+                      <span className="upload-file-name">{quienesSomos.name}</span>
+                    ) : (
+                      <><span className="upload-link">Cargar archivo</span> o arrastrar y soltar</>
+                    )}
+                  </p>
+                  <p className="upload-hint">Formato vertical (9:16), ej. 1080x1920px</p>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="input-file-hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) setQuienesSomos(e.target.files[0]);
                     }}
                   />
                 </label>

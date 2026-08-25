@@ -40,6 +40,7 @@ export const CONFIG_INICIAL = {
   logo_precarga: null,
   imagen_principal: null,
   imagen_banner_mayorista: null,
+  imagen_quienes_somos: null,
   video_principal: null,
   whatsapp: '',
   instagram: '',

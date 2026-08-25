@@ -1,6 +1,26 @@
 import React from 'react';
 
 export default function MarcasRegistradas({ configuracion }) {
+  if (configuracion.imagen_quienes_somos) {
+    return (
+      <section className="quienes-somos-seccion">
+        <img src={configuracion.imagen_quienes_somos} alt="¿Quiénes somos?" />
+        <style>{`
+          .quienes-somos-seccion {
+            width: 100%;
+          }
+
+          .quienes-somos-seccion img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            object-fit: cover;
+          }
+        `}</style>
+      </section>
+    );
+  }
+
   return (
     <section className="marcas-seccion">
       <div className="marcas-fondo-decorativo" aria-hidden="true" />

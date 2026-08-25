@@ -19,6 +19,12 @@ class ConfiguracionSitio(models.Model):
         blank=True,
         help_text="Fondo del banner 'Explorá nuestro catálogo'. Formato cuadrado (1:1) recomendado.",
     )
+    imagen_quienes_somos = models.ImageField(
+        upload_to='sitio/quienes-somos/',
+        null=True,
+        blank=True,
+        help_text="Reemplaza los 2 logos de la sección de marcas. Formato vertical 9:16 recomendado.",
+    )
     whatsapp = models.CharField(max_length=20, blank=True, default='')
     # CharField (no URLField): así se acepta "instagram.com/tu_negocio" sin que Django
     # rechace el guardado por faltarle el "https://" — se lo completamos solos en save().

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 export default function ProductoModal({ producto, categorias, categoriaPreseleccionada, onClose, onSaved }) {
   const [nombre, setNombre] = useState(producto ? producto.nombre : '');
@@ -33,7 +34,7 @@ export default function ProductoModal({ producto, categorias, categoriaPreselecc
   const guardar = async (e) => {
     e.preventDefault();
     if (!nombre.trim() || !categoriaId) {
-      alert('Completá al menos el nombre y la categoría.');
+      notificar('Completá al menos el nombre y la categoría.');
       return;
     }
 
@@ -62,7 +63,7 @@ export default function ProductoModal({ producto, categorias, categoriaPreselecc
       onSaved();
     } catch (error) {
       console.error('Error al guardar el producto:', error);
-      alert('Hubo un problema al guardar el producto.');
+      notificar('Hubo un problema al guardar el producto.');
     } finally {
       setGuardando(false);
     }

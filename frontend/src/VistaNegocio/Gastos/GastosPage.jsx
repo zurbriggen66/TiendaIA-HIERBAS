@@ -4,6 +4,7 @@ import GastoModal from './GastoModal';
 import InsumoModal from './InsumoModal';
 import GastoFijoModal from './GastoFijoModal';
 import GastoFijoPagarModal from './GastoFijoPagarModal';
+import { notificar, confirmar } from '../notificaciones';
 
 const ETIQUETA_CATEGORIA = {
   insumos: 'Insumos / Stock',
@@ -49,24 +50,24 @@ export default function GastosPage() {
   }, [cargarDatos]);
 
   const eliminarGasto = async (gasto) => {
-    if (!window.confirm(`¿Eliminar el gasto "${gasto.descripcion}"?`)) return;
+    if (!(await confirmar(`¿Eliminar el gasto "${gasto.descripcion}"?`))) return;
     try {
       await api.delete(`/gastos/${gasto.id}/`);
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar el gasto:', error);
-      alert('No se pudo eliminar el gasto.');
+      notificar('No se pudo eliminar el gasto.');
     }
   };
 
   const eliminarGastoFijo = async (gastoFijo) => {
-    if (!window.confirm(`¿Eliminar el gasto fijo "${gastoFijo.nombre}"? Los gastos ya registrados no se borran.`)) return;
+    if (!(await confirmar(`¿Eliminar el gasto fijo "${gastoFijo.nombre}"? Los gastos ya registrados no se borran.`))) return;
     try {
       await api.delete(`/gastos-fijos/${gastoFijo.id}/`);
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar el gasto fijo:', error);
-      alert('No se pudo eliminar el gasto fijo.');
+      notificar('No se pudo eliminar el gasto fijo.');
     }
   };
 

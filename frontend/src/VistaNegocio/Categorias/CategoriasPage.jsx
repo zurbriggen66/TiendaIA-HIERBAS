@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import CategoriaModal from './CategoriaModal';
+import { notificar, confirmar } from '../notificaciones';
 
 const ETIQUETA_UNIDAD = { kg: 'Kilogramo', pack: 'Pack', caja: 'Caja', unidad: 'Unidad' };
 
@@ -29,13 +30,13 @@ export default function CategoriasPage() {
   }, [cargarDatos]);
 
   const eliminarCategoria = async (categoria) => {
-    if (!window.confirm(`¿Eliminar la categoría "${categoria.nombre}"?`)) return;
+    if (!(await confirmar(`¿Eliminar la categoría "${categoria.nombre}"?`))) return;
     try {
       await api.delete(`/categorias/${categoria.id}/`);
       cargarDatos();
     } catch (error) {
       const detalle = error.response?.data?.detail;
-      alert(detalle || 'No se pudo eliminar la categoría.');
+      notificar(detalle || 'No se pudo eliminar la categoría.');
     }
   };
 

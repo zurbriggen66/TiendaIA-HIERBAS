@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 const UNIDADES = [
   { value: 'kg', label: 'Kilogramo' },
@@ -65,7 +66,7 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
   const guardar = async (e) => {
     e.preventDefault();
     if (!nombre.trim()) {
-      alert('Ponele un nombre a la categoría.');
+      notificar('Ponele un nombre a la categoría.');
       return;
     }
 
@@ -113,7 +114,7 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
       onSaved();
     } catch (error) {
       console.error('Error al guardar la categoría:', error);
-      alert('Hubo un problema al guardar la categoría.');
+      notificar('Hubo un problema al guardar la categoría.');
     } finally {
       setGuardando(false);
     }

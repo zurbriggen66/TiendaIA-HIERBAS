@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 function CampoColor({ label, value, onChange }) {
   return (
@@ -164,11 +165,13 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      alert('¡Imágenes guardadas y actualizadas con éxito!');
-      window.location.reload(); 
+      notificar('¡Imágenes guardadas y actualizadas con éxito!', 'exito');
+      // El toast ya no bloquea como alert() antes de recargar: le damos un momento a
+      // la vista para que se alcance a leer el aviso antes de que la página recargue.
+      setTimeout(() => window.location.reload(), 900);
     } catch (error) {
       console.error("Error al guardar:", error);
-      alert('Hubo un problema al guardar las imágenes.');
+      notificar('Hubo un problema al guardar las imágenes.');
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
 import { METODOS_PAGO } from '../../utils/metodosPago';
+import { notificar } from '../notificaciones';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 const hoyISO = () => {
@@ -23,7 +24,7 @@ export default function CompraModal({ compra, proveedores, insumos, onClose, onS
   const guardar = async (e) => {
     e.preventDefault();
     if (!proveedorId || !total) {
-      alert('Elegí un proveedor y cargá el total de la compra.');
+      notificar('Elegí un proveedor y cargá el total de la compra.');
       return;
     }
 
@@ -49,7 +50,7 @@ export default function CompraModal({ compra, proveedores, insumos, onClose, onS
       onSaved();
     } catch (error) {
       console.error('Error al guardar la compra:', error);
-      alert('Hubo un problema al guardar la compra.');
+      notificar('Hubo un problema al guardar la compra.');
     } finally {
       setGuardando(false);
     }

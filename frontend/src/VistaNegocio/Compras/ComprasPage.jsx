@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
 import CompraModal from './CompraModal';
+import { notificar, confirmar } from '../notificaciones';
 
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -46,13 +47,13 @@ export default function ComprasPage() {
   }, [cargarDatos]);
 
   const eliminar = async (compra) => {
-    if (!window.confirm(`¿Eliminar la compra a "${compra.proveedor_nombre}" del ${formatearFecha(compra.fecha)}?`)) return;
+    if (!(await confirmar(`¿Eliminar la compra a "${compra.proveedor_nombre}" del ${formatearFecha(compra.fecha)}?`))) return;
     try {
       await api.delete(`/compras/${compra.id}/`);
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar la compra:', error);
-      alert('No se pudo eliminar la compra.');
+      notificar('No se pudo eliminar la compra.');
     }
   };
 

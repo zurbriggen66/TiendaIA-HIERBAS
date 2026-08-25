@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import api, { guardarTokenAdmin } from '../services/api';
 import { obtenerConfigImpresion, imprimirPedido } from '../utils/impresion';
+import NotificacionesHost from './NotificacionesHost';
 
 const INTERVALO_CONSULTA_MS = 15000;
 
@@ -161,6 +162,8 @@ export default function DashboardLayout() {
       <main className="main-content">
         <Outlet />
       </main>
+
+      <NotificacionesHost />
 
       {toast && (
         <div className="toast-pedido-nuevo" onClick={irAPedidos}>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import api from '../../services/api';
 import { resumenPorCategoria, precioUnitarioItem } from '../../utils/escalones';
+import { notificar } from '../notificaciones';
 
 const COLORES_CHIP = ['chip-mostaza', 'chip-naranja', 'chip-tomate'];
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
@@ -71,11 +72,11 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
   const guardar = async (e) => {
     e.preventDefault();
     if (filasValidas.length === 0) {
-      alert('Agregá al menos un producto con cantidad.');
+      notificar('Agregá al menos un producto con cantidad.');
       return;
     }
     if (faltaAlgunMinimo) {
-      alert('Todavía falta llegar al mínimo de compra en alguna categoría (ver el resumen debajo del listado).');
+      notificar('Todavía falta llegar al mínimo de compra en alguna categoría (ver el resumen debajo del listado).');
       return;
     }
 
@@ -97,7 +98,7 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
     } catch (error) {
       console.error('Error al crear el pedido:', error);
       const detalle = error.response?.data?.non_field_errors?.[0];
-      alert(detalle || 'Hubo un problema al crear el pedido.');
+      notificar(detalle || 'Hubo un problema al crear el pedido.');
     } finally {
       setGuardando(false);
     }

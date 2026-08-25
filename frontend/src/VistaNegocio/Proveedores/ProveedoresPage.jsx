@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import ProveedorModal from './ProveedorModal';
+import { notificar, confirmar } from '../notificaciones';
 
 export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState([]);
@@ -24,13 +25,13 @@ export default function ProveedoresPage() {
   }, [cargarDatos]);
 
   const eliminar = async (proveedor) => {
-    if (!window.confirm(`¿Eliminar el proveedor "${proveedor.nombre}"?`)) return;
+    if (!(await confirmar(`¿Eliminar el proveedor "${proveedor.nombre}"?`))) return;
     try {
       await api.delete(`/proveedores/${proveedor.id}/`);
       cargarDatos();
     } catch (error) {
       const detalle = error.response?.data?.detail;
-      alert(detalle || 'No se pudo eliminar el proveedor.');
+      notificar(detalle || 'No se pudo eliminar el proveedor.');
     }
   };
 

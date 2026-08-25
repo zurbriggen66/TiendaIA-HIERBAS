@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 // Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
 const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -52,7 +53,7 @@ export default function ListaPreciosPage() {
       await api.patch(`/productos/${producto.id}/`, { [campo]: valor === '' ? null : valor });
     } catch (error) {
       console.error('Error al guardar el precio:', error);
-      alert(`No se pudo guardar el precio de "${producto.nombre}".`);
+      notificar(`No se pudo guardar el precio de "${producto.nombre}".`);
     } finally {
       setGuardandoId((actual) => (actual === producto.id ? null : actual));
     }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../services/api';
 import ProductoModal from './ProductoModal';
+import { notificar, confirmar } from '../notificaciones';
 
 export default function ProductosPage() {
   const [categorias, setCategorias] = useState([]);
@@ -31,14 +32,14 @@ export default function ProductosPage() {
   }, [cargarDatos]);
 
   const eliminarProducto = async (producto) => {
-    if (!window.confirm(`¿Eliminar el producto "${producto.nombre}"?`)) return;
+    if (!(await confirmar(`¿Eliminar el producto "${producto.nombre}"?`))) return;
     try {
       await api.delete(`/productos/${producto.id}/`);
       cargarDatos();
     } catch (error) {
       console.error('Error al eliminar el producto:', error);
       const detalle = error.response?.data?.detail;
-      alert(detalle || 'No se pudo eliminar el producto.');
+      notificar(detalle || 'No se pudo eliminar el producto.');
     }
   };
 

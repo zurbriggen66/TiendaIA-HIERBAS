@@ -1387,6 +1387,73 @@ body {
   background: var(--border);
 }
 
+/* === Notificaciones del admin (NotificacionesHost.jsx), reemplazan alert()/confirm() === */
+.admin-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 40px);
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ffffff;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.5);
+  animation: adminToastAparece 0.25s ease-out;
+}
+
+.admin-toast-aviso {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.admin-toast-exito {
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+}
+
+@keyframes adminToastAparece {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-confirm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.admin-confirm-card p {
+  margin: 0 0 20px;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.admin-confirm-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 /* === VISTA NEGOCIO - PEDIDOS (PedidosPage.jsx) === */
 .pedidos-grid {
   display: grid;

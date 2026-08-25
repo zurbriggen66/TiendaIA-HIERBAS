@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 export default function ProveedorModal({ proveedor, onClose, onSaved }) {
   const [nombre, setNombre] = useState(proveedor ? proveedor.nombre : '');
@@ -12,7 +13,7 @@ export default function ProveedorModal({ proveedor, onClose, onSaved }) {
   const guardar = async (e) => {
     e.preventDefault();
     if (!nombre.trim()) {
-      alert('Ponele un nombre al proveedor.');
+      notificar('Ponele un nombre al proveedor.');
       return;
     }
     const datos = { nombre: nombre.trim(), telefono, email, direccion, nota };
@@ -27,7 +28,7 @@ export default function ProveedorModal({ proveedor, onClose, onSaved }) {
       onSaved();
     } catch (error) {
       console.error('Error al guardar el proveedor:', error);
-      alert('Hubo un problema al guardar el proveedor.');
+      notificar('Hubo un problema al guardar el proveedor.');
     } finally {
       setGuardando(false);
     }

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import { METODOS_PAGO as METODOS } from '../../utils/metodosPago';
+import { notificar, confirmar } from '../notificaciones';
 
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -38,7 +39,7 @@ export default function PedidoPagoModal({ pedidoId, onClose, onSaved }) {
   const agregarPago = async (e) => {
     e.preventDefault();
     if (!monto || Number(monto) <= 0) {
-      alert('Ingresá un monto válido.');
+      notificar('Ingresá un monto válido.');
       return;
     }
     setGuardando(true);
@@ -55,21 +56,21 @@ export default function PedidoPagoModal({ pedidoId, onClose, onSaved }) {
       setMonto(String(calcularFalta(actualizado)));
     } catch (error) {
       console.error('Error al registrar el pago:', error);
-      alert('Hubo un problema al registrar el pago.');
+      notificar('Hubo un problema al registrar el pago.');
     } finally {
       setGuardando(false);
     }
   };
 
   const eliminarPago = async (pago) => {
-    if (!window.confirm(`¿Eliminar el pago de ${formatearPrecio(pago.monto)} (${pago.metodo_label})?`)) return;
+    if (!(await confirmar(`¿Eliminar el pago de ${formatearPrecio(pago.monto)} (${pago.metodo_label})?`))) return;
     try {
       await api.delete(`/pagos/${pago.id}/`);
       await cargarPedido();
       onSaved();
     } catch (error) {
       console.error('Error al eliminar el pago:', error);
-      alert('No se pudo eliminar el pago.');
+      notificar('No se pudo eliminar el pago.');
     }
   };
 

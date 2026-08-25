@@ -6,6 +6,7 @@ import LocalidadModal from './LocalidadModal';
 import PedidoEnvioDescuentoModal from './PedidoEnvioDescuentoModal';
 import PedidoPagoModal from './PedidoPagoModal';
 import { imprimirPedido } from '../../utils/impresion';
+import { notificar, confirmar } from '../notificaciones';
 
 const ORDEN_ESTADOS = ['pendiente', 'en_preparacion', 'listo', 'entregado'];
 
@@ -122,7 +123,7 @@ export default function PedidosPage() {
       setPedidos((prev) => prev.map((p) => (p.id === pedido.id ? data : p)));
     } catch (error) {
       console.error('Error al cambiar el estado:', error);
-      alert('No se pudo cambiar el estado del pedido.');
+      notificar('No se pudo cambiar el estado del pedido.');
     }
   };
 
@@ -132,30 +133,30 @@ export default function PedidosPage() {
     if (siguiente) cambiarEstado(pedido, siguiente);
   };
 
-  const cancelarPedido = (pedido) => {
-    if (!window.confirm('¿Cancelar este pedido?')) return;
+  const cancelarPedido = async (pedido) => {
+    if (!(await confirmar('¿Cancelar este pedido?'))) return;
     cambiarEstado(pedido, 'cancelado');
   };
 
   const eliminarPedido = async (pedido) => {
-    if (!window.confirm(`¿Eliminar definitivamente el pedido de "${pedido.cliente || `Pedido #${pedido.id}`}"? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar(`¿Eliminar definitivamente el pedido de "${pedido.cliente || `Pedido #${pedido.id}`}"? Esta acción no se puede deshacer.`))) return;
     try {
       await api.delete(`/pedidos/${pedido.id}/`);
       setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
     } catch (error) {
       console.error('Error al eliminar el pedido:', error);
-      alert('No se pudo eliminar el pedido.');
+      notificar('No se pudo eliminar el pedido.');
     }
   };
 
   const eliminarLocalidad = async (localidad) => {
-    if (!window.confirm(`¿Eliminar la localidad "${localidad.nombre}"?`)) return;
+    if (!(await confirmar(`¿Eliminar la localidad "${localidad.nombre}"?`))) return;
     try {
       await api.delete(`/localidades/${localidad.id}/`);
       setLocalidades((prev) => prev.filter((l) => l.id !== localidad.id));
     } catch (error) {
       console.error('Error al eliminar la localidad:', error);
-      alert('No se pudo eliminar la localidad.');
+      notificar('No se pudo eliminar la localidad.');
     }
   };
 

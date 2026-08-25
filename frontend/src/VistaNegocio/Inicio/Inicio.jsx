@@ -8,6 +8,7 @@ import PedidoEnvioDescuentoModal from '../Pedidos/PedidoEnvioDescuentoModal';
 import { imprimirPedido } from '../../utils/impresion';
 import GraficoVentas from '../Estadisticas/GraficoVentas';
 import BarrasDesglose from '../Estadisticas/BarrasDesglose';
+import { notificar, confirmar } from '../notificaciones';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 // OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
@@ -117,21 +118,21 @@ export default function Inicio() {
       await cargarInicio();
     } catch (err) {
       console.error('Error al confirmar el pedido:', err);
-      alert('No se pudo confirmar el pedido.');
+      notificar('No se pudo confirmar el pedido.');
     } finally {
       setConfirmando(null);
     }
   };
 
   const cancelarPedido = async (pedido) => {
-    if (!window.confirm(`¿Cancelar el pedido de ${pedido.cliente || 'este cliente'}? Esto asume que nunca llegó por WhatsApp.`)) return;
+    if (!(await confirmar(`¿Cancelar el pedido de ${pedido.cliente || 'este cliente'}? Esto asume que nunca llegó por WhatsApp.`))) return;
     setConfirmando(pedido.id);
     try {
       await api.patch(`/pedidos/${pedido.id}/`, { estado: 'cancelado' });
       await cargarInicio();
     } catch (err) {
       console.error('Error al cancelar el pedido:', err);
-      alert('No se pudo cancelar el pedido.');
+      notificar('No se pudo cancelar el pedido.');
     } finally {
       setConfirmando(null);
     }
@@ -151,7 +152,7 @@ export default function Inicio() {
     } catch (err) {
       console.error('Error al cambiar el estado de la tienda:', err);
       setTiendaAbierta(anterior);
-      alert('No se pudo guardar el cambio. Probá de nuevo.');
+      notificar('No se pudo guardar el cambio. Probá de nuevo.');
     } finally {
       setGuardandoEstadoTienda(false);
     }
@@ -174,29 +175,29 @@ export default function Inicio() {
       setPedidosRecientes((prev) => prev.map((p) => (p.id === pedido.id ? data : p)));
     } catch (err) {
       console.error('Error al cambiar el estado del pedido:', err);
-      alert('No se pudo cambiar el estado del pedido.');
+      notificar('No se pudo cambiar el estado del pedido.');
     }
   };
 
   const cancelarPedidoReciente = async (pedido) => {
-    if (!window.confirm('¿Cancelar este pedido?')) return;
+    if (!(await confirmar('¿Cancelar este pedido?'))) return;
     try {
       const { data } = await api.patch(`/pedidos/${pedido.id}/`, { estado: 'cancelado' });
       setPedidosRecientes((prev) => prev.map((p) => (p.id === pedido.id ? data : p)));
     } catch (err) {
       console.error('Error al cancelar el pedido:', err);
-      alert('No se pudo cancelar el pedido.');
+      notificar('No se pudo cancelar el pedido.');
     }
   };
 
   const eliminarPedidoReciente = async (pedido) => {
-    if (!window.confirm(`¿Eliminar definitivamente el pedido de "${pedido.cliente || `Pedido #${pedido.id}`}"? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar(`¿Eliminar definitivamente el pedido de "${pedido.cliente || `Pedido #${pedido.id}`}"? Esta acción no se puede deshacer.`))) return;
     try {
       await api.delete(`/pedidos/${pedido.id}/`);
       setPedidosRecientes((prev) => prev.filter((p) => p.id !== pedido.id));
     } catch (err) {
       console.error('Error al eliminar el pedido:', err);
-      alert('No se pudo eliminar el pedido.');
+      notificar('No se pudo eliminar el pedido.');
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
+import { notificar } from '../notificaciones';
 
 const UNIDADES = ['kg', 'litros', 'unidades', 'otro'];
 
@@ -24,18 +25,18 @@ export default function InsumoModal({ insumo, onClose, onSaved }) {
   const guardar = async (e) => {
     e.preventDefault();
     if (!nombre.trim()) {
-      alert('Ponele un nombre al insumo.');
+      notificar('Ponele un nombre al insumo.');
       return;
     }
     if (Number(descuentoPct) > 0 && !descuentoHasta) {
-      alert('Elegí hasta cuándo dura el descuento del insumo.');
+      notificar('Elegí hasta cuándo dura el descuento del insumo.');
       return;
     }
 
     setGuardando(true);
     try {
       if (Number(cantidad) < 0) {
-        alert('El stock no puede ser negativo.');
+        notificar('El stock no puede ser negativo.');
         setGuardando(false);
         return;
       }
@@ -56,7 +57,7 @@ export default function InsumoModal({ insumo, onClose, onSaved }) {
       onSaved();
     } catch (error) {
       console.error('Error al guardar el insumo:', error);
-      alert('Hubo un problema al guardar el insumo.');
+      notificar('Hubo un problema al guardar el insumo.');
     } finally {
       setGuardando(false);
     }

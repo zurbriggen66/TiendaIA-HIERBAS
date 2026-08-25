@@ -1863,9 +1863,83 @@ body {
 }
 
 /* Selector de productos por tarjetas clickeables (PedidoModal.jsx) */
+.pedido-picker-buscador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  margin-bottom: 12px;
+}
+
+.pedido-picker-buscador .material-symbols-outlined {
+  color: var(--text-muted);
+  font-size: 20px;
+}
+
+.pedido-picker-buscador input {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+}
+
 .pedido-picker-categorias {
   margin-bottom: 12px;
   padding-bottom: 12px;
+  /* Nombres de categoría largos + modal angosto: si envuelven, cada chip ocupa casi
+     todo el ancho por su cuenta y la lista de categorías se come media pantalla antes
+     de llegar a los productos. Mejor una sola fila compacta con scroll horizontal. */
+  flex-wrap: nowrap !important;
+}
+
+.pedido-item-filas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pedido-item-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.pedido-item-fila-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pedido-item-fila-info strong {
+  font-size: 0.88rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pedido-item-fila-info span {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.pedido-item-fila-acciones {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .pedido-producto-picker-grid {

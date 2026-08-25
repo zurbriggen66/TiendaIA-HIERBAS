@@ -11,6 +11,9 @@ const nuevaFila = (producto) => ({ key: ++contadorFila, producto, cantidad: 1 })
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
 
+// Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
+const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 export default function PedidoModal({ productos, categorias, localidades, onClose, onSaved }) {
   const [cliente, setCliente] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -22,14 +25,16 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
   const [descuentoPct, setDescuentoPct] = useState('');
   const [nota, setNota] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('todas');
+  const [busquedaProducto, setBusquedaProducto] = useState('');
   const [filas, setFilas] = useState([]);
   const [guardando, setGuardando] = useState(false);
 
   const categoriasPorId = useMemo(() => new Map((categorias || []).map((c) => [c.id, c])), [categorias]);
 
-  const productosFiltrados = categoriaActiva === 'todas'
-    ? productos
-    : productos.filter((p) => p.categoria === categoriaActiva);
+  const textoBusqueda = normalizar(busquedaProducto.trim());
+  const productosFiltrados = productos
+    .filter((p) => categoriaActiva === 'todas' || p.categoria === categoriaActiva)
+    .filter((p) => !textoBusqueda || normalizar(p.nombre).includes(textoBusqueda));
 
   const elegirLocalidad = (id) => {
     setLocalidadId(id);
@@ -218,6 +223,16 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
           <div className="form-group">
             <label className="form-label">Productos</label>
 
+            <div className="pedido-picker-buscador">
+              <span className="material-symbols-outlined" aria-hidden="true">search</span>
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={busquedaProducto}
+                onChange={(e) => setBusquedaProducto(e.target.value)}
+              />
+            </div>
+
             {categorias && categorias.length > 0 && (
               <div className="categorias-bar pedido-picker-categorias">
                 <button
@@ -240,42 +255,48 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
               </div>
             )}
 
-            <div className="pedido-producto-picker-grid">
-              {productosFiltrados.map((p) => {
-                const grupo = resumen.find((g) => g.categoria.id === p.categoria);
-                const enGranel = grupo?.enModoGranel && p.precio_granel != null;
-                const precioVigente = precioUnitarioItem({ producto: p }, resumen);
-                return (
-                  <button key={p.id} type="button" className="pedido-producto-picker-item" onClick={() => agregarProductoClick(p)}>
-                    <span>{p.nombre}</span>
-                    <strong>
-                      {precioVigente ? formatearPrecio(precioVigente) : 'Precio por volumen'}
-                      {enGranel && ' (granel)'}
-                    </strong>
-                  </button>
-                );
-              })}
-            </div>
+            {productosFiltrados.length === 0 ? (
+              <p className="aviso-sin-insumos">No hay productos que coincidan con la búsqueda.</p>
+            ) : (
+              <div className="pedido-producto-picker-grid">
+                {productosFiltrados.map((p) => {
+                  const grupo = resumen.find((g) => g.categoria.id === p.categoria);
+                  const enGranel = grupo?.enModoGranel && p.precio_granel != null;
+                  const precioVigente = precioUnitarioItem({ producto: p }, resumen);
+                  return (
+                    <button key={p.id} type="button" className="pedido-producto-picker-item" onClick={() => agregarProductoClick(p)}>
+                      <span>{p.nombre}</span>
+                      <strong>
+                        {precioVigente ? formatearPrecio(precioVigente) : 'Precio por volumen'}
+                        {enGranel && ' (granel)'}
+                      </strong>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {filas.length === 0 ? (
               <p className="aviso-sin-insumos">Tocá un producto de arriba para agregarlo al pedido.</p>
             ) : (
-              <div className="pedido-filas">
+              <div className="pedido-item-filas">
                 {filas.map((fila) => {
                   const paso = 1;
                   const precioUnitario = precioUnitarioItem({ producto: fila.producto, cantidad: fila.cantidad }, resumen);
                   return (
-                    <div key={fila.key} className="pedido-fila">
-                      <div className="pedido-fila-nombre">
+                    <div key={fila.key} className="pedido-item-fila">
+                      <div className="pedido-item-fila-info">
                         <strong>{fila.producto.nombre}</strong>
                         <span>{formatearPrecio(precioUnitario)} / {ETIQUETA_UNIDAD[fila.producto.unidad_medida] || fila.producto.unidad_medida}</span>
                       </div>
-                      <div className="pedido-fila-cantidad-stepper">
-                        <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Math.max(paso, Number(fila.cantidad) - paso) })}>−</button>
-                        <span>{fila.cantidad}</span>
-                        <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Number(fila.cantidad) + paso })}>+</button>
+                      <div className="pedido-item-fila-acciones">
+                        <div className="pedido-fila-cantidad-stepper">
+                          <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Math.max(paso, Number(fila.cantidad) - paso) })}>−</button>
+                          <span>{fila.cantidad}</span>
+                          <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Number(fila.cantidad) + paso })}>+</button>
+                        </div>
+                        <button type="button" className="pedido-fila-quitar" onClick={() => quitarFila(fila.key)} title="Quitar producto">✕</button>
                       </div>
-                      <button type="button" className="pedido-fila-quitar" onClick={() => quitarFila(fila.key)} title="Quitar producto">✕</button>
                     </div>
                   );
                 })}

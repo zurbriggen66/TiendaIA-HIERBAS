@@ -367,6 +367,10 @@ export default function Inicio() {
           )}
         </div>
 
+        <button type="button" className="btn-vibrante inicio-btn-nuevo-pedido-top" onClick={() => setMostrarNuevoPedido(true)}>
+          + Nuevo pedido
+        </button>
+
         {!cargando && !error && estadisticasHoy && (
           <>
             <div className="resumen-grid">
@@ -452,9 +456,6 @@ export default function Inicio() {
             {!cargando && !error && pedidosRecientes.length > 0 && (
               <span className="inicio-contador-pedidos">{pedidosRecientes.length}</span>
             )}
-            <button type="button" className="btn-vibrante inicio-btn-nuevo-pedido" onClick={() => setMostrarNuevoPedido(true)}>
-              + Nuevo pedido
-            </button>
           </div>
 
           {cargando ? (
@@ -859,6 +860,13 @@ export default function Inicio() {
             margin-left: auto;
             font-size: 0.8rem;
             padding: 8px 16px;
+          }
+
+          .inicio-btn-nuevo-pedido-top {
+            width: 100%;
+            padding: 14px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
           }
 
           .inicio-contador-pedidos {

@@ -6,6 +6,16 @@ import PedidoCard from '../Pedidos/PedidoCard';
 import PedidoPagoModal from '../Pedidos/PedidoPagoModal';
 import PedidoEnvioDescuentoModal from '../Pedidos/PedidoEnvioDescuentoModal';
 import { imprimirPedido } from '../../utils/impresion';
+import GraficoVentas from '../Estadisticas/GraficoVentas';
+import BarrasDesglose from '../Estadisticas/BarrasDesglose';
+
+const pad2 = (n) => String(n).padStart(2, '0');
+// OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
+// que "hoy" salte al día siguiente a partir de las 21:00 hora local.
+const hoyISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
 
 const formatearPrecio = (valor) =>
   new Intl.NumberFormat('es-AR', {
@@ -34,6 +44,9 @@ export default function Inicio() {
   const [gastosFijos, setGastosFijos] = useState([]);
   const [totalGastosFijos, setTotalGastosFijos] = useState(0);
 
+  const [estadisticasHoy, setEstadisticasHoy] = useState(null);
+  const [ventasUltimos7, setVentasUltimos7] = useState([]);
+
   const [configId, setConfigId] = useState(null);
   const [tiendaAbierta, setTiendaAbierta] = useState(true);
   const [mensajeCerrado, setMensajeCerrado] = useState('');
@@ -54,7 +67,8 @@ export default function Inicio() {
   const cargarInicio = async () => {
     setCargando(true);
     try {
-      const [resPorConfirmar, resRecientes, resProductos, resCategorias, resLocalidades, resFijos, resConfig] = await Promise.all([
+      const hoy = hoyISO();
+      const [resPorConfirmar, resRecientes, resProductos, resCategorias, resLocalidades, resFijos, resConfig, resHoy, resSemana] = await Promise.all([
         // page_size alto: ambas listas se muestran enteras, no queremos que un día
         // movido las recorte a los 20 por defecto de la paginación.
         api.get('/pedidos/', { params: { confirmado: 'false', origen: 'web', page_size: 100 } }),
@@ -64,7 +78,11 @@ export default function Inicio() {
         api.get('/localidades/'),
         api.get('/gastos-fijos/alertas/'),
         api.get('/configuracion/'),
+        api.get('/estadisticas/', { params: { desde: hoy, hasta: hoy } }),
+        api.get('/estadisticas/'),
       ]);
+      setEstadisticasHoy(resHoy.data);
+      setVentasUltimos7((resSemana.data.ventas_por_dia || []).slice(-7));
       if (resConfig.data && resConfig.data.length > 0) {
         const ultimaConfig = resConfig.data[resConfig.data.length - 1];
         setConfigId(ultimaConfig.id);
@@ -348,6 +366,84 @@ export default function Inicio() {
             </div>
           )}
         </div>
+
+        {!cargando && !error && estadisticasHoy && (
+          <>
+            <div className="resumen-grid">
+              <div className="resumen-tile resumen-tile-servicios">
+                <span>Ventas de hoy</span>
+                <strong>{formatearPrecio(estadisticasHoy.ventas_totales)}</strong>
+              </div>
+              <div className="resumen-tile resumen-tile-total">
+                <span>Pedidos de hoy</span>
+                <strong>{estadisticasHoy.total_pedidos}</strong>
+              </div>
+              <div className="resumen-tile resumen-tile-insumos">
+                <span>Ticket promedio</span>
+                <strong>{formatearPrecio(estadisticasHoy.ticket_promedio)}</strong>
+              </div>
+              <div className="resumen-tile resumen-tile-otros">
+                <span>Gastos de hoy</span>
+                <strong>{formatearPrecio(estadisticasHoy.gastos_totales)}</strong>
+              </div>
+              <div className={`resumen-tile ${estadisticasHoy.ganancia_neta >= 0 ? 'resumen-tile-ganancia-positiva' : 'resumen-tile-ganancia-negativa'}`}>
+                <span>Balance del día</span>
+                <strong>{formatearPrecio(estadisticasHoy.ganancia_neta)}</strong>
+              </div>
+            </div>
+
+            <div className="seccion-header">
+              <h3>Ventas de los últimos 7 días</h3>
+              <Link to="/admin/estadisticas" className="inicio-link-caja">ver todas las estadísticas →</Link>
+            </div>
+            <GraficoVentas datos={ventasUltimos7} />
+
+            <div className="gastos-desglose-grid">
+              <div>
+                <h4 className="gastos-desglose-titulo">Cómo cobraste hoy</h4>
+                {(estadisticasHoy.ventas_por_metodo || []).length === 0 ? (
+                  <p className="estado-vacio-chico">Todavía no hay ventas cobradas hoy.</p>
+                ) : (
+                  <BarrasDesglose
+                    filas={estadisticasHoy.ventas_por_metodo.map((f) => ({
+                      clave: f.metodo,
+                      etiqueta: f.metodo_label,
+                      total: f.total,
+                    }))}
+                    total={Number(estadisticasHoy.ventas_totales)}
+                  />
+                )}
+              </div>
+              <div>
+                <h4 className="gastos-desglose-titulo">Lo más vendido hoy</h4>
+                {estadisticasHoy.productos_mas_vendidos.length === 0 ? (
+                  <p className="estado-vacio-chico">Todavía no hay ventas hoy.</p>
+                ) : (
+                  <div className="ranking-productos">
+                    {estadisticasHoy.productos_mas_vendidos.map((p, i) => {
+                      const maxCantidad = estadisticasHoy.productos_mas_vendidos[0].cantidad_total;
+                      const porcentaje = Math.max((p.cantidad_total / maxCantidad) * 100, 6);
+                      return (
+                        <div key={p.producto_id} className="ranking-fila">
+                          <span className="ranking-puesto">#{i + 1}</span>
+                          <div className="ranking-info">
+                            <div className="ranking-nombre-linea">
+                              <strong>{p.producto_nombre}</strong>
+                              <span>{p.cantidad_total} vendidos · {formatearPrecio(p.total)}</span>
+                            </div>
+                            <div className="ranking-barra-fondo">
+                              <div className="ranking-barra" style={{ '--bar-width': `${porcentaje}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="inicio-card inicio-card-pedidos">
           <div className="inicio-card-encabezado">

@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
 
+// Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
+const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 export default function ListaPreciosPage() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -32,10 +35,10 @@ export default function ListaPreciosPage() {
   const categoriaDe = (id) => categorias.find((c) => c.id === id);
 
   const productosFiltrados = useMemo(() => {
-    const texto = busqueda.trim().toLowerCase();
+    const texto = normalizar(busqueda.trim());
     return productos
       .filter((p) => categoriaActiva === 'todas' || p.categoria === categoriaActiva)
-      .filter((p) => !texto || p.nombre.toLowerCase().includes(texto))
+      .filter((p) => !texto || normalizar(p.nombre).includes(texto))
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [productos, categoriaActiva, busqueda]);
 

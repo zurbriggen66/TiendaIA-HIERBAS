@@ -20,7 +20,9 @@ class ConfiguracionSitio(models.Model):
         help_text="Fondo del banner 'Explorá nuestro catálogo'. Formato cuadrado (1:1) recomendado.",
     )
     whatsapp = models.CharField(max_length=20, blank=True, default='')
-    instagram = models.URLField(blank=True, default='')
+    # CharField (no URLField): así se acepta "instagram.com/tu_negocio" sin que Django
+    # rechace el guardado por faltarle el "https://" — se lo completamos solos en save().
+    instagram = models.CharField(max_length=250, blank=True, default='')
     video_principal = models.FileField(
         upload_to='videos/', 
         null=True, 
@@ -49,6 +51,11 @@ class ConfiguracionSitio(models.Model):
         max_length=200, blank=True, default='Volvemos pronto, gracias por tu paciencia.'
     )
     color_boton_agregar = models.CharField(max_length=7, default='#1a361b')
+
+    def save(self, *args, **kwargs):
+        if self.instagram and not self.instagram.startswith(('http://', 'https://')):
+            self.instagram = f'https://{self.instagram}'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return "Configuración General del Sitio"

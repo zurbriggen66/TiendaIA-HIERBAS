@@ -116,7 +116,10 @@ export default function ProductoDetalle() {
         </p>
       )}
 
-      <div className={`producto-detalle-barra-inferior ${totalItems > 0 ? 'producto-detalle-barra-inferior-con-carrito' : ''}`}>
+      <div
+        className={`producto-detalle-barra-inferior ${totalItems > 0 ? 'producto-detalle-barra-inferior-con-carrito' : ''}`}
+        data-barra-fija-pagina
+      >
         <div className="producto-detalle-stepper">
           <button type="button" onClick={() => ajustar(-paso)} aria-label="Restar">
             <span className="material-symbols-outlined" aria-hidden="true">remove</span>

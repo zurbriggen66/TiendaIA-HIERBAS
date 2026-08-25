@@ -5,6 +5,7 @@ import { aclararColor, colorContraste } from '../utils/colores';
 import NavBar from './NavBar';
 import CarritoDrawer from './CarritoDrawer';
 import CuentaModal from './CuentaModal';
+import IconoWhatsapp from './IconoWhatsapp';
 
 function Preloader({ configuracion }) {
   return (
@@ -62,7 +63,29 @@ export default function ClienteLayout() {
     const observer = new ResizeObserver(() => setAlturaBarraCarrito(el.getBoundingClientRect().height));
     observer.observe(el);
     return () => observer.disconnect();
-  }, [totalItems > 0]);
+    // `cargando` en las dependencias por la misma razón que en el efecto de abajo: si el
+    // carrito ya tenía ítems guardados antes de que termine de cargar, `totalItems > 0`
+    // no cambia al terminar y el efecto nunca se repetiría para encontrar el botón real.
+  }, [totalItems > 0, cargando]);
+
+  // Alto de la barra fija propia de la página actual, si tiene una (ej. el "Agregar al
+  // carrito" del detalle de producto, marcada con data-barra-fija-pagina) — así el botón
+  // flotante de WhatsApp no queda tapado por ninguna de las dos.
+  const [alturaBarraPagina, setAlturaBarraPagina] = useState(0);
+  useEffect(() => {
+    const el = document.querySelector('[data-barra-fija-pagina]');
+    if (!el) {
+      setAlturaBarraPagina(0);
+      return;
+    }
+    const observer = new ResizeObserver(() => setAlturaBarraPagina(el.getBoundingClientRect().height));
+    observer.observe(el);
+    return () => observer.disconnect();
+    // `cargando` entra en las dependencias a propósito: mientras carga se muestra el
+    // Preloader (sin Outlet todavía), así que la primera vez que este efecto corre la
+    // barra de la página no existe. Sin `cargando` acá, el efecto nunca se repetiría al
+    // terminar de cargar y quedaría pegado en 0 para siempre en una carga directa.
+  }, [pathname, cargando]);
 
   if (cargando) return <Preloader configuracion={configuracion} />;
 
@@ -77,6 +100,7 @@ export default function ClienteLayout() {
     '--boton-agregar': configuracion.color_boton_agregar,
     '--boton-agregar-texto': colorContraste(configuracion.color_boton_agregar),
     '--altura-barra-carrito': `${alturaBarraCarrito}px`,
+    '--altura-barra-pagina': `${alturaBarraPagina}px`,
   };
 
   const pedirPorWhatsapp = () => {
@@ -106,6 +130,18 @@ export default function ClienteLayout() {
       )}
 
       <Outlet />
+
+      {configuracion.whatsapp && (
+        <a
+          href={`https://wa.me/${configuracion.whatsapp}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="whatsapp-flotante"
+          aria-label="Escribinos por WhatsApp"
+        >
+          <IconoWhatsapp />
+        </a>
+      )}
 
       {toast && (
         <div className="toast-agregado" key={toast.key} role="status">

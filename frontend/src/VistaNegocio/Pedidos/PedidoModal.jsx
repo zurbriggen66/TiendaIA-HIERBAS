@@ -241,12 +241,20 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
             )}
 
             <div className="pedido-producto-picker-grid">
-              {productosFiltrados.map((p) => (
-                <button key={p.id} type="button" className="pedido-producto-picker-item" onClick={() => agregarProductoClick(p)}>
-                  <span>{p.nombre}</span>
-                  <strong>{p.precio_base ? formatearPrecio(p.precio_base) : 'Precio por volumen'}</strong>
-                </button>
-              ))}
+              {productosFiltrados.map((p) => {
+                const grupo = resumen.find((g) => g.categoria.id === p.categoria);
+                const enGranel = grupo?.enModoGranel && p.precio_granel != null;
+                const precioVigente = precioUnitarioItem({ producto: p }, resumen);
+                return (
+                  <button key={p.id} type="button" className="pedido-producto-picker-item" onClick={() => agregarProductoClick(p)}>
+                    <span>{p.nombre}</span>
+                    <strong>
+                      {precioVigente ? formatearPrecio(precioVigente) : 'Precio por volumen'}
+                      {enGranel && ' (granel)'}
+                    </strong>
+                  </button>
+                );
+              })}
             </div>
 
             {filas.length === 0 ? (
@@ -274,16 +282,39 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
               </div>
             )}
 
-            {resumen.map((grupo) => (
-              <p key={grupo.categoria.id} className={grupo.faltante > 0 ? 'pedido-fila-aviso' : 'form-ayuda'} style={grupo.faltante > 0 ? { color: '#f59e0b' } : undefined}>
-                {grupo.categoria.nombre}: {grupo.cantidadTotal} {ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida}
-                {grupo.faltante > 0
-                  ? ` — falta ${grupo.faltante} para el mínimo de ${grupo.categoria.cantidad_minima}`
-                  : grupo.precioEscalon != null
-                    ? ` — precio vigente ${formatearPrecio(grupo.precioEscalon)}`
-                    : ''}
-              </p>
-            ))}
+            {resumen.map((grupo) => {
+              const unidadEtiqueta = ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida;
+              return (
+                <div key={grupo.categoria.id}>
+                  <p className={grupo.faltante > 0 ? 'pedido-fila-aviso' : 'form-ayuda'} style={grupo.faltante > 0 ? { color: '#f59e0b' } : undefined}>
+                    {grupo.categoria.nombre}: {grupo.cantidadTotal} {unidadEtiqueta}
+                    {grupo.faltante > 0
+                      ? ` — falta ${grupo.faltante} para el mínimo de ${grupo.categoria.cantidad_minima}`
+                      : grupo.precioEscalon != null
+                        ? ` — precio vigente ${formatearPrecio(grupo.precioEscalon)}`
+                        : ''}
+                  </p>
+                  {grupo.variedadesBajoMinimo.map((v) => (
+                    <p key={v.nombre} className="pedido-fila-aviso" style={{ color: '#f59e0b' }}>
+                      Faltan {v.falta} {unidadEtiqueta} de {v.nombre} (mínimo {grupo.minimoVariedad} por variedad)
+                    </p>
+                  ))}
+                  {grupo.granelMinimoTotal > 0 && (
+                    grupo.enModoGranel ? (
+                      <p className="form-ayuda" style={{ color: '#4ade80' }}>🎉 Precio a granel aplicado en esta categoría</p>
+                    ) : grupo.faltaParaGranel > 0 ? (
+                      <p className="form-ayuda">
+                        Sumá {grupo.faltaParaGranel} {unidadEtiqueta} más (con al menos {grupo.granelMinimoVariedad} {unidadEtiqueta} de cada variedad) para el precio a granel
+                      </p>
+                    ) : grupo.variedadesBajoMinimoGranel.length > 0 ? (
+                      <p className="form-ayuda">
+                        Ya juntaste el total para precio a granel: llevá al menos {grupo.granelMinimoVariedad} {unidadEtiqueta} de cada variedad elegida para que se aplique
+                      </p>
+                    ) : null
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="pedido-total-estimado">

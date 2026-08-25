@@ -14,7 +14,7 @@ export default function Inicio() {
     <>
       <Hero configuracion={configuracion} />
       <MarcasRegistradas configuracion={configuracion} />
-      <BannerMayorista />
+      <BannerMayorista configuracion={configuracion} />
       <Categorias categorias={categorias} />
       <Menu categorias={categorias} productos={productos} onAgregar={agregarAlCarrito} />
       <Footer configuracion={configuracion} />

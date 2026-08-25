@@ -10,6 +10,7 @@ class ConfiguracionSitioSerializer(serializers.ModelSerializer):
             'logo_secundario',
             'logo_precarga',
             'imagen_principal',
+            'imagen_banner_mayorista',
             'video_principal',
             'whatsapp',
             'instagram',

@@ -13,6 +13,12 @@ class ConfiguracionSitio(models.Model):
         help_text="Imagen que se muestra en la pantalla de carga inicial (recomendado: PNG sin fondo)",
     )
     imagen_principal = models.ImageField(upload_to='sitio/portadas/', null=True, blank=True)
+    imagen_banner_mayorista = models.ImageField(
+        upload_to='sitio/banners/',
+        null=True,
+        blank=True,
+        help_text="Fondo del banner 'Explorá nuestro catálogo'. Formato cuadrado (1:1) recomendado.",
+    )
     whatsapp = models.CharField(max_length=20, blank=True, default='')
     instagram = models.URLField(blank=True, default='')
     video_principal = models.FileField(

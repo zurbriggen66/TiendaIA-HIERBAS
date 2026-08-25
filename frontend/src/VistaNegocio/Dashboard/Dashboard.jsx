@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [logoSecundario, setLogoSecundario] = useState(null);
   const [logoPrecarga, setLogoPrecarga] = useState(null);
   const [portada, setPortada] = useState(null);
+  const [bannerMayorista, setBannerMayorista] = useState(null);
   const [qrCarta, setQrCarta] = useState(null);
 
   // Guardamos el ID para saber si tenemos que actualizar (PATCH) o crear (POST)
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [logoSecundarioActivo, setLogoSecundarioActivo] = useState(null);
   const [logoPrecargaActivo, setLogoPrecargaActivo] = useState(null);
   const [portadaActiva, setPortadaActiva] = useState(null);
+  const [bannerMayoristaActivo, setBannerMayoristaActivo] = useState(null);
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
   const [colorNavbar, setColorNavbar] = useState('#f2f7ef');
@@ -58,6 +60,7 @@ export default function Dashboard() {
           setLogoSecundarioActivo(ultimaConfig.logo_secundario);
           setLogoPrecargaActivo(ultimaConfig.logo_precarga);
           setPortadaActiva(ultimaConfig.imagen_principal);
+          setBannerMayoristaActivo(ultimaConfig.imagen_banner_mayorista);
           setWhatsapp(ultimaConfig.whatsapp || '');
           setInstagram(ultimaConfig.instagram || '');
           setColorNavbar(ultimaConfig.color_navbar || '#f2f7ef');
@@ -118,6 +121,11 @@ export default function Dashboard() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) setPortada(e.dataTransfer.files[0]);
   };
 
+  const handleDropBannerMayorista = (e) => {
+    prevenirNavegador(e);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) setBannerMayorista(e.dataTransfer.files[0]);
+  };
+
   const guardarCambios = async (e) => {
     e.preventDefault();
 
@@ -126,6 +134,7 @@ export default function Dashboard() {
     if (logoSecundario) formData.append('logo_secundario', logoSecundario);
     if (logoPrecarga) formData.append('logo_precarga', logoPrecarga);
     if (portada) formData.append('imagen_principal', portada);
+    if (bannerMayorista) formData.append('imagen_banner_mayorista', bannerMayorista);
     formData.append('whatsapp', whatsapp);
     formData.append('instagram', instagram);
     formData.append('color_navbar', colorNavbar);
@@ -159,6 +168,7 @@ export default function Dashboard() {
   const previewLogoSecundario = logoSecundario ? URL.createObjectURL(logoSecundario) : logoSecundarioActivo;
   const previewLogoPrecarga = logoPrecarga ? URL.createObjectURL(logoPrecarga) : logoPrecargaActivo;
   const previewPortada = portada ? URL.createObjectURL(portada) : portadaActiva;
+  const previewBannerMayorista = bannerMayorista ? URL.createObjectURL(bannerMayorista) : bannerMayoristaActivo;
 
   return (
     <>
@@ -308,6 +318,40 @@ export default function Dashboard() {
                     className="input-file-hidden"
                     onChange={(e) => {
                       if(e.target.files && e.target.files[0]) setPortada(e.target.files[0]);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* Input del fondo del banner "Explorá nuestro catálogo" */}
+              <div className="form-group">
+                <label className="form-label">Fondo del banner "Explorá nuestro catálogo"</label>
+                <label
+                  className="upload-box upload-box-vibrante"
+                  onDragOver={prevenirNavegador}
+                  onDrop={handleDropBannerMayorista}
+                >
+                  {previewBannerMayorista ? (
+                    <img src={previewBannerMayorista} alt="Preview banner mayorista" className="upload-preview" />
+                  ) : (
+                    <div className="upload-icon">🖼️</div>
+                  )}
+
+                  <p className="upload-text">
+                    {bannerMayorista ? (
+                      <span className="upload-file-name">{bannerMayorista.name}</span>
+                    ) : (
+                      <><span className="upload-link">Cargar archivo</span> o arrastrar y soltar</>
+                    )}
+                  </p>
+                  <p className="upload-hint">Formato cuadrado (1:1), ej. 1200x1200px</p>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="input-file-hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) setBannerMayorista(e.target.files[0]);
                     }}
                   />
                 </label>

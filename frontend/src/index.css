@@ -37,6 +37,12 @@
   --accent-light: #2f4f30;
   --accent-dark: #0e2410;
   --accent-gradient: linear-gradient(135deg, var(--accent-light), var(--accent));
+
+  /* body (fuera de este contenedor) ya fija color: var(--text), pero con el --text
+     del admin (claro, para fondo oscuro). Sin este color acá, cualquier texto de la
+     tienda sin su propio color (ej. el número del selector de cantidad) hereda ESE
+     valor de body en vez del oscuro correcto — quedando invisible sobre fondo claro. */
+  color: var(--text);
 }
 
 * {

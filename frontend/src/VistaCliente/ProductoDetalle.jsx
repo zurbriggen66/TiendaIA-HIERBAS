@@ -52,6 +52,14 @@ export default function ProductoDetalle() {
         <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
       </button>
 
+      <nav className="producto-detalle-migas" aria-label="Ruta de navegación">
+        <button type="button" onClick={() => navigate('/')}>Inicio</button>
+        <span aria-hidden="true">/</span>
+        <button type="button" onClick={() => navigate(`/categoria/${categoria.id}`)}>{categoria.nombre}</button>
+        <span aria-hidden="true">/</span>
+        <span className="producto-detalle-migas-actual">{producto.nombre}</span>
+      </nav>
+
       <div className="producto-detalle-imagen">
         {producto.imagen ? (
           <img src={producto.imagen} alt={producto.nombre} />
@@ -157,16 +165,47 @@ export default function ProductoDetalle() {
           cursor: pointer;
         }
 
+        .producto-detalle-migas {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 6px;
+          font-family: 'Work Sans', sans-serif;
+          font-size: 0.7rem;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+        }
+
+        .producto-detalle-migas button {
+          border: none;
+          background: none;
+          padding: 0;
+          font: inherit;
+          letter-spacing: inherit;
+          color: var(--text-muted);
+          cursor: pointer;
+        }
+
+        .producto-detalle-migas button:hover {
+          color: var(--accent);
+          text-decoration: underline;
+        }
+
+        .producto-detalle-migas-actual {
+          color: var(--text);
+        }
+
         .producto-detalle-imagen {
-          width: 100%;
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
           aspect-ratio: 4 / 5;
-          border-radius: 24px;
           overflow: hidden;
           background: var(--surface-2);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 10px 24px -16px rgba(28, 28, 22, 0.4);
         }
 
         .producto-detalle-imagen img {
@@ -394,6 +433,15 @@ export default function ProductoDetalle() {
         }
 
         @media (min-width: 700px) {
+          .producto-detalle-imagen {
+            width: 100%;
+            margin-left: 0;
+            aspect-ratio: 4 / 5;
+            max-height: 70vh;
+            border-radius: 24px;
+            box-shadow: 0 10px 24px -16px rgba(28, 28, 22, 0.4);
+          }
+
           .producto-detalle-barra-inferior {
             max-width: 640px;
             left: 50%;

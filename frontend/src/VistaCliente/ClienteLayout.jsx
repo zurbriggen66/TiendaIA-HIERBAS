@@ -127,6 +127,7 @@ export default function ClienteLayout() {
         <CarritoDrawer
           items={items}
           categorias={categorias}
+          logoPrecarga={configuracion.logo_precarga}
           whatsapp={configuracion.whatsapp}
           tiendaAbierta={configuracion.tienda_abierta}
           mensajeCerrado={configuracion.mensaje_cerrado}

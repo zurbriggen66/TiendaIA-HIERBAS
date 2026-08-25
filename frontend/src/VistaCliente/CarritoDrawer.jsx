@@ -28,7 +28,7 @@ function armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, items,
   return lineas.join('\n');
 }
 
-export default function CarritoDrawer({ items, categorias, whatsapp, onClose, onCambiarCantidad, onQuitar, onVaciar, cliente, onClienteActualizado, tiendaAbierta = true, mensajeCerrado }) {
+export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsapp, onClose, onCambiarCantidad, onQuitar, onVaciar, cliente, onClienteActualizado, tiendaAbierta = true, mensajeCerrado }) {
   const [nombre, setNombre] = useState(cliente?.nombre || '');
   const [telefono, setTelefono] = useState(cliente?.telefono || '');
   const [usarPuntos, setUsarPuntos] = useState(false);
@@ -122,7 +122,11 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
       <aside className="pedido-drawer" onClick={(e) => e.stopPropagation()}>
         <div className="pedido-header">
           <div className="pedido-header-titulo">
-            <span className="pedido-header-icono">🌿</span>
+            {logoPrecarga ? (
+              <img src={logoPrecarga} alt="" className="pedido-header-logo" />
+            ) : (
+              <span className="pedido-header-icono">🌿</span>
+            )}
             <div>
               <h3>Tu pedido</h3>
               {items.length > 0 && !exito && (
@@ -406,6 +410,13 @@ export default function CarritoDrawer({ items, categorias, whatsapp, onClose, on
           width: 38px; height: 38px; border-radius: 11px;
           display: flex; align-items: center; justify-content: center;
           font-size: 1.1rem;
+          background: linear-gradient(135deg, #aac398, #8caa78);
+          box-shadow: 0 6px 14px -6px rgba(140, 170, 120, 0.55);
+        }
+
+        .pedido-header-logo {
+          width: 38px; height: 38px; border-radius: 11px;
+          object-fit: contain;
           background: linear-gradient(135deg, #aac398, #8caa78);
           box-shadow: 0 6px 14px -6px rgba(140, 170, 120, 0.55);
         }

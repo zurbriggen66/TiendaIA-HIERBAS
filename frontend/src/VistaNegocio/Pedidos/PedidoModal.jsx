@@ -49,7 +49,7 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
     setFilas((prev) => {
       const idx = prev.findIndex((f) => f.producto.id === producto.id);
       if (idx !== -1) {
-        const paso = producto.unidad_medida === 'kg' ? 0.5 : 1;
+        const paso = 1;
         return prev.map((f, i) => (i === idx ? { ...f, cantidad: Number(f.cantidad) + paso } : f));
       }
       return [...prev, nuevaFila(producto)];
@@ -254,7 +254,7 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
             ) : (
               <div className="pedido-filas">
                 {filas.map((fila) => {
-                  const paso = fila.producto.unidad_medida === 'kg' ? 0.5 : 1;
+                  const paso = 1;
                   const precioUnitario = precioUnitarioItem({ producto: fila.producto, cantidad: fila.cantidad }, resumen);
                   return (
                     <div key={fila.key} className="pedido-fila">

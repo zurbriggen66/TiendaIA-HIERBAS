@@ -6,7 +6,7 @@ const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
 
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'pack', caja: 'caja', unidad: 'unidad' };
-const PASO_POR_UNIDAD = { kg: 0.5, pack: 1, caja: 1, unidad: 1 };
+const PASO_POR_UNIDAD = { kg: 1, pack: 1, caja: 1, unidad: 1 };
 
 function TablaEscalones({ escalones, unidad }) {
   if (!escalones || escalones.length === 0) return null;

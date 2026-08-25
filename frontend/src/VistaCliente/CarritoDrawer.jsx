@@ -212,6 +212,11 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                       </div>
                       {item.producto.contenido && <span className="pedido-item-extras">{item.producto.contenido}</span>}
                       <span className="pedido-item-precio">{formatearPrecio(precioUnitario)} c/u</span>
+                      {item.producto.precio_granel && (
+                        <span className="pedido-item-granel">
+                          A granel: {formatearPrecio(item.producto.precio_granel)} / {ETIQUETA_UNIDAD[item.producto.unidad_medida] || item.producto.unidad_medida}
+                        </span>
+                      )}
                     </div>
 
                     <div className="pedido-item-acciones">
@@ -470,6 +475,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         .pedido-item-titulo strong { font-size: 0.92rem; color: #1a2333; }
         .pedido-item-extras { font-size: 0.78rem; color: #8a7c70; }
         .pedido-item-precio { font-size: 0.78rem; color: #64748b; }
+        .pedido-item-granel { font-size: 0.74rem; color: #1a361b; font-weight: 600; }
 
         .pedido-item-acciones { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .pedido-item-quitar {

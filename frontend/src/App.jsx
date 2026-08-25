@@ -11,6 +11,7 @@ import RequiereAdmin from './VistaNegocio/RequiereAdmin';
 import InicioPage from './VistaNegocio/Inicio/Inicio';
 import CategoriasPage from './VistaNegocio/Categorias/CategoriasPage';
 import ProductosPage from './VistaNegocio/Productos/ProductosPage';
+import ListaPreciosPage from './VistaNegocio/Productos/ListaPreciosPage';
 import PedidosPage from './VistaNegocio/Pedidos/PedidosPage';
 import GastosPage from './VistaNegocio/Gastos/GastosPage';
 import ProveedoresPage from './VistaNegocio/Proveedores/ProveedoresPage';
@@ -42,6 +43,7 @@ function App() {
           <Route path="inicio" element={<InicioPage />} />
           <Route path="categorias" element={<CategoriasPage />} />
           <Route path="productos" element={<ProductosPage />} />
+          <Route path="precios" element={<ListaPreciosPage />} />
           <Route path="pedidos" element={<PedidosPage />} />
           <Route path="gastos" element={<GastosPage />} />
           <Route path="proveedores" element={<ProveedoresPage />} />

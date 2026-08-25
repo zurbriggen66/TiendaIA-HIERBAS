@@ -133,6 +133,7 @@ export default function DashboardLayout() {
             <div className="menu-section-title">Gestión</div>
             <NavLink to="/admin/categorias" className={linkClass}>🗂️ Categorías</NavLink>
             <NavLink to="/admin/productos" className={linkClass}>Productos & Stock</NavLink>
+            <NavLink to="/admin/precios" className={linkClass}>💲 Lista de Precios</NavLink>
             <NavLink to="/admin/estadisticas" className={linkClass}>Estadísticas</NavLink>
             <NavLink to="/admin" end className={linkClass}>Diseño & Colores</NavLink>
             <NavLink to="/admin/pedidos" className={linkClass}>

@@ -16,6 +16,25 @@ export default function MarcasRegistradas({ configuracion }) {
             aspect-ratio: 9 / 16;
             object-fit: cover;
           }
+
+          /* Sin este límite, en un monitor ancho la imagen (9:16 del ancho completo)
+             queda gigante: en 1920px de ancho pasa a medir ~3413px de alto, una franja
+             enorme que rompe el diseño. A partir de acá se centra con un ancho fijo,
+             como una tarjeta vertical (mismo criterio que el banner mayorista). */
+          @media (min-width: 640px) {
+            .quienes-somos-seccion {
+              display: flex;
+              justify-content: center;
+              padding: 48px 20px;
+              background: var(--surface-2, #dee5da);
+            }
+
+            .quienes-somos-seccion img {
+              width: min(100%, 420px);
+              border-radius: 24px;
+              box-shadow: 0 20px 40px -16px rgba(28, 28, 22, 0.35);
+            }
+          }
         `}</style>
       </section>
     );

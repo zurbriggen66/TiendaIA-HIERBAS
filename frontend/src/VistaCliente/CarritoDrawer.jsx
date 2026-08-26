@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
 import { resumenPorCategoria, precioUnitarioItem } from '../utils/escalones';
+import { armarLinkWhatsapp } from '../utils/whatsapp';
 
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -86,7 +87,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
     setEnviando(true);
 
     const mensaje = armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, items, resumen, total });
-    const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(mensaje)}`;
+    const url = armarLinkWhatsapp(whatsapp, mensaje);
     const ventana = window.open(url, '_blank', 'noopener,noreferrer');
     setLinkWhatsapp(!ventana || ventana.closed ? url : null);
 

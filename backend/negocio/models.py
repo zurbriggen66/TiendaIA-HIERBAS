@@ -61,6 +61,12 @@ class ConfiguracionSitio(models.Model):
     def save(self, *args, **kwargs):
         if self.instagram and not self.instagram.startswith(('http://', 'https://')):
             self.instagram = f'https://{self.instagram}'
+        # wa.me (y el link de "Escribinos por WhatsApp") solo funcionan bien en
+        # Android/iPhone si el número es SOLO dígitos en formato internacional (ej.
+        # 5493511234567). Si el dueño lo carga con espacios, guiones o un "+", el botón
+        # rompe igual en cualquier celular — no es un problema de plataforma, es el dato.
+        if self.whatsapp:
+            self.whatsapp = ''.join(ch for ch in self.whatsapp if ch.isdigit())
         super().save(*args, **kwargs)
 
     def __str__(self):

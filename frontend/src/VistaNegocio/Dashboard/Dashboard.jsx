@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import api from '../../services/api';
 import { notificar } from '../notificaciones';
+import { limpiarNumeroWhatsapp } from '../../utils/whatsapp';
 
 function CampoColor({ label, value, onChange }) {
   return (
@@ -429,6 +430,19 @@ export default function Dashboard() {
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
                 />
+                {whatsapp.trim() && (() => {
+                  const limpio = limpiarNumeroWhatsapp(whatsapp);
+                  return limpio.length < 10 || limpio.length > 15 ? (
+                    <p className="form-ayuda" style={{ color: '#f59e0b' }}>
+                      Este número no parece completo — tiene que ser código de país + código de área (sin el 0) + número,
+                      sin espacios ni guiones. Para un celular argentino, agregá un 9 después del 54. Ej: 5493511234567.
+                    </p>
+                  ) : (
+                    <p className="form-ayuda">
+                      Se va a usar como: {limpio} (los espacios, guiones o el "+" se sacan solos al guardar).
+                    </p>
+                  );
+                })()}
               </div>
 
               <div className="form-group">

@@ -1,10 +1,10 @@
 import React from 'react';
 import IconoWhatsapp from './IconoWhatsapp';
+import { armarLinkWhatsapp } from '../utils/whatsapp';
 
 export default function BannerMayorista({ configuracion }) {
-  const numeroWhatsapp = configuracion?.whatsapp;
-  const linkWhatsapp = numeroWhatsapp
-    ? `https://wa.me/${numeroWhatsapp}?text=${encodeURIComponent('Hola! Quiero hacer un pedido mayorista de hierbas.')}`
+  const linkWhatsapp = configuracion?.whatsapp
+    ? armarLinkWhatsapp(configuracion.whatsapp, 'Hola! Quiero hacer un pedido mayorista de hierbas.')
     : null;
 
   return (

@@ -6,6 +6,7 @@ import NavBar from './NavBar';
 import CarritoDrawer from './CarritoDrawer';
 import CuentaModal from './CuentaModal';
 import IconoWhatsapp from './IconoWhatsapp';
+import { armarLinkWhatsapp } from '../utils/whatsapp';
 
 function Preloader({ configuracion }) {
   return (
@@ -133,7 +134,7 @@ export default function ClienteLayout() {
 
       {configuracion.whatsapp && (
         <a
-          href={`https://wa.me/${configuracion.whatsapp}`}
+          href={armarLinkWhatsapp(configuracion.whatsapp)}
           target="_blank"
           rel="noopener noreferrer"
           className="whatsapp-flotante"

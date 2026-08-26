@@ -100,6 +100,11 @@ export default function CategoriaDetalle() {
 
       <style>{`
         .categoria-detalle-seccion {
+          /* width:100% no es redundante con max-width: .cliente-container es flex
+             column, y "margin: 0 auto" en un hijo flex desactiva el estirado por
+             defecto — sin esto la sección se achica a su contenido mínimo en vez de
+             usar los 1100px disponibles en desktop. */
+          width: 100%;
           max-width: 1100px;
           margin: 0 auto;
           padding: 20px 20px 56px;

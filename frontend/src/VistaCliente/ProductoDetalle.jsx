@@ -137,6 +137,11 @@ export default function ProductoDetalle() {
 
       <style>{`
         .producto-detalle-seccion {
+          /* width:100% no es redundante con max-width: .cliente-container es flex
+             column, y "margin: 0 auto" en un hijo flex desactiva el estirado por
+             defecto — sin esto la sección se achica a su contenido mínimo en vez de
+             usar los 640px disponibles en desktop. */
+          width: 100%;
           max-width: 640px;
           margin: 0 auto;
           padding: 16px 20px 110px;

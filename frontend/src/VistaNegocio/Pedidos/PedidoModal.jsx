@@ -58,7 +58,9 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
         const paso = 1;
         return prev.map((f, i) => (i === idx ? { ...f, cantidad: Number(f.cantidad) + paso } : f));
       }
-      return [...prev, nuevaFila(producto)];
+      // Al principio, no al final: si ya hay varios productos cargados, el que se
+      // acaba de agregar tiene que verse sin scrollear la lista.
+      return [nuevaFila(producto), ...prev];
     });
   };
 

@@ -223,15 +223,17 @@ export default function BannerMayorista({ configuracion }) {
 
         @media (min-width: 640px) {
           .banner-mayorista-seccion {
+            /* El padding/fondo de esta sección en desktop ahora los pone el
+               contenedor ".destacados-inicio" (Inicio.jsx), compartido con
+               "¿Quiénes somos?" — por eso acá solo queda centrar la tarjeta. */
+            width: auto;
             max-width: none;
             display: flex;
             justify-content: center;
-            padding: 48px 20px;
-            background: var(--surface-2, #dee5da);
           }
 
           .banner-mayorista-foto {
-            max-width: 560px;
+            max-width: 480px;
             border-radius: 24px;
           }
 

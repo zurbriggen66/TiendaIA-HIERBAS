@@ -23,14 +23,22 @@ export default function MarcasRegistradas({ configuracion }) {
              como una tarjeta vertical (mismo criterio que el banner mayorista). */
           @media (min-width: 640px) {
             .quienes-somos-seccion {
+              /* El padding/fondo de esta sección en desktop ahora los pone el
+                 contenedor ".destacados-inicio" (Inicio.jsx), compartido con el
+                 banner mayorista — por eso acá solo queda centrar la imagen.
+                 OJO: "width: auto" acá rompe todo — al ser <img> (no
+                 background-image), un flex item con ancho "auto" calcula su
+                 tamaño según el PESO EN PÍXELES del archivo original, no según el
+                 límite de 380px de más abajo, así que terminaba mucho más ancha
+                 de lo que se ve y empujaba al banner a otra fila. Con un ancho
+                 fijo en vez de "auto" no hay ese cálculo por contenido. */
               display: flex;
               justify-content: center;
-              padding: 48px 20px;
-              background: var(--surface-2, #dee5da);
+              width: min(100%, 380px);
             }
 
             .quienes-somos-seccion img {
-              width: min(100%, 420px);
+              width: 100%;
               border-radius: 24px;
               box-shadow: 0 20px 40px -16px rgba(28, 28, 22, 0.35);
             }

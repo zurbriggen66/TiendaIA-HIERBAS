@@ -241,6 +241,27 @@ export default function BannerMayorista({ configuracion }) {
             grid-template-columns: repeat(4, 1fr);
           }
         }
+
+        @media (min-width: 900px) {
+          /* De 900px para arriba, Inicio.jsx pone esta tarjeta en una fila de 3
+             columnas junto a "¿Quiénes somos?" e Insignias.jsx — las mismas 4
+             insignias de acá abajo pasan a ser esa tercera columna aparte, así
+             que las de adentro de la tarjeta se ocultan para no repetirlas. */
+          .banner-mayorista-badges {
+            display: none;
+          }
+
+          .banner-mayorista-seccion,
+          .banner-mayorista-foto {
+            width: 100%;
+            height: 100%;
+          }
+
+          .banner-mayorista-foto {
+            aspect-ratio: auto;
+            max-width: 420px;
+          }
+        }
       `}</style>
     </section>
   );

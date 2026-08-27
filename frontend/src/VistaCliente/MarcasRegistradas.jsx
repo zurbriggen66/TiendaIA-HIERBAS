@@ -43,6 +43,32 @@ export default function MarcasRegistradas({ configuracion }) {
               box-shadow: 0 20px 40px -16px rgba(28, 28, 22, 0.35);
             }
           }
+
+          /* De 900px para arriba, Inicio.jsx pone esta tarjeta en una fila de 3
+             columnas de igual alto junto al banner mayorista e Insignias.jsx —
+             la imagen (que es vertical, 9:16) pasa a ocupar todo ese alto en vez
+             de mantener su ancho fijo, con "contain" para no recortar nada del
+             diseño (el sobrante de cada lado lo cubre el fondo color crema). */
+          @media (min-width: 900px) {
+            .quienes-somos-seccion {
+              /* width:100% (no "auto"): en un grid item de columna 1fr, "auto"
+                 dispara el mismo cálculo por tamaño de imagen que ya rompió esto
+                 antes — con un valor explícito no hay ese cálculo. */
+              width: 100%;
+              height: 100%;
+              background: #f2ede1;
+              border-radius: 24px;
+              overflow: hidden;
+            }
+
+            .quienes-somos-seccion img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              border-radius: 0;
+              box-shadow: none;
+            }
+          }
         `}</style>
       </section>
     );

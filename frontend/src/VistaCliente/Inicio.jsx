@@ -3,6 +3,7 @@ import { useTienda } from './TiendaContext';
 import Hero from './Hero';
 import MarcasRegistradas from './MarcasRegistradas';
 import BannerMayorista from './BannerMayorista';
+import Insignias from './Insignias';
 import Categorias from './Categorias';
 import Menu from './Menu';
 import Footer from './Footer';
@@ -16,6 +17,7 @@ export default function Inicio() {
       <div className="destacados-inicio">
         <MarcasRegistradas configuracion={configuracion} />
         <BannerMayorista configuracion={configuracion} />
+        <Insignias />
       </div>
       <Categorias categorias={categorias} />
       <Menu categorias={categorias} productos={productos} onAgregar={agregarAlCarrito} />
@@ -35,6 +37,23 @@ export default function Inicio() {
             gap: 32px;
             padding: 48px 20px;
             background: var(--surface-2, #dee5da);
+          }
+        }
+
+        /* De 900px para arriba entran las Insignias como tercera columna: se
+           pasa a grid (en vez de flex) con columnas explícitas en fr — así el
+           ancho de cada tarjeta lo define la columna, no el contenido de
+           adentro (ver el comentario en MarcasRegistradas.jsx sobre por qué
+           "auto" rompía la imagen). align-items:stretch iguala el alto de
+           las 3 en vez de que cada una tenga el suyo. */
+        @media (min-width: 900px) {
+          .destacados-inicio {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr 0.85fr;
+            align-items: stretch;
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
           }
         }
       `}</style>

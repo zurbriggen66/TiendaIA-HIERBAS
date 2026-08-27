@@ -233,7 +233,7 @@ export default function BannerMayorista({ configuracion }) {
           }
 
           .banner-mayorista-foto {
-            max-width: 480px;
+            max-width: 540px;
             border-radius: 24px;
           }
 
@@ -259,7 +259,7 @@ export default function BannerMayorista({ configuracion }) {
 
           .banner-mayorista-foto {
             aspect-ratio: auto;
-            max-width: 420px;
+            max-width: 480px;
           }
         }
       `}</style>

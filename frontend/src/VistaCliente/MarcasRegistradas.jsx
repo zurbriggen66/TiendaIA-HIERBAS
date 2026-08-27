@@ -34,7 +34,7 @@ export default function MarcasRegistradas({ configuracion }) {
                  fijo en vez de "auto" no hay ese cálculo por contenido. */
               display: flex;
               justify-content: center;
-              width: min(100%, 380px);
+              width: min(100%, 440px);
             }
 
             .quienes-somos-seccion img {

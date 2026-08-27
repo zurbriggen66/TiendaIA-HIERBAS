@@ -29,11 +29,11 @@ export default function Insignias() {
           .insignias-card {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 28px;
             align-content: center;
-            background: var(--surface, #f2f7ef);
+            background: #e6efe1;
             border-radius: 24px;
-            padding: 32px 24px;
+            padding: 40px 32px;
             box-shadow: 0 20px 40px -16px rgba(28, 28, 22, 0.2);
           }
 
@@ -41,20 +41,20 @@ export default function Insignias() {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-align: center;
           }
 
           .insignias-item .material-symbols-outlined {
-            font-size: 30px;
+            font-size: 38px;
             color: var(--accent-light, #2f4f30);
           }
 
           .insignias-item span:last-child {
-            font-size: 0.82rem;
+            font-size: 0.92rem;
             font-weight: 700;
             color: var(--accent, #1a361b);
-            line-height: 1.25;
+            line-height: 1.3;
           }
         }
       `}</style>

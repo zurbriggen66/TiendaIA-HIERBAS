@@ -51,8 +51,24 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
       : [nuevaFilaCantidadFija()]
   );
   const [cantidadesFijasEliminadas, setCantidadesFijasEliminadas] = useState([]);
+  const [galeria, setGaleria] = useState(categoria && categoria.imagenes ? categoria.imagenes : []);
+  const [galeriaNueva, setGaleriaNueva] = useState([]); // File[] elegidos ahora, todavía sin subir
+  const [galeriaEliminada, setGaleriaEliminada] = useState([]); // ids existentes a borrar
 
   const previewImagen = imagen ? URL.createObjectURL(imagen) : (categoria ? categoria.imagen : null);
+
+  const agregarFotosGaleria = (files) => {
+    setGaleriaNueva((prev) => [...prev, ...Array.from(files)]);
+  };
+
+  const quitarFotoGaleriaExistente = (id) => {
+    setGaleriaEliminada((prev) => [...prev, id]);
+    setGaleria((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const quitarFotoGaleriaNueva = (indice) => {
+    setGaleriaNueva((prev) => prev.filter((_, i) => i !== indice));
+  };
 
   const prevenirNavegador = (e) => {
     e.preventDefault();
@@ -147,6 +163,17 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
         return f.id
           ? api.patch(`/cantidades-fijas/${f.id}/`, payload)
           : api.post('/cantidades-fijas/', payload);
+      }));
+
+      await Promise.all(galeriaEliminada.map((id) => api.delete(`/imagenes-categoria/${id}/`)));
+
+      // Un POST por archivo (no un endpoint de carga masiva): "elegir varias a la vez"
+      // ya lo resuelve el <input multiple> del formulario, esto solo las sube en paralelo.
+      await Promise.all(galeriaNueva.map((archivo) => {
+        const fd = new FormData();
+        fd.append('categoria', categoriaGuardada.id);
+        fd.append('imagen', archivo);
+        return api.post('/imagenes-categoria/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       }));
 
       onSaved();
@@ -373,6 +400,45 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
                 accept="image/*"
                 className="input-file-hidden"
                 onChange={(e) => { if (e.target.files && e.target.files[0]) setImagen(e.target.files[0]); }}
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Galería (varias fotos, opcional)</label>
+            <p className="form-ayuda">
+              Fotos extra de esta categoría (además de la de arriba) para que se note la calidad real — se muestran
+              juntas en la página de la categoría. Podés elegir varias de una sola vez.
+            </p>
+
+            {(galeria.length > 0 || galeriaNueva.length > 0) && (
+              <div className="galeria-categoria-grid">
+                {galeria.map((img) => (
+                  <div key={`existente-${img.id}`} className="galeria-categoria-item">
+                    <img src={img.imagen} alt="" />
+                    <button type="button" onClick={() => quitarFotoGaleriaExistente(img.id)} title="Quitar foto">✕</button>
+                  </div>
+                ))}
+                {galeriaNueva.map((archivo, i) => (
+                  <div key={`nueva-${i}`} className="galeria-categoria-item galeria-categoria-item-nueva">
+                    <img src={URL.createObjectURL(archivo)} alt="" />
+                    <button type="button" onClick={() => quitarFotoGaleriaNueva(i)} title="Quitar foto">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <label className="upload-box upload-box-vibrante">
+              <div className="upload-icon">🖼️</div>
+              <p className="upload-text">
+                <span className="upload-link">Elegir fotos</span> (podés seleccionar varias a la vez)
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="input-file-hidden"
+                onChange={(e) => { if (e.target.files && e.target.files.length > 0) agregarFotosGaleria(e.target.files); e.target.value = ''; }}
               />
             </label>
           </div>

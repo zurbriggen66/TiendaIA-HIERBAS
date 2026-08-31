@@ -103,6 +103,25 @@ class CantidadFija(models.Model):
         return f'{self.categoria.nombre}: {self.cantidad}'
 
 
+class ImagenCategoria(models.Model):
+    """Foto adicional de la categoría (además de Categoria.imagen, que sigue siendo la
+    tapa/miniatura de las tarjetas). Pensada para mostrar varias fotos reales del
+    producto a granel — textura, envasado, etc. — en la página de detalle de la
+    categoría, y no una sola imagen genérica."""
+
+    categoria = models.ForeignKey(Categoria, related_name='imagenes', on_delete=models.CASCADE)
+    imagen = models.ImageField(upload_to='productos/categorias/galeria/')
+    orden = models.PositiveIntegerField(default=0)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['categoria', 'orden', 'creado']
+        verbose_name_plural = 'Imágenes de categoría'
+
+    def __str__(self):
+        return f'Foto de {self.categoria.nombre} (#{self.id})'
+
+
 class Producto(models.Model):
     categoria = models.ForeignKey(Categoria, related_name='productos', on_delete=models.PROTECT)
     nombre = models.CharField(max_length=150)

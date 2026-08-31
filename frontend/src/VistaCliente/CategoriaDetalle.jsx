@@ -50,6 +50,16 @@ export default function CategoriaDetalle() {
         </div>
       </header>
 
+      {categoria.imagenes && categoria.imagenes.length > 0 && (
+        <div className="categoria-detalle-galeria">
+          {categoria.imagenes.map((img) => (
+            <a key={img.id} href={img.imagen} target="_blank" rel="noopener noreferrer" className="categoria-detalle-galeria-item">
+              <img src={img.imagen} alt={`${categoria.nombre} - foto`} loading="lazy" />
+            </a>
+          ))}
+        </div>
+      )}
+
       <div className="categoria-detalle-subtitulo">
         <span className="material-symbols-outlined" aria-hidden="true">eco</span>
         <h2 className="fuente-impacto">Productos disponibles</h2>
@@ -194,6 +204,30 @@ export default function CategoriaDetalle() {
 
         .categoria-detalle-minimo .material-symbols-outlined {
           font-size: 16px;
+        }
+
+        .categoria-detalle-galeria {
+          display: flex;
+          gap: 10px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          margin-bottom: 8px;
+          scroll-snap-type: x proximity;
+        }
+
+        .categoria-detalle-galeria-item {
+          flex-shrink: 0;
+          scroll-snap-align: start;
+          width: 110px;
+          height: 110px;
+          border-radius: 14px;
+          overflow: hidden;
+        }
+
+        .categoria-detalle-galeria-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         @media (max-width: 640px) {

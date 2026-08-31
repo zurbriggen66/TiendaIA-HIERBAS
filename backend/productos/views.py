@@ -3,14 +3,17 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from config.permissions import EsAdminOSoloLectura
-from .models import Categoria, EscalonPrecio, CantidadFija, Producto
-from .serializers import CategoriaSerializer, EscalonPrecioSerializer, CantidadFijaSerializer, ProductoSerializer
+from .models import Categoria, EscalonPrecio, CantidadFija, ImagenCategoria, Producto
+from .serializers import (
+    CategoriaSerializer, EscalonPrecioSerializer, CantidadFijaSerializer,
+    ImagenCategoriaSerializer, ProductoSerializer,
+)
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     # Lectura pública (la tienda muestra las categorías del catálogo); escribir es solo admin.
     permission_classes = [EsAdminOSoloLectura]
-    queryset = Categoria.objects.prefetch_related('escalones', 'cantidades_fijas')
+    queryset = Categoria.objects.prefetch_related('escalones', 'cantidades_fijas', 'imagenes')
     serializer_class = CategoriaSerializer
 
     def destroy(self, request, *args, **kwargs):
@@ -55,3 +58,11 @@ class CantidadFijaViewSet(viewsets.ModelViewSet):
     permission_classes = [EsAdminOSoloLectura]
     queryset = CantidadFija.objects.select_related('categoria')
     serializer_class = CantidadFijaSerializer
+
+
+class ImagenCategoriaViewSet(viewsets.ModelViewSet):
+    # El "subir varias a la vez" lo resuelve el frontend: manda un POST por archivo
+    # elegido en el <input multiple>, no hace falta un endpoint de carga masiva acá.
+    permission_classes = [EsAdminOSoloLectura]
+    queryset = ImagenCategoria.objects.select_related('categoria')
+    serializer_class = ImagenCategoriaSerializer

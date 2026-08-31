@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTienda } from './TiendaContext';
 import { precioPorEscalon } from '../utils/escalones';
@@ -7,6 +7,51 @@ const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
 
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'pack', caja: 'caja', unidad: 'unidad' };
+
+// Tarjeta con selector de peso inline (Hierbas a Granel y cualquier otra categoría con
+// venta_cantidad_fija): a diferencia del resto del catálogo, acá se agrega directo
+// desde la lista, sin entrar al detalle del producto — porque solo hay 3 opciones
+// posibles de cantidad, no tiene sentido una pantalla aparte para elegir entre ellas.
+function TarjetaProductoGranel({ producto, categoria, unidadLabel, onAgregar }) {
+  const cantidadesFijas = [...(categoria.cantidades_fijas || [])].sort((a, b) => Number(a.cantidad) - Number(b.cantidad));
+  const [cantidad, setCantidad] = useState(cantidadesFijas[0] ? Number(cantidadesFijas[0].cantidad) : 0);
+
+  return (
+    <div className="categoria-detalle-producto-granel">
+      <div className="categoria-detalle-producto-granel-encabezado">
+        <div className="categoria-detalle-producto-imagen">
+          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
+        </div>
+        <div className="categoria-detalle-producto-info">
+          <h3>{producto.nombre}</h3>
+          {producto.precio_base > 0 && (
+            <strong>{formatearPrecio(producto.precio_base)} / {unidadLabel}</strong>
+          )}
+        </div>
+      </div>
+
+      <p className="categoria-detalle-producto-granel-aviso">ELIGE TU PESO (Solo estas opciones):</p>
+
+      <div className="categoria-detalle-producto-granel-pesos">
+        {cantidadesFijas.map((cf) => (
+          <button
+            key={cf.id}
+            type="button"
+            className={Number(cf.cantidad) === cantidad ? 'activo' : ''}
+            onClick={() => setCantidad(Number(cf.cantidad))}
+          >
+            {Number(cf.cantidad).toFixed(2)} {unidadLabel}
+          </button>
+        ))}
+      </div>
+
+      <button type="button" className="categoria-detalle-producto-granel-agregar" onClick={() => onAgregar(producto, cantidad)}>
+        <span className="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+        Agregar al carrito
+      </button>
+    </div>
+  );
+}
 
 export default function CategoriaDetalle() {
   const { id } = useParams();
@@ -77,6 +122,19 @@ export default function CategoriaDetalle() {
             const precioMinorista = categoria.escalones?.length
               ? (precioPorEscalon(categoria, 1) ?? categoria.escalones[0].precio_unitario)
               : Number(producto.precio_base) || 0;
+
+            if (categoria.venta_cantidad_fija) {
+              return (
+                <TarjetaProductoGranel
+                  key={producto.id}
+                  producto={producto}
+                  categoria={categoria}
+                  unidadLabel={unidadLabel}
+                  onAgregar={agregarAlCarrito}
+                />
+              );
+            }
+
             return (
               <button
                 key={producto.id}
@@ -262,8 +320,9 @@ export default function CategoriaDetalle() {
 
         .categoria-detalle-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 16px;
+          align-items: start;
         }
 
         .categoria-detalle-producto {
@@ -346,6 +405,73 @@ export default function CategoriaDetalle() {
           padding: 3px 10px;
           border-radius: 999px;
           margin-top: 4px;
+        }
+
+        .categoria-detalle-producto-granel {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 16px;
+          box-shadow: 0 8px 20px -16px rgba(28, 28, 22, 0.25);
+        }
+
+        .categoria-detalle-producto-granel-encabezado {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+
+        .categoria-detalle-producto-granel-aviso {
+          margin: 0;
+          font-size: 0.72rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          color: var(--text-muted);
+        }
+
+        .categoria-detalle-producto-granel-pesos {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .categoria-detalle-producto-granel-pesos button {
+          padding: 8px 16px;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--surface-2);
+          color: var(--text);
+          font-weight: 700;
+          font-size: 0.85rem;
+          cursor: pointer;
+        }
+
+        .categoria-detalle-producto-granel-pesos button.activo {
+          border-color: var(--accent, #1a361b);
+          background: var(--accent, #1a361b);
+          color: #ffffff;
+        }
+
+        .categoria-detalle-producto-granel-agregar {
+          width: 100%;
+          height: 46px;
+          border: none;
+          border-radius: 999px;
+          background: var(--accent, #1a361b);
+          color: #ffffff;
+          font-family: 'Work Sans', sans-serif;
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
         }
 
         .categoria-detalle-producto-agregar {

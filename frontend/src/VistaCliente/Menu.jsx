@@ -25,7 +25,10 @@ function TarjetaProducto({ producto, categoria, onAgregar }) {
   const [ref, visible] = useReveal();
   const navigate = useNavigate();
   const paso = PASO_POR_UNIDAD[categoria.unidad_medida] || 1;
-  const [cantidad, setCantidad] = useState(paso);
+  const cantidadesFijas = categoria.venta_cantidad_fija
+    ? [...(categoria.cantidades_fijas || [])].sort((a, b) => Number(a.cantidad) - Number(b.cantidad))
+    : null;
+  const [cantidad, setCantidad] = useState(cantidadesFijas?.length ? Number(cantidadesFijas[0].cantidad) : paso);
   const unidadLabel = ETIQUETA_UNIDAD[categoria.unidad_medida] || categoria.unidad_medida;
   const tieneEscalones = categoria.escalones && categoria.escalones.length > 0;
 
@@ -60,11 +63,26 @@ function TarjetaProducto({ producto, categoria, onAgregar }) {
 
         <div className="menu-tarjeta-divisor" aria-hidden="true" />
         <div className="menu-tarjeta-footer">
-          <div className="menu-tarjeta-cantidad">
-            <button type="button" onClick={() => ajustar(-paso)}>−</button>
-            <span>{cantidad} {unidadLabel}</span>
-            <button type="button" onClick={() => ajustar(paso)}>+</button>
-          </div>
+          {cantidadesFijas ? (
+            <div className="menu-tarjeta-cantidades-fijas">
+              {cantidadesFijas.map((cf) => (
+                <button
+                  key={cf.id}
+                  type="button"
+                  className={Number(cf.cantidad) === cantidad ? 'activo' : ''}
+                  onClick={() => setCantidad(Number(cf.cantidad))}
+                >
+                  {cf.cantidad}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="menu-tarjeta-cantidad">
+              <button type="button" onClick={() => ajustar(-paso)}>−</button>
+              <span>{cantidad} {unidadLabel}</span>
+              <button type="button" onClick={() => ajustar(paso)}>+</button>
+            </div>
+          )}
           <button type="button" className="menu-tarjeta-toppings" onClick={() => onAgregar(producto, cantidad)}>
             Agregar
           </button>

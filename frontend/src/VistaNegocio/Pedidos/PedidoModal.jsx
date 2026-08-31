@@ -7,7 +7,11 @@ const COLORES_CHIP = ['chip-mostaza', 'chip-naranja', 'chip-tomate'];
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
 
 let contadorFila = 0;
-const nuevaFila = (producto) => ({ key: ++contadorFila, producto, cantidad: 1 });
+const nuevaFila = (producto, cantidad = 1) => ({ key: ++contadorFila, producto, cantidad });
+
+const cantidadesFijasDe = (categoria) => (categoria?.venta_cantidad_fija
+  ? (categoria.cantidades_fijas || []).map((cf) => Number(cf.cantidad)).sort((a, b) => a - b)
+  : null);
 
 const formatearPrecio = (precio) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -52,15 +56,23 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
   };
 
   const agregarProductoClick = (producto) => {
+    const categoria = categoriasPorId.get(producto.categoria);
+    const cantidadesFijas = cantidadesFijasDe(categoria);
     setFilas((prev) => {
       const idx = prev.findIndex((f) => f.producto.id === producto.id);
       if (idx !== -1) {
+        if (cantidadesFijas) {
+          // Ya está en la lista: pasar a la próxima cantidad fija en vez de +1.
+          const indiceActual = cantidadesFijas.indexOf(Number(prev[idx].cantidad));
+          const siguiente = cantidadesFijas[Math.min(indiceActual + 1, cantidadesFijas.length - 1)];
+          return prev.map((f, i) => (i === idx ? { ...f, cantidad: siguiente } : f));
+        }
         const paso = 1;
         return prev.map((f, i) => (i === idx ? { ...f, cantidad: Number(f.cantidad) + paso } : f));
       }
       // Al principio, no al final: si ya hay varios productos cargados, el que se
       // acaba de agregar tiene que verse sin scrollear la lista.
-      return [nuevaFila(producto), ...prev];
+      return [nuevaFila(producto, cantidadesFijas ? cantidadesFijas[0] : 1), ...prev];
     });
   };
 
@@ -286,6 +298,8 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
                 {filas.map((fila) => {
                   const paso = 1;
                   const precioUnitario = precioUnitarioItem({ producto: fila.producto, cantidad: fila.cantidad }, resumen);
+                  const cantidadesFijas = cantidadesFijasDe(categoriasPorId.get(fila.producto.categoria));
+                  const indiceFija = cantidadesFijas ? cantidadesFijas.indexOf(Number(fila.cantidad)) : -1;
                   return (
                     <div key={fila.key} className="pedido-item-fila">
                       <div className="pedido-item-fila-info">
@@ -294,9 +308,31 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
                       </div>
                       <div className="pedido-item-fila-acciones">
                         <div className="pedido-fila-cantidad-stepper">
-                          <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Math.max(paso, Number(fila.cantidad) - paso) })}>−</button>
-                          <span>{fila.cantidad}</span>
-                          <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Number(fila.cantidad) + paso })}>+</button>
+                          {cantidadesFijas ? (
+                            <>
+                              <button
+                                type="button"
+                                disabled={indiceFija <= 0}
+                                onClick={() => actualizarFila(fila.key, { cantidad: cantidadesFijas[indiceFija - 1] })}
+                              >
+                                −
+                              </button>
+                              <span>{fila.cantidad}</span>
+                              <button
+                                type="button"
+                                disabled={indiceFija === -1 || indiceFija >= cantidadesFijas.length - 1}
+                                onClick={() => actualizarFila(fila.key, { cantidad: cantidadesFijas[indiceFija + 1] })}
+                              >
+                                +
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Math.max(paso, Number(fila.cantidad) - paso) })}>−</button>
+                              <span>{fila.cantidad}</span>
+                              <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Number(fila.cantidad) + paso })}>+</button>
+                            </>
+                          )}
                         </div>
                         <button type="button" className="pedido-fila-quitar" onClick={() => quitarFila(fila.key)} title="Quitar producto">✕</button>
                       </div>
@@ -323,6 +359,11 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
                       Faltan {v.falta} {unidadEtiqueta} de {v.nombre} (mínimo {grupo.minimoVariedad} por variedad)
                     </p>
                   ))}
+                  {grupo.categoria.venta_cantidad_fija && (grupo.categoria.cantidades_fijas || []).length > 0 && (
+                    <p className="form-ayuda">
+                      Cada variedad se compra en {grupo.categoria.cantidades_fijas.map((cf) => `${cf.cantidad}`).join('/')} {unidadEtiqueta}.
+                    </p>
+                  )}
                   {grupo.granelMinimoTotal > 0 && (
                     grupo.enModoGranel ? (
                       <p className="form-ayuda" style={{ color: '#4ade80' }}>🎉 Precio a granel aplicado en esta categoría</p>

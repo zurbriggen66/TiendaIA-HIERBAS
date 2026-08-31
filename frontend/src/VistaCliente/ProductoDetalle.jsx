@@ -19,7 +19,16 @@ export default function ProductoDetalle() {
   const paso = categoria ? (PASO_POR_UNIDAD[categoria.unidad_medida] || 1) : 1;
   const unidadLabel = categoria ? (ETIQUETA_UNIDAD[categoria.unidad_medida] || categoria.unidad_medida) : '';
 
-  const [cantidad, setCantidad] = useState(() => (categoria && Number(categoria.cantidad_minima) > paso ? Number(categoria.cantidad_minima) : paso));
+  const cantidadesFijas = categoria?.venta_cantidad_fija
+    ? [...(categoria.cantidades_fijas || [])].sort((a, b) => Number(a.cantidad) - Number(b.cantidad))
+    : null;
+
+  const [cantidad, setCantidad] = useState(() => {
+    if (categoria?.venta_cantidad_fija && categoria.cantidades_fijas?.length) {
+      return Number([...categoria.cantidades_fijas].sort((a, b) => Number(a.cantidad) - Number(b.cantidad))[0].cantidad);
+    }
+    return categoria && Number(categoria.cantidad_minima) > paso ? Number(categoria.cantidad_minima) : paso;
+  });
 
   if (!producto || !categoria) {
     return (
@@ -116,19 +125,40 @@ export default function ProductoDetalle() {
         </p>
       )}
 
+      {cantidadesFijas && (
+        <p className="producto-detalle-minimo">
+          "{categoria.nombre}" se vende solo por {cantidadesFijas.map((cf) => `${cf.cantidad}`).join(', ')} {unidadLabel} — elegí una cantidad abajo.
+        </p>
+      )}
+
       <div
         className={`producto-detalle-barra-inferior ${totalItems > 0 ? 'producto-detalle-barra-inferior-con-carrito' : ''}`}
         data-barra-fija-pagina
       >
-        <div className="producto-detalle-stepper">
-          <button type="button" onClick={() => ajustar(-paso)} aria-label="Restar">
-            <span className="material-symbols-outlined" aria-hidden="true">remove</span>
-          </button>
-          <span>{cantidad}</span>
-          <button type="button" onClick={() => ajustar(paso)} aria-label="Sumar">
-            <span className="material-symbols-outlined" aria-hidden="true">add</span>
-          </button>
-        </div>
+        {cantidadesFijas ? (
+          <div className="producto-detalle-cantidades-fijas">
+            {cantidadesFijas.map((cf) => (
+              <button
+                key={cf.id}
+                type="button"
+                className={Number(cf.cantidad) === cantidad ? 'activo' : ''}
+                onClick={() => setCantidad(Number(cf.cantidad))}
+              >
+                {cf.cantidad} {unidadLabel}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="producto-detalle-stepper">
+            <button type="button" onClick={() => ajustar(-paso)} aria-label="Restar">
+              <span className="material-symbols-outlined" aria-hidden="true">remove</span>
+            </button>
+            <span>{cantidad}</span>
+            <button type="button" onClick={() => ajustar(paso)} aria-label="Sumar">
+              <span className="material-symbols-outlined" aria-hidden="true">add</span>
+            </button>
+          </div>
+        )}
         <button type="button" className="producto-detalle-agregar" onClick={agregar}>
           <span className="material-symbols-outlined" aria-hidden="true">shopping_basket</span>
           Agregar al carrito
@@ -383,6 +413,31 @@ export default function ProductoDetalle() {
           background: var(--surface);
           border-top: 1px solid var(--border);
           box-shadow: 0 -8px 20px -12px rgba(28, 28, 22, 0.25);
+        }
+
+        .producto-detalle-cantidades-fijas {
+          flex-shrink: 0;
+          display: flex;
+          gap: 8px;
+        }
+
+        .producto-detalle-cantidades-fijas button {
+          height: 48px;
+          padding: 0 16px;
+          border-radius: 999px;
+          border: 1.5px solid var(--border);
+          background: var(--surface-2);
+          color: var(--text);
+          font-weight: 700;
+          font-size: 0.9rem;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .producto-detalle-cantidades-fijas button.activo {
+          border-color: var(--accent);
+          background: var(--accent);
+          color: #ffffff;
         }
 
         .producto-detalle-stepper {

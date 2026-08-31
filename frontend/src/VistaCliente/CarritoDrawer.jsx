@@ -180,6 +180,11 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                   {!tieneAviso && grupo.precioEscalon != null && (
                     <span className="categoria-resumen-precio">Precio vigente: {formatearPrecio(grupo.precioEscalon)} c/u</span>
                   )}
+                  {grupo.categoria.venta_cantidad_fija && (grupo.categoria.cantidades_fijas || []).length > 0 && (
+                    <span className="categoria-resumen-tip">
+                      Cada variedad se compra en {grupo.categoria.cantidades_fijas.map((cf) => `${cf.cantidad}`).join('/')} {unidadEtiqueta}.
+                    </span>
+                  )}
                   {grupo.granelMinimoTotal > 0 && (
                     grupo.enModoGranel ? (
                       <span className="categoria-resumen-precio">🎉 ¡Llegaste al precio a granel!</span>
@@ -201,6 +206,11 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
               {items.map((item) => {
                 const precioUnitario = precioUnitarioItem(item, resumen);
                 const subtotalItem = precioUnitario * item.cantidad;
+                const categoriaItem = categoriasPorId.get(item.producto.categoria);
+                const cantidadesFijas = categoriaItem?.venta_cantidad_fija
+                  ? (categoriaItem.cantidades_fijas || []).map((cf) => Number(cf.cantidad)).sort((a, b) => a - b)
+                  : null;
+                const indiceFija = cantidadesFijas ? cantidadesFijas.indexOf(Number(item.cantidad)) : -1;
                 return (
                   <div key={item.lineaId} className="pedido-item">
                     <div className="pedido-item-imagen">
@@ -213,7 +223,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                       </div>
                       {item.producto.contenido && <span className="pedido-item-extras">{item.producto.contenido}</span>}
                       <span className="pedido-item-precio">{formatearPrecio(precioUnitario)} c/u</span>
-                      {item.producto.precio_granel && (
+                      {item.producto.precio_granel && Number(categoriaItem?.granel_cantidad_minima) > 0 && (
                         <span className="pedido-item-granel">
                           A granel: {formatearPrecio(item.producto.precio_granel)} / {ETIQUETA_UNIDAD[item.producto.unidad_medida] || item.producto.unidad_medida}
                         </span>
@@ -223,9 +233,33 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                     <div className="pedido-item-acciones">
                       <button type="button" className="pedido-item-quitar" onClick={() => onQuitar(item.lineaId)} aria-label="Quitar producto">🗑</button>
                       <div className="pedido-item-cantidad">
-                        <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad - 1)} aria-label="Restar">−</button>
-                        <span>{item.cantidad}</span>
-                        <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad + 1)} aria-label="Sumar">+</button>
+                        {cantidadesFijas ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => onCambiarCantidad(item.lineaId, cantidadesFijas[indiceFija - 1])}
+                              disabled={indiceFija <= 0}
+                              aria-label="Bajar a la cantidad fija anterior"
+                            >
+                              −
+                            </button>
+                            <span>{item.cantidad}</span>
+                            <button
+                              type="button"
+                              onClick={() => onCambiarCantidad(item.lineaId, cantidadesFijas[indiceFija + 1])}
+                              disabled={indiceFija === -1 || indiceFija >= cantidadesFijas.length - 1}
+                              aria-label="Subir a la cantidad fija siguiente"
+                            >
+                              +
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad - 1)} aria-label="Restar">−</button>
+                            <span>{item.cantidad}</span>
+                            <button type="button" onClick={() => onCambiarCantidad(item.lineaId, item.cantidad + 1)} aria-label="Sumar">+</button>
+                          </>
+                        )}
                       </div>
                       <span className="pedido-item-subtotal">{formatearPrecio(subtotalItem)}</span>
                     </div>

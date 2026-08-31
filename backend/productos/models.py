@@ -36,6 +36,14 @@ class Categoria(models.Model):
     # tiene modo granel.
     granel_cantidad_minima = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     granel_cantidad_minima_variedad = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Venta a granel por cantidad fija (ej: "Hierbas a Granel" solo se compra en packs
+    # de 25, 50 o 100kg — nunca "cualquier" cantidad): si está prendido, cada línea del
+    # pedido de un producto de esta categoría tiene que coincidir EXACTO con alguna de
+    # sus `cantidades_fijas`, no vale cualquier número. Distinto del modo granel de
+    # arriba (que desbloquea un precio más barato al acumular) — acá el precio de cada
+    # producto es siempre el mismo (su precio_base), lo que cambia es que no se puede
+    # elegir cualquier cantidad.
+    venta_cantidad_fija = models.BooleanField(default=False)
     orden = models.PositiveIntegerField(default=0)
     activa = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
@@ -76,6 +84,23 @@ class EscalonPrecio(models.Model):
 
     def __str__(self):
         return f'{self.categoria.nombre}: desde {self.cantidad_desde} → ${self.precio_unitario}'
+
+
+class CantidadFija(models.Model):
+    """Una de las cantidades permitidas para una categoría con venta_cantidad_fija
+    (ej: 25, 50 y 100 para "Hierbas a Granel"). El precio no vive acá — es siempre el
+    precio_base del producto, sin importar cuál de estas cantidades se elija."""
+
+    categoria = models.ForeignKey(Categoria, related_name='cantidades_fijas', on_delete=models.CASCADE)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        ordering = ['categoria', 'cantidad']
+        unique_together = ('categoria', 'cantidad')
+        verbose_name_plural = 'Cantidades fijas'
+
+    def __str__(self):
+        return f'{self.categoria.nombre}: {self.cantidad}'
 
 
 class Producto(models.Model):

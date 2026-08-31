@@ -110,7 +110,7 @@ class PedidoSerializer(serializers.ModelSerializer):
                     f'{categoria.get_unidad_medida_display().lower()}(s); el pedido junta {cantidad}.'
                 )
 
-        # Mínimo por variedad (ej: Hierbas a Granel exige al menos 10kg de CADA hierba
+        # Mínimo por variedad (ej: Hierbas Importadas exige al menos 5kg de CADA hierba
         # elegida, no solo el total de la categoría): a diferencia del chequeo de arriba,
         # este es por producto individual dentro de la categoría.
         for producto, cantidad in cantidades_por_producto.items():
@@ -120,6 +120,26 @@ class PedidoSerializer(serializers.ModelSerializer):
                     f'"{producto.nombre}" tiene un mínimo de {minimo_variedad} '
                     f'{producto.categoria.get_unidad_medida_display().lower()}(s) si se incluye en el pedido; '
                     f'el pedido tiene {cantidad}.'
+                )
+
+        # Cantidad fija (ej: Hierbas a Granel solo se compra en packs de 25/50/100kg):
+        # cada línea tiene que coincidir EXACTO con alguna cantidad permitida de su
+        # categoría, no vale cualquier número intermedio.
+        cantidades_fijas_por_categoria = {}
+        for producto, cantidad in cantidades_por_producto.items():
+            categoria = producto.categoria
+            if not categoria.venta_cantidad_fija:
+                continue
+            if categoria.id not in cantidades_fijas_por_categoria:
+                cantidades_fijas_por_categoria[categoria.id] = list(
+                    categoria.cantidades_fijas.values_list('cantidad', flat=True)
+                )
+            permitidas = cantidades_fijas_por_categoria[categoria.id]
+            if cantidad not in permitidas:
+                opciones = ', '.join(str(c) for c in sorted(permitidas))
+                raise serializers.ValidationError(
+                    f'"{producto.nombre}" solo se puede comprar en estas cantidades: {opciones} '
+                    f'{categoria.get_unidad_medida_display().lower()}(s); el pedido tiene {cantidad}.'
                 )
         return data
 

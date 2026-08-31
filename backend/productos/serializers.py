@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Categoria, EscalonPrecio, Producto
+from .models import Categoria, EscalonPrecio, CantidadFija, Producto
 
 
 class EscalonPrecioSerializer(serializers.ModelSerializer):
@@ -8,15 +8,23 @@ class EscalonPrecioSerializer(serializers.ModelSerializer):
         fields = ['id', 'categoria', 'etiqueta', 'cantidad_desde', 'precio_unitario']
 
 
+class CantidadFijaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CantidadFija
+        fields = ['id', 'categoria', 'cantidad']
+
+
 class CategoriaSerializer(serializers.ModelSerializer):
     escalones = EscalonPrecioSerializer(many=True, read_only=True)
+    cantidades_fijas = CantidadFijaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Categoria
         fields = [
             'id', 'nombre', 'slug', 'descripcion', 'imagen', 'unidad_medida',
             'cantidad_minima', 'cantidad_minima_variedad', 'granel_cantidad_minima',
-            'granel_cantidad_minima_variedad', 'orden', 'activa', 'escalones', 'creado',
+            'granel_cantidad_minima_variedad', 'venta_cantidad_fija', 'cantidades_fijas',
+            'orden', 'activa', 'escalones', 'creado',
         ]
 
 

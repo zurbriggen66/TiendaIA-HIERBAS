@@ -2956,6 +2956,28 @@ body {
   gap: 10px;
 }
 
+.menu-tarjeta-cantidades-fijas {
+  display: flex;
+  gap: 6px;
+}
+
+.menu-tarjeta-cantidades-fijas button {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--accent, #1a361b);
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.menu-tarjeta-cantidades-fijas button.activo {
+  border-color: var(--accent, #1a361b);
+  background: var(--accent, #1a361b);
+  color: #ffffff;
+}
+
 .menu-tarjeta-cantidad button {
   border: 1px solid var(--border);
   background: var(--surface-2);

@@ -18,6 +18,13 @@ const nuevaFilaEscalon = (e = {}) => ({
   precio_unitario: e.precio_unitario ?? '',
 });
 
+let contadorFilaCantidadFija = 0;
+const nuevaFilaCantidadFija = (c = {}) => ({
+  key: ++contadorFilaCantidadFija,
+  id: c.id ?? null,
+  cantidad: c.cantidad ?? '',
+});
+
 export default function CategoriaModal({ categoria, onClose, onSaved }) {
   const [nombre, setNombre] = useState(categoria ? categoria.nombre : '');
   const [descripcion, setDescripcion] = useState(categoria ? categoria.descripcion : '');
@@ -37,6 +44,13 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
       : [nuevaFilaEscalon()]
   );
   const [escalonesEliminados, setEscalonesEliminados] = useState([]);
+  const [ventaCantidadFija, setVentaCantidadFija] = useState(categoria ? categoria.venta_cantidad_fija : false);
+  const [filasCantidadesFijas, setFilasCantidadesFijas] = useState(
+    categoria && categoria.cantidades_fijas && categoria.cantidades_fijas.length > 0
+      ? categoria.cantidades_fijas.map(nuevaFilaCantidadFija)
+      : [nuevaFilaCantidadFija()]
+  );
+  const [cantidadesFijasEliminadas, setCantidadesFijasEliminadas] = useState([]);
 
   const previewImagen = imagen ? URL.createObjectURL(imagen) : (categoria ? categoria.imagen : null);
 
@@ -63,6 +77,19 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
     setFilasEscalones((prev) => [...prev, nuevaFilaEscalon()]);
   };
 
+  const actualizarFilaCantidadFija = (key, cambios) => {
+    setFilasCantidadesFijas((prev) => prev.map((f) => (f.key === key ? { ...f, ...cambios } : f)));
+  };
+
+  const quitarFilaCantidadFija = (fila) => {
+    if (fila.id) setCantidadesFijasEliminadas((prev) => [...prev, fila.id]);
+    setFilasCantidadesFijas((prev) => prev.filter((f) => f.key !== fila.key));
+  };
+
+  const agregarFilaCantidadFija = () => {
+    setFilasCantidadesFijas((prev) => [...prev, nuevaFilaCantidadFija()]);
+  };
+
   const guardar = async (e) => {
     e.preventDefault();
     if (!nombre.trim()) {
@@ -78,6 +105,7 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
     formData.append('cantidad_minima_variedad', cantidadMinimaVariedad || 0);
     formData.append('granel_cantidad_minima', granelCantidadMinima || 0);
     formData.append('granel_cantidad_minima_variedad', granelCantidadMinimaVariedad || 0);
+    formData.append('venta_cantidad_fija', ventaCantidadFija);
     formData.append('activa', activa);
     if (imagen) formData.append('imagen', imagen);
 
@@ -109,6 +137,16 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
         return f.id
           ? api.patch(`/escalones-precio/${f.id}/`, payload)
           : api.post('/escalones-precio/', payload);
+      }));
+
+      await Promise.all(cantidadesFijasEliminadas.map((id) => api.delete(`/cantidades-fijas/${id}/`)));
+
+      const filasCantidadesValidas = filasCantidadesFijas.filter((f) => f.cantidad !== '');
+      await Promise.all(filasCantidadesValidas.map((f) => {
+        const payload = { categoria: categoriaGuardada.id, cantidad: f.cantidad };
+        return f.id
+          ? api.patch(`/cantidades-fijas/${f.id}/`, payload)
+          : api.post('/cantidades-fijas/', payload);
       }));
 
       onSaved();
@@ -221,6 +259,46 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
               </div>
             </div>
           </div>
+
+          <div className="form-group">
+            <label className="checkbox-vibrante">
+              <input type="checkbox" checked={ventaCantidadFija} onChange={(e) => setVentaCantidadFija(e.target.checked)} />
+              <span>Venta solo por cantidad fija (ej: Hierbas a Granel)</span>
+            </label>
+            <p className="form-ayuda">
+              Si lo activás, en la tienda el cliente no puede pedir cualquier cantidad de esta categoría — solo puede
+              elegir una de las cantidades de la lista de abajo. El precio de cada producto no cambia según cuál elija
+              (siempre es su precio propio), lo único que cambia es que no vale cualquier número.
+            </p>
+          </div>
+
+          {ventaCantidadFija && (
+            <div className="form-group">
+              <label className="form-label">Cantidades permitidas</label>
+              <div className="pedido-filas">
+                {filasCantidadesFijas.map((fila) => (
+                  <div key={fila.key} className="pedido-fila">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="input-vibrante pedido-fila-cantidad"
+                      placeholder="Ej: 25"
+                      value={fila.cantidad}
+                      onChange={(e) => actualizarFilaCantidadFija(fila.key, { cantidad: e.target.value })}
+                      style={{ flex: 1 }}
+                    />
+                    <button type="button" className="pedido-fila-quitar" onClick={() => quitarFilaCantidadFija(fila)} title="Quitar cantidad">
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="btn-agregar-fila" onClick={agregarFilaCantidadFija}>
+                + Agregar cantidad
+              </button>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="checkbox-vibrante">

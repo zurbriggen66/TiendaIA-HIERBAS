@@ -124,11 +124,13 @@ class PedidoSerializer(serializers.ModelSerializer):
 
         # Cantidad fija (ej: Hierbas a Granel solo se compra en packs de 25/50/100kg):
         # cada línea tiene que coincidir EXACTO con alguna cantidad permitida de su
-        # categoría, no vale cualquier número intermedio.
+        # categoría, no vale cualquier número intermedio. Esto solo rige para pedidos de
+        # la tienda web — el dueño cargando una venta a mano en el admin puede anotar
+        # cualquier cantidad real (ej. vendió 40kg sueltos), no está atado a los packs.
         cantidades_fijas_por_categoria = {}
         for producto, cantidad in cantidades_por_producto.items():
             categoria = producto.categoria
-            if not categoria.venta_cantidad_fija:
+            if not categoria.venta_cantidad_fija or data.get('origen') != 'web':
                 continue
             if categoria.id not in cantidades_fijas_por_categoria:
                 cantidades_fijas_por_categoria[categoria.id] = list(

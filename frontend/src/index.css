@@ -2111,6 +2111,17 @@ body {
   color: var(--text);
 }
 
+.pedido-fila-cantidad-libre {
+  width: 56px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 2px;
+}
+
 .pedido-fila-aviso {
   margin: 0 0 0 8px;
   font-size: 0.76rem;

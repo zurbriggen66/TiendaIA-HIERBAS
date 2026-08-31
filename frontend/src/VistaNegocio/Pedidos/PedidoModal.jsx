@@ -314,14 +314,29 @@ export default function PedidoModal({ productos, categorias, localidades, onClos
                                 type="button"
                                 disabled={indiceFija <= 0}
                                 onClick={() => actualizarFila(fila.key, { cantidad: cantidadesFijas[indiceFija - 1] })}
+                                title="Bajar a la cantidad fija anterior"
                               >
                                 −
                               </button>
-                              <span>{fila.cantidad}</span>
+                              {/* Los botones de arriba/abajo saltan entre las cantidades fijas
+                                  (uso normal de la tienda); este input aparte es la salida para
+                                  que el dueño anote una venta real que no calzó justo en un pack
+                                  (ej. vendió 40kg sueltos) — el backend solo exige las cantidades
+                                  fijas en pedidos de la web, no en los cargados acá a mano. */}
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="pedido-fila-cantidad-libre"
+                                value={fila.cantidad}
+                                onChange={(e) => actualizarFila(fila.key, { cantidad: e.target.value })}
+                                title="También podés escribir cualquier cantidad real vendida"
+                              />
                               <button
                                 type="button"
                                 disabled={indiceFija === -1 || indiceFija >= cantidadesFijas.length - 1}
                                 onClick={() => actualizarFila(fila.key, { cantidad: cantidadesFijas[indiceFija + 1] })}
+                                title="Subir a la cantidad fija siguiente"
                               >
                                 +
                               </button>

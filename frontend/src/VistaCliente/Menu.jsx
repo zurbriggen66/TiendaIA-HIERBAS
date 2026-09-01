@@ -179,6 +179,40 @@ export default function Menu({ categorias, productos, onAgregar }) {
         .filtro-categoria-activa {
           border-color: var(--accent);
           background: linear-gradient(180deg, rgba(124, 154, 91, 0.22), rgba(124, 154, 91, 0.06));
+          box-shadow: 0 6px 16px -10px rgba(28, 28, 22, 0.35);
+        }
+
+        /* En celular la grilla de tarjetas verticales queda apretada con varias
+           categorías — se apila en una lista de filas horizontales (imagen, nombre
+           y check en línea) en vez de columnas angostas. */
+        @media (max-width: 640px) {
+          .menu-filtro-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px;
+          }
+
+          .filtro-categoria-card {
+            flex-direction: row;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+          }
+
+          .filtro-categoria-imagen {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+          }
+
+          .filtro-categoria-nombre {
+            flex: 1;
+            text-align: left;
+            font-size: 0.82rem;
+          }
+
+          .filtro-categoria-check {
+            flex-shrink: 0;
+          }
         }
 
         .filtro-categoria-imagen {

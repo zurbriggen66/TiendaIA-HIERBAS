@@ -210,10 +210,15 @@ export default function CategoriaModal({ categoria, onClose, onSaved }) {
             <label className="form-label">Descripción</label>
             <textarea
               className="input-vibrante"
-              rows={2}
+              rows={3}
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
             />
+            <p className="form-ayuda">
+              Se muestra en un recuadro debajo de la imagen de la categoría. Usalo para explicar en palabras claras
+              cómo se compra (ej: "Se vende de a 25, 50 o 100 unidades" o "Compra mínima 50 unidades, podés combinar
+              variedades"). Podés usar varios renglones.
+            </p>
           </div>
 
           <div className="form-row">

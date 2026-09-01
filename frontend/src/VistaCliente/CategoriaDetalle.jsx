@@ -64,6 +64,14 @@ export default function CategoriaDetalle() {
 
   const galeriaRef = useRef(null);
   const [galeriaIndice, setGaleriaIndice] = useState(0);
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
+
+  useEffect(() => {
+    if (!imagenAmpliada) return;
+    const alTeclado = (e) => { if (e.key === 'Escape') setImagenAmpliada(null); };
+    window.addEventListener('keydown', alTeclado);
+    return () => window.removeEventListener('keydown', alTeclado);
+  }, [imagenAmpliada]);
 
   const anchoItemGaleria = () => {
     const el = galeriaRef.current;
@@ -111,14 +119,8 @@ export default function CategoriaDetalle() {
         className="categoria-detalle-header"
         style={categoria.imagen ? { backgroundImage: `url(${categoria.imagen})` } : undefined}
       >
-        {/* El rombo es un cuadrado rotado 45° detrás (solo decorativo, aria-hidden);
-            el texto va en un div aparte SIN rotar, superpuesto arriba — así se lee
-            derecho en vez de girado, y no hay que pelear con clip-path recortando
-            letras cerca de las puntas del rombo. */}
-        <div className="categoria-detalle-header-rombo" aria-hidden="true" />
         <div className="categoria-detalle-header-texto">
           <h1 className="fuente-impacto">{categoria.nombre}</h1>
-          {categoria.descripcion && <p>{categoria.descripcion}</p>}
           {Number(categoria.cantidad_minima) > 0 && (
             <span className="categoria-detalle-minimo">
               <span className="material-symbols-outlined" aria-hidden="true">eco</span>
@@ -127,6 +129,13 @@ export default function CategoriaDetalle() {
           )}
         </div>
       </header>
+
+      {categoria.descripcion && (
+        <div className="categoria-detalle-nota">
+          <span className="material-symbols-outlined" aria-hidden="true">info</span>
+          <p>{categoria.descripcion}</p>
+        </div>
+      )}
 
       {categoria.imagenes && categoria.imagenes.length > 0 && (
         <>
@@ -139,9 +148,14 @@ export default function CategoriaDetalle() {
 
             <div className="categoria-detalle-galeria" ref={galeriaRef}>
               {categoria.imagenes.map((img) => (
-                <a key={img.id} href={img.imagen} target="_blank" rel="noopener noreferrer" className="categoria-detalle-galeria-item">
+                <button
+                  key={img.id}
+                  type="button"
+                  className="categoria-detalle-galeria-item"
+                  onClick={() => setImagenAmpliada(img.imagen)}
+                >
                   <img src={img.imagen} alt={`${categoria.nombre} - foto`} loading="lazy" />
-                </a>
+                </button>
               ))}
             </div>
 
@@ -223,6 +237,18 @@ export default function CategoriaDetalle() {
         </div>
       )}
 
+      {imagenAmpliada && (
+        <div
+          className="categoria-detalle-lightbox"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setImagenAmpliada(null)}
+        >
+          <button type="button" className="categoria-detalle-lightbox-cerrar" aria-label="Cerrar">✕</button>
+          <img src={imagenAmpliada} alt={`${categoria.nombre} - foto ampliada`} />
+        </div>
+      )}
+
       <style>{`
         .categoria-detalle-seccion {
           /* width:100% no es redundante con max-width: .cliente-container es flex
@@ -274,31 +300,18 @@ export default function CategoriaDetalle() {
           margin-bottom: 32px;
         }
 
-        .categoria-detalle-header-rombo {
-          position: absolute;
-          top: 50%;
-          left: 5%;
-          width: 82%;
-          max-width: 380px;
-          aspect-ratio: 1;
-          background: var(--surface, #f2f7ef);
-          border-radius: 14px;
-          transform: translateY(-50%) rotate(45deg);
-          box-shadow: 0 20px 40px -14px rgba(28, 28, 22, 0.4);
-        }
-
         .categoria-detalle-header-texto {
           position: relative;
           z-index: 1;
-          padding: 32px 28px;
+          margin: 24px 28px;
+          padding: 24px 26px;
+          background: var(--surface, #f2f7ef);
+          border-radius: 18px;
+          box-shadow: 0 20px 40px -18px rgba(28, 28, 22, 0.4);
           display: flex;
           flex-direction: column;
           gap: 10px;
-          /* Ancho cómodo para el título (una o dos palabras cortas no deberían
-             partirse en 3 líneas). El párrafo de abajo tiene su PROPIO ancho más
-             angosto — el rombo se achica hacia arriba/abajo, así que un párrafo
-             largo siempre iba a chocar contra ese borde si usara este mismo ancho. */
-          max-width: 58%;
+          max-width: min(90%, 460px);
         }
 
         .categoria-detalle-header-texto h1 {
@@ -308,19 +321,62 @@ export default function CategoriaDetalle() {
           margin: 0;
         }
 
-        .categoria-detalle-header-texto p {
+        .categoria-detalle-nota {
+          display: flex;
+          gap: 10px;
+          background: var(--surface-2, #eef3ea);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 16px 18px;
+          margin-bottom: 24px;
+        }
+
+        .categoria-detalle-nota .material-symbols-outlined {
+          color: var(--accent-light, #2f4f30);
+          flex-shrink: 0;
+        }
+
+        .categoria-detalle-nota p {
           margin: 0;
-          color: var(--text-muted, #546854);
+          color: var(--text, #2a3a2a);
           font-size: 0.95rem;
-          /* ponytail: tope de 2 líneas con "..." para descripciones largas (ej.
-             Blends) — no persigue el ancho exacto del rombo en cada renglón, así
-             que una descripción larga puede rozar el borde en la 2da línea. Subir
-             a un ajuste geométrico exacto (ancho por línea según altura) si eso
-             llega a notarse mal en la práctica. */
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
+          line-height: 1.45;
+          /* pre-line: el dueño puede escribir las reglas de compra en varios
+             renglones desde el admin y se respetan tal cual. */
+          white-space: pre-line;
+        }
+
+        .categoria-detalle-lightbox {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          background: rgba(12, 14, 10, 0.88);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          cursor: zoom-out;
+        }
+
+        .categoria-detalle-lightbox img {
+          max-width: 100%;
+          max-height: 100%;
+          border-radius: 12px;
+          object-fit: contain;
+        }
+
+        .categoria-detalle-lightbox-cerrar {
+          position: absolute;
+          top: 16px;
+          right: 20px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+          font-size: 1.1rem;
+          cursor: pointer;
         }
 
         .categoria-detalle-minimo {
@@ -372,6 +428,10 @@ export default function CategoriaDetalle() {
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 8px 18px -12px rgba(28, 28, 22, 0.35);
+          border: none;
+          padding: 0;
+          background: none;
+          cursor: zoom-in;
         }
 
         .categoria-detalle-galeria-item img {

@@ -227,6 +227,31 @@ export default function CategoriaDetalle() {
         <span className="categoria-detalle-subtitulo-linea" aria-hidden="true" />
       </div>
 
+      {categoria.escalones && categoria.escalones.length > 0 && (
+        <div className="categoria-detalle-escalones">
+          <h3>
+            <span className="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+            Precio por volumen (según el total de {categoria.nombre}, combinando variedades)
+          </h3>
+          <div className="categoria-detalle-escalones-lista">
+            {categoria.escalones.map((e, i) => {
+              const esMejor = i === categoria.escalones.length - 1;
+              return (
+                <div key={e.id} className={`categoria-detalle-escalon-fila ${esMejor ? 'categoria-detalle-escalon-mejor' : ''}`}>
+                  <span className="categoria-detalle-escalon-nombre">
+                    {e.etiqueta || `Desde ${e.cantidad_desde} ${unidadLabel}`}
+                    {esMejor && <span className="categoria-detalle-badge-mejor">Mejor precio</span>}
+                  </span>
+                  <span className="categoria-detalle-escalon-precio">
+                    {formatearPrecio(e.precio_unitario)} <small>/ {unidadLabel}</small>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {productosCategoria.length === 0 ? (
         <p className="menu-vacio">Todavía no hay productos cargados en esta categoría.</p>
       ) : (
@@ -773,6 +798,76 @@ export default function CategoriaDetalle() {
 
         .categoria-detalle-stepper-valor small {
           font-size: 0.62rem;
+          color: var(--text-muted);
+        }
+
+        .categoria-detalle-escalones {
+          background: var(--surface-2);
+          border-radius: 16px;
+          padding: 18px;
+          margin-bottom: 18px;
+        }
+
+        .categoria-detalle-escalones h3 {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.95rem;
+          color: var(--text);
+          margin: 0 0 12px;
+        }
+
+        .categoria-detalle-escalones-lista {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .categoria-detalle-escalon-fila {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          padding: 10px 14px;
+          border-radius: 10px;
+        }
+
+        .categoria-detalle-escalon-mejor {
+          border-color: var(--accent);
+          background: rgba(26, 54, 27, 0.06);
+        }
+
+        .categoria-detalle-escalon-nombre {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          color: var(--text);
+          font-size: 0.88rem;
+        }
+
+        .categoria-detalle-badge-mejor {
+          background: var(--accent);
+          color: #ffffff;
+          font-size: 0.62rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          padding: 2px 8px;
+          border-radius: 4px;
+        }
+
+        .categoria-detalle-escalon-precio {
+          font-weight: 700;
+          color: var(--text);
+          white-space: nowrap;
+          font-size: 0.88rem;
+        }
+
+        .categoria-detalle-escalon-precio small {
+          font-weight: 500;
           color: var(--text-muted);
         }
       `}</style>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTienda } from './TiendaContext';
 import { precioPorEscalon } from '../utils/escalones';
@@ -62,6 +62,35 @@ export default function CategoriaDetalle() {
   const productosCategoria = productos.filter((p) => String(p.categoria) === id && p.activo !== false);
   const unidadLabel = categoria ? (ETIQUETA_UNIDAD[categoria.unidad_medida] || categoria.unidad_medida) : '';
 
+  const galeriaRef = useRef(null);
+  const [galeriaIndice, setGaleriaIndice] = useState(0);
+
+  const anchoItemGaleria = () => {
+    const el = galeriaRef.current;
+    const item = el?.querySelector('.categoria-detalle-galeria-item');
+    if (!item) return el?.clientWidth || 0;
+    // getBoundingClientRect (no offsetWidth) porque el gap del flex no lo cuenta ninguno
+    // de los dos — hay que sumarlo a mano para que el "click en la flecha" avance
+    // exactamente un ítem, ni un pixel más ni menos.
+    const estilo = getComputedStyle(el);
+    return item.getBoundingClientRect().width + parseFloat(estilo.columnGap || estilo.gap || '0');
+  };
+
+  const desplazarGaleria = (direccion) => {
+    galeriaRef.current?.scrollBy({ left: direccion * anchoItemGaleria(), behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const el = galeriaRef.current;
+    if (!el) return;
+    const alScrollear = () => {
+      const ancho = anchoItemGaleria();
+      if (ancho > 0) setGaleriaIndice(Math.round(el.scrollLeft / ancho));
+    };
+    el.addEventListener('scroll', alScrollear, { passive: true });
+    return () => el.removeEventListener('scroll', alScrollear);
+  }, [categoria?.imagenes?.length]);
+
   if (!categoria) {
     return (
       <section className="categoria-detalle-vacio">
@@ -82,7 +111,11 @@ export default function CategoriaDetalle() {
         className="categoria-detalle-header"
         style={categoria.imagen ? { backgroundImage: `url(${categoria.imagen})` } : undefined}
       >
-        <div className="categoria-detalle-header-degradado" aria-hidden="true" />
+        {/* El rombo es un cuadrado rotado 45° detrás (solo decorativo, aria-hidden);
+            el texto va en un div aparte SIN rotar, superpuesto arriba — así se lee
+            derecho en vez de girado, y no hay que pelear con clip-path recortando
+            letras cerca de las puntas del rombo. */}
+        <div className="categoria-detalle-header-rombo" aria-hidden="true" />
         <div className="categoria-detalle-header-texto">
           <h1 className="fuente-impacto">{categoria.nombre}</h1>
           {categoria.descripcion && <p>{categoria.descripcion}</p>}
@@ -96,13 +129,37 @@ export default function CategoriaDetalle() {
       </header>
 
       {categoria.imagenes && categoria.imagenes.length > 0 && (
-        <div className="categoria-detalle-galeria">
-          {categoria.imagenes.map((img) => (
-            <a key={img.id} href={img.imagen} target="_blank" rel="noopener noreferrer" className="categoria-detalle-galeria-item">
-              <img src={img.imagen} alt={`${categoria.nombre} - foto`} loading="lazy" />
-            </a>
-          ))}
-        </div>
+        <>
+          <div className="categoria-detalle-galeria-wrap">
+            {categoria.imagenes.length > 1 && (
+              <button type="button" className="categoria-detalle-galeria-flecha izq" onClick={() => desplazarGaleria(-1)} aria-label="Foto anterior">
+                <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+              </button>
+            )}
+
+            <div className="categoria-detalle-galeria" ref={galeriaRef}>
+              {categoria.imagenes.map((img) => (
+                <a key={img.id} href={img.imagen} target="_blank" rel="noopener noreferrer" className="categoria-detalle-galeria-item">
+                  <img src={img.imagen} alt={`${categoria.nombre} - foto`} loading="lazy" />
+                </a>
+              ))}
+            </div>
+
+            {categoria.imagenes.length > 1 && (
+              <button type="button" className="categoria-detalle-galeria-flecha der" onClick={() => desplazarGaleria(1)} aria-label="Foto siguiente">
+                <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+              </button>
+            )}
+          </div>
+
+          {categoria.imagenes.length > 1 && (
+            <div className="categoria-detalle-galeria-puntos">
+              {categoria.imagenes.map((img, i) => (
+                <span key={img.id} className={i === galeriaIndice ? 'activo' : ''} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <div className="categoria-detalle-subtitulo">
@@ -176,6 +233,11 @@ export default function CategoriaDetalle() {
           max-width: 1100px;
           margin: 0 auto;
           padding: 20px 20px 56px;
+          /* Textura sutil tipo tela, solo en esta página (no es un cambio global) */
+          background:
+            repeating-linear-gradient(45deg, rgba(26, 54, 27, 0.025) 0, rgba(26, 54, 27, 0.025) 1px, transparent 1px, transparent 7px),
+            repeating-linear-gradient(-45deg, rgba(26, 54, 27, 0.025) 0, rgba(26, 54, 27, 0.025) 1px, transparent 1px, transparent 7px),
+            var(--bg, #eaf0e6);
         }
 
         .categoria-detalle-vacio {
@@ -217,10 +279,17 @@ export default function CategoriaDetalle() {
           margin-bottom: 32px;
         }
 
-        .categoria-detalle-header-degradado {
+        .categoria-detalle-header-rombo {
           position: absolute;
-          inset: 0;
-          background: linear-gradient(to right, var(--surface, #f2f7ef) 0%, var(--surface, #f2f7ef) 38%, rgba(242, 247, 239, 0.75) 55%, rgba(242, 247, 239, 0) 75%);
+          top: 50%;
+          left: 6%;
+          width: 68%;
+          max-width: 320px;
+          aspect-ratio: 1;
+          background: var(--surface, #f2f7ef);
+          border-radius: 14px;
+          transform: translateY(-50%) rotate(45deg);
+          box-shadow: 0 20px 40px -14px rgba(28, 28, 22, 0.4);
         }
 
         .categoria-detalle-header-texto {
@@ -264,28 +333,78 @@ export default function CategoriaDetalle() {
           font-size: 16px;
         }
 
-        .categoria-detalle-galeria {
+        .categoria-detalle-galeria-wrap {
+          position: relative;
           display: flex;
-          gap: 10px;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .categoria-detalle-galeria {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          gap: 12px;
           overflow-x: auto;
           padding-bottom: 4px;
-          margin-bottom: 8px;
-          scroll-snap-type: x proximity;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+        }
+
+        .categoria-detalle-galeria::-webkit-scrollbar {
+          display: none;
         }
 
         .categoria-detalle-galeria-item {
           flex-shrink: 0;
           scroll-snap-align: start;
-          width: 110px;
-          height: 110px;
-          border-radius: 14px;
+          width: 130px;
+          height: 130px;
+          border-radius: 16px;
           overflow: hidden;
+          box-shadow: 0 8px 18px -12px rgba(28, 28, 22, 0.35);
         }
 
         .categoria-detalle-galeria-item img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+
+        .categoria-detalle-galeria-flecha {
+          flex-shrink: 0;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 1px solid var(--border);
+          background: var(--surface);
+          color: var(--text);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 6px 14px -8px rgba(28, 28, 22, 0.35);
+        }
+
+        .categoria-detalle-galeria-puntos {
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          margin-bottom: 24px;
+        }
+
+        .categoria-detalle-galeria-puntos span {
+          width: 6px;
+          height: 6px;
+          border-radius: 999px;
+          background: var(--border);
+          transition: width 0.2s ease, background 0.2s ease;
+        }
+
+        .categoria-detalle-galeria-puntos span.activo {
+          width: 18px;
+          background: var(--accent, #1a361b);
         }
 
         @media (max-width: 640px) {

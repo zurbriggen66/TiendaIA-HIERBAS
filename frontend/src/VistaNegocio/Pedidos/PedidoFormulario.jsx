@@ -3,7 +3,6 @@ import api from '../../services/api';
 import { resumenPorCategoria, precioUnitarioItem } from '../../utils/escalones';
 import { notificar } from '../notificaciones';
 
-const COLORES_CHIP = ['chip-mostaza', 'chip-naranja', 'chip-tomate'];
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
 
 let contadorFila = 0;
@@ -252,19 +251,19 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
           </div>
 
           {categorias && categorias.length > 0 && (
-            <div className="categorias-bar pedido-picker-categorias">
+            <div className="pf-chips">
               <button
                 type="button"
-                className={`chip-categoria chip-todas ${categoriaActiva === 'todas' ? 'chip-activo' : ''}`}
+                className={`pf-chip ${categoriaActiva === 'todas' ? 'pf-chip-activo' : ''}`}
                 onClick={() => setCategoriaActiva('todas')}
               >
                 Todas
               </button>
-              {categorias.map((cat, i) => (
+              {categorias.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
-                  className={`chip-categoria ${COLORES_CHIP[i % COLORES_CHIP.length]} ${categoriaActiva === cat.id ? 'chip-activo' : ''}`}
+                  className={`pf-chip ${categoriaActiva === cat.id ? 'pf-chip-activo' : ''}`}
                   onClick={() => setCategoriaActiva(cat.id)}
                 >
                   {cat.nombre}

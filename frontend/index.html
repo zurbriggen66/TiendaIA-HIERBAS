@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- interactive-widget=resizes-content: al abrir el teclado en Android, el layout
+         se achica en vez de que el teclado tape el contenido (útil en los modales). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
 
     <!-- Fuentes: se cargan con <link> en el <head> (no con @import encadenado en el
          CSS) para que el navegador las descubra apenas parsea el HTML. En iOS con red

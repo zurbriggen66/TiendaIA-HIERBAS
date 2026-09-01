@@ -277,10 +277,26 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
           ) : (
             <div className="pedido-producto-picker-grid pf-picker-grid">
               {productosFiltrados.map((p) => {
+                const catP = categoriasPorId.get(p.categoria);
                 const grupo = resumen.find((g) => g.categoria.id === p.categoria);
                 const enGranel = grupo?.enModoGranel && p.precio_granel != null;
-                const precioVigente = precioUnitarioItem({ producto: p }, resumen);
+                const tieneEscalones = (catP?.escalones || []).length > 0;
                 const yaEnPedido = filas.some((f) => f.producto.id === p.id);
+
+                let precioTxt;
+                if (enGranel) {
+                  precioTxt = `${formatearPrecio(p.precio_granel)} (granel)`;
+                } else if (tieneEscalones) {
+                  // El precio real depende del volumen total de la categoría; se ignora
+                  // el precio_base (lo mismo que hace el backend). Se muestra "desde X".
+                  const desde = Math.min(...catP.escalones.map((e) => Number(e.precio_unitario)));
+                  precioTxt = `desde ${formatearPrecio(desde)} · por volumen`;
+                } else if (Number(p.precio_base) > 0) {
+                  precioTxt = formatearPrecio(p.precio_base);
+                } else {
+                  precioTxt = 'Precio por volumen';
+                }
+
                 return (
                   <button
                     key={p.id}
@@ -290,10 +306,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
                   >
                     <span className="pf-picker-item-info">
                       <strong>{p.nombre}</strong>
-                      <span>
-                        {precioVigente ? formatearPrecio(precioVigente) : 'Precio por volumen'}
-                        {enGranel && ' (granel)'}
-                      </span>
+                      <span>{precioTxt}</span>
                     </span>
                     <span className="material-symbols-outlined pf-picker-item-mas" aria-hidden="true">add</span>
                   </button>
@@ -355,7 +368,17 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
                       ) : (
                         <>
                           <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Math.max(paso, Number(fila.cantidad) - paso) })}>−</button>
-                          <span>{fila.cantidad}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
+                            className="pedido-fila-cantidad-libre"
+                            value={fila.cantidad}
+                            onChange={(e) => actualizarFila(fila.key, { cantidad: e.target.value })}
+                            onFocus={(e) => e.target.select()}
+                            title="Escribí la cantidad directamente"
+                          />
                           <button type="button" onClick={() => actualizarFila(fila.key, { cantidad: Number(fila.cantidad) + paso })}>+</button>
                         </>
                       )}

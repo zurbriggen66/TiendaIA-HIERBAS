@@ -2365,14 +2365,16 @@ body {
 }
 
 .pedido-fila-cantidad-libre {
-  width: 56px;
+  width: 64px;
+  min-height: 32px;
   text-align: center;
   font-weight: 700;
+  font-size: 0.95rem;
   color: var(--text);
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 3px 2px;
+  padding: 3px 4px;
 }
 
 .pedido-fila-aviso {
@@ -4450,36 +4452,104 @@ body {
     display: none;
   }
 
+  /* Cada pedido es una ficha compacta: 1ª línea #id + fecha + entrega;
+     luego cliente; luego productos; una línea con total + estado de cobro;
+     y las acciones abajo. Se ocultan casi todas las etiquetas (son obvias). */
   .tabla-pedidos tbody tr {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 2px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 6px 2px;
+    padding: 12px 14px;
     margin-bottom: 12px;
   }
 
   .tabla-pedidos tbody td {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
     border: none;
-    padding: 7px 14px;
+    padding: 0;
     text-align: left;
   }
-
   .tabla-pedidos tbody td.num {
     text-align: left;
   }
-
   .tabla-pedidos tbody td::before {
-    content: attr(data-label);
-    font-size: 0.64rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    content: none;
+  }
+
+  .tabla-pedidos td[data-label="Pedido"] {
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .tabla-pedidos td[data-label="Fecha / Hora"] {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    font-size: 0.8rem;
     color: var(--text-muted);
+  }
+  .tabla-pedidos td[data-label="Fecha / Hora"] .tp-entrega {
+    margin-top: 0;
+  }
+
+  .tabla-pedidos td[data-label="Cliente"] {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    margin-top: 4px;
+  }
+  .tabla-pedidos td[data-label="Cliente"] .tp-cliente {
+    font-weight: 700;
+  }
+  .tabla-pedidos td[data-label="Cliente"] .tp-sub {
+    display: inline;
+    margin-top: 0;
+  }
+
+  .tabla-pedidos td[data-label="Productos"] {
+    flex: 1 1 100%;
+    margin-top: 2px;
+    font-size: 0.85rem;
+  }
+  .tabla-pedidos td[data-label="Productos"] .tp-sub {
+    margin-top: 2px;
+  }
+
+  .tabla-pedidos td[data-label="Total"] {
+    flex: 1;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  .tabla-pedidos td[data-label="Total"]::before {
+    content: "Total: ";
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .tabla-pedidos td[data-label="Cobro"] {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .tabla-pedidos td[data-label="Acciones"] {
+    flex: 1 1 100%;
+    margin-top: 10px;
+  }
+  .tabla-pedidos td[data-label="Acciones"] .tp-acciones {
+    gap: 6px;
   }
 
   .tp-productos,

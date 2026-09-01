@@ -1,13 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { notificar } from '../notificaciones';
-
-const CATEGORIAS = [
-  { valor: 'servicios', etiqueta: 'Servicios' },
-  { valor: 'sueldos', etiqueta: 'Sueldos' },
-  { valor: 'insumos', etiqueta: 'Insumos / Stock' },
-  { valor: 'otros', etiqueta: 'Otros' },
-];
 
 const FRECUENCIAS = [
   { valor: 'mensual', etiqueta: 'Mensual' },
@@ -24,13 +17,23 @@ const hoyISO = () => {
 export default function GastoFijoModal({ gastoFijo, onClose, onSaved }) {
   const [nombre, setNombre] = useState(gastoFijo ? gastoFijo.nombre : '');
   const [monto, setMonto] = useState(gastoFijo ? gastoFijo.monto : '');
-  const [categoria, setCategoria] = useState(gastoFijo ? gastoFijo.categoria : 'servicios');
+  const [categoria, setCategoria] = useState(gastoFijo ? gastoFijo.categoria : '');
+  const [categorias, setCategorias] = useState([]);
   const [frecuencia, setFrecuencia] = useState(gastoFijo ? gastoFijo.frecuencia : 'mensual');
   const [proximoVencimiento, setProximoVencimiento] = useState(
     gastoFijo ? gastoFijo.proximo_vencimiento : hoyISO()
   );
   const [diasAviso, setDiasAviso] = useState(gastoFijo ? gastoFijo.dias_aviso : 5);
   const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    api.get('/categorias-gasto/')
+      .then(({ data }) => {
+        setCategorias(data);
+        setCategoria((actual) => actual || (data[0] ? data[0].nombre : ''));
+      })
+      .catch((error) => console.error('Error al cargar categorías de gasto:', error));
+  }, []);
 
   const guardar = async (e) => {
     e.preventDefault();
@@ -113,8 +116,9 @@ export default function GastoFijoModal({ gastoFijo, onClose, onSaved }) {
             <div className="form-group">
               <label className="form-label">Categoría</label>
               <select className="input-vibrante" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                {CATEGORIAS.map((c) => (
-                  <option key={c.valor} value={c.valor}>{c.etiqueta}</option>
+                {categorias.length === 0 && <option value="">—</option>}
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.nombre}>{c.nombre}</option>
                 ))}
               </select>
             </div>

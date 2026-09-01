@@ -9,10 +9,9 @@ const hoyISO = () => {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 };
 
-export default function CompraModal({ compra, proveedores, insumos, onClose, onSaved }) {
-  const [proveedorId, setProveedorId] = useState(compra ? compra.proveedor : (proveedores[0]?.id || ''));
-  const [insumoId, setInsumoId] = useState(compra?.insumo || '');
-  const [cantidad, setCantidad] = useState(compra?.cantidad ?? '');
+export default function CompraModal({ compra, proveedores, onClose, onSaved }) {
+  const [proveedorId, setProveedorId] = useState(compra ? (compra.proveedor || '') : '');
+  const [detalle, setDetalle] = useState(compra?.detalle || '');
   const [numeroFactura, setNumeroFactura] = useState(compra?.numero_factura || '');
   const [fecha, setFecha] = useState(compra?.fecha || hoyISO());
   const [metodoPago, setMetodoPago] = useState(compra?.metodo_pago || 'efectivo');
@@ -23,15 +22,14 @@ export default function CompraModal({ compra, proveedores, insumos, onClose, onS
 
   const guardar = async (e) => {
     e.preventDefault();
-    if (!proveedorId || !total) {
-      notificar('Elegí un proveedor y cargá el total de la compra.');
+    if (!total) {
+      notificar('Cargá el total de la compra.');
       return;
     }
 
     const datos = {
-      proveedor: proveedorId,
-      insumo: insumoId || null,
-      cantidad: insumoId ? (cantidad || null) : null,
+      proveedor: proveedorId || null,
+      detalle,
       numero_factura: numeroFactura,
       fecha,
       metodo_pago: metodoPago,
@@ -67,8 +65,9 @@ export default function CompraModal({ compra, proveedores, insumos, onClose, onS
         <form onSubmit={guardar}>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Proveedor</label>
+              <label className="form-label">Proveedor (opcional)</label>
               <select className="input-vibrante" value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
+                <option value="">Sin proveedor asignado</option>
                 {proveedores.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
               </select>
             </div>
@@ -78,24 +77,15 @@ export default function CompraModal({ compra, proveedores, insumos, onClose, onS
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Insumo comprado (opcional)</label>
-              <select className="input-vibrante" value={insumoId} onChange={(e) => setInsumoId(e.target.value)}>
-                <option value="">Sin insumo puntual</option>
-                {insumos.map((i) => <option key={i.id} value={i.id}>{i.nombre}</option>)}
-              </select>
-            </div>
-            {insumoId && (
-              <div className="form-group">
-                <label className="form-label">Cantidad comprada</label>
-                <input
-                  type="number" min="0" step="0.01" className="input-vibrante"
-                  value={cantidad} onChange={(e) => setCantidad(e.target.value)}
-                />
-                <p className="form-ayuda">Se suma al stock disponible del insumo al guardar.</p>
-              </div>
-            )}
+          <div className="form-group">
+            <label className="form-label">Detalle</label>
+            <input
+              type="text"
+              className="input-vibrante"
+              placeholder="Qué se compró (ej: bolsas, etiquetas, 25 kg de manzanilla...)"
+              value={detalle}
+              onChange={(e) => setDetalle(e.target.value)}
+            />
           </div>
 
           <div className="form-row">

@@ -147,26 +147,21 @@ export default function GastosPage() {
 
             {cargando ? (
               <p className="estado-vacio">Cargando...</p>
-            ) : gastos.length === 0 ? (
+            ) : gastosDelMes.length === 0 ? (
               <div className="estado-vacio">
-                <p>Todavía no hay gastos cargados.</p>
+                <p>No hay gastos cargados en este mes.</p>
                 <button type="button" className="btn-vibrante" onClick={() => setMostrarGastoModal(true)}>
-                  Cargar el primer gasto
+                  Cargar un gasto
                 </button>
               </div>
             ) : (
               <div className="gastos-tabla">
-                {gastos.map((gasto) => (
+                {gastosDelMes.map((gasto) => (
                   <div key={gasto.id} className="gasto-fila">
-                    <span className={`badge-categoria badge-categoria-${gasto.categoria}`}>
-                      {ETIQUETA_CATEGORIA[gasto.categoria]}
-                    </span>
+                    <span className="badge-categoria">{gasto.categoria}</span>
                     <div className="gasto-fila-info">
                       <strong>{gasto.descripcion}</strong>
-                      <span className="gasto-fila-insumo">
-                        {gasto.insumo_nombre && `${gasto.cantidad} × ${gasto.insumo_nombre} · `}
-                        💳 {gasto.metodo_pago_label}
-                      </span>
+                      <span className="gasto-fila-insumo">💳 {gasto.metodo_pago_label}</span>
                     </div>
                     <span className="gasto-fila-fecha">{formatearFecha(gasto.fecha)}</span>
                     <span className="gasto-fila-monto">{formatearPrecio(gasto.monto)}</span>
@@ -200,9 +195,7 @@ export default function GastosPage() {
               <div className="gastos-tabla">
                 {gastosFijos.map((fijo) => (
                   <div key={fijo.id} className={`gasto-fila gasto-fila-fijo ${fijo.esta_por_vencer ? 'gasto-fila-vence' : ''}`}>
-                    <span className={`badge-categoria badge-categoria-${fijo.categoria}`}>
-                      {ETIQUETA_CATEGORIA[fijo.categoria]}
-                    </span>
+                    <span className="badge-categoria">{fijo.categoria}</span>
                     <div className="gasto-fila-info">
                       <strong>{fijo.nombre}</strong>
                       <span className="gasto-fila-insumo">

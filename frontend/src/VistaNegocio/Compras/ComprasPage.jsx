@@ -16,7 +16,6 @@ const ETIQUETA_ESTADO = { pendiente: 'Pendiente', parcial: 'Parcial', pagado: 'P
 export default function ComprasPage() {
   const [compras, setCompras] = useState([]);
   const [proveedores, setProveedores] = useState([]);
-  const [insumos, setInsumos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modal, setModal] = useState(null);
 
@@ -27,14 +26,12 @@ export default function ComprasPage() {
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     try {
-      const [resCompras, resProveedores, resInsumos] = await Promise.all([
+      const [resCompras, resProveedores] = await Promise.all([
         api.get('/compras/'),
         api.get('/proveedores/'),
-        api.get('/insumos/'),
       ]);
       setCompras(resCompras.data);
       setProveedores(resProveedores.data);
-      setInsumos(resInsumos.data);
     } catch (error) {
       console.error('Error al cargar compras:', error);
     } finally {
@@ -47,7 +44,7 @@ export default function ComprasPage() {
   }, [cargarDatos]);
 
   const eliminar = async (compra) => {
-    if (!(await confirmar(`¿Eliminar la compra a "${compra.proveedor_nombre}" del ${formatearFecha(compra.fecha)}?`))) return;
+    if (!(await confirmar(`¿Eliminar la compra a "${compra.proveedor_nombre || 'sin proveedor'}" del ${formatearFecha(compra.fecha)}?`))) return;
     try {
       await api.delete(`/compras/${compra.id}/`);
       cargarDatos();
@@ -82,14 +79,10 @@ export default function ComprasPage() {
       <div className="scroll-area">
         <div className="seccion-header">
           <h3>Filtros</h3>
-          <button type="button" className="btn-vibrante" onClick={() => setModal({ compra: null })} disabled={proveedores.length === 0}>
+          <button type="button" className="btn-vibrante" onClick={() => setModal({ compra: null })}>
             + Registrar compra
           </button>
         </div>
-
-        {proveedores.length === 0 && !cargando && (
-          <p className="aviso-sin-insumos">Cargá al menos un proveedor antes de registrar una compra.</p>
-        )}
 
         <div className="form-row" style={{ marginBottom: 24 }}>
           <div className="form-group">
@@ -142,15 +135,15 @@ export default function ComprasPage() {
               <div key={compra.id} className="pedido-card">
                 <div className="pedido-card-header">
                   <div>
-                    <h4>{compra.proveedor_nombre}</h4>
+                    <h4>{compra.proveedor_nombre || 'Sin proveedor'}</h4>
                     <span className="pedido-fecha-creacion">📅 {formatearFecha(compra.fecha)}{compra.numero_factura ? ` · Fact. ${compra.numero_factura}` : ''}</span>
                   </div>
                   <span className={`badge-cobro cobro-${compra.estado_pago}`}>{ETIQUETA_ESTADO[compra.estado_pago]}</span>
                 </div>
 
-                {compra.insumo_nombre && (
+                {compra.detalle && (
                   <p className="pedido-nota" style={{ background: 'var(--surface-2)', border: 'none', color: 'var(--text-muted)' }}>
-                    🌿 {compra.cantidad ? `${compra.cantidad} × ` : ''}{compra.insumo_nombre}
+                    {compra.detalle}
                   </p>
                 )}
 
@@ -178,7 +171,6 @@ export default function ComprasPage() {
         <CompraModal
           compra={modal.compra}
           proveedores={proveedores}
-          insumos={insumos}
           onClose={() => setModal(null)}
           onSaved={() => { setModal(null); cargarDatos(); }}
         />

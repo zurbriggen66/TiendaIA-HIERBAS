@@ -2626,6 +2626,10 @@ body {
   flex-direction: column;
   gap: 6px;
   color: #ffffff;
+  /* Fallback: rubros de gasto creados por el dueño no tienen clase de color propia.
+     Los modificadores (.resumen-tile-total, etc.) lo pisan por orden de cascada. */
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.35);
 }
 
@@ -2948,7 +2952,13 @@ body {
   padding: 4px 10px;
   border-radius: 999px;
   color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-light, #aac398), var(--accent, #8caa78));
   white-space: nowrap;
+}
+
+.gastos-filtro-mes {
+  max-width: 220px;
+  margin-bottom: 20px;
 }
 
 .badge-categoria-insumos {

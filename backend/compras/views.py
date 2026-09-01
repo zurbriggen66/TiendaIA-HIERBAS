@@ -24,7 +24,7 @@ class ProveedorViewSet(viewsets.ModelViewSet):
 
 class CompraViewSet(viewsets.ModelViewSet):
     permission_classes = [EsAdmin]
-    queryset = Compra.objects.select_related('proveedor', 'insumo')
+    queryset = Compra.objects.select_related('proveedor')
     serializer_class = CompraSerializer
 
     def get_queryset(self):

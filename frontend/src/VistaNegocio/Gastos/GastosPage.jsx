@@ -5,33 +5,29 @@ import GastoFijoModal from './GastoFijoModal';
 import GastoFijoPagarModal from './GastoFijoPagarModal';
 import { notificar, confirmar } from '../notificaciones';
 
-const ETIQUETA_CATEGORIA = {
-  insumos: 'Insumos / Stock',
-  servicios: 'Servicios',
-  sueldos: 'Sueldos',
-  otros: 'Otros',
+const mesActual = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
 export default function GastosPage() {
   const [gastos, setGastos] = useState([]);
   const [gastosFijos, setGastosFijos] = useState([]);
-  const [resumen, setResumen] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [mostrarGastoModal, setMostrarGastoModal] = useState(false);
   const [modalGastoFijo, setModalGastoFijo] = useState(null);
   const [modalPagar, setModalPagar] = useState(null);
   const [tab, setTab] = useState('gastos');
+  const [mes, setMes] = useState(mesActual());
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     try {
-      const [resGastos, resResumen, resFijos] = await Promise.all([
+      const [resGastos, resFijos] = await Promise.all([
         api.get('/gastos/'),
-        api.get('/gastos/resumen/'),
         api.get('/gastos-fijos/'),
       ]);
       setGastos(resGastos.data);
-      setResumen(resResumen.data);
       setGastosFijos(resFijos.data);
     } catch (error) {
       console.error('Error al cargar gastos:', error);
@@ -43,6 +39,17 @@ export default function GastosPage() {
   useEffect(() => {
     cargarDatos();
   }, [cargarDatos]);
+
+  // El filtro de mes es del lado del cliente: la lista de gastos es chica y así el
+  // resumen (total y por rubro) se recalcula al toque sin ir al servidor.
+  const gastosDelMes = gastos.filter((g) => (g.fecha || '').slice(0, 7) === mes);
+  const totalMes = gastosDelMes.reduce((s, g) => s + Number(g.monto), 0);
+  const porRubro = Object.entries(
+    gastosDelMes.reduce((acc, g) => {
+      acc[g.categoria] = (acc[g.categoria] || 0) + Number(g.monto);
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
 
   const eliminarGasto = async (gasto) => {
     if (!(await confirmar(`¿Eliminar el gasto "${gasto.descripcion}"?`))) return;
@@ -87,23 +94,29 @@ export default function GastosPage() {
       </header>
 
       <div className="scroll-area">
-        {/* Resumen de egresos */}
-        {resumen && (
-          <div className="resumen-grid">
-            <div className="resumen-tile resumen-tile-total">
-              <span>Total gastado</span>
-              <strong>{formatearPrecio(resumen.total)}</strong>
-            </div>
-            {resumen.por_categoria
-              .filter((cat) => cat.categoria !== 'insumos')
-              .map((cat) => (
-                <div key={cat.categoria} className={`resumen-tile resumen-tile-${cat.categoria}`}>
-                  <span>{cat.categoria_label}</span>
-                  <strong>{formatearPrecio(cat.total)}</strong>
-                </div>
-              ))}
+        <div className="form-group gastos-filtro-mes">
+          <label className="form-label">Mes</label>
+          <input
+            type="month"
+            className="input-vibrante"
+            value={mes}
+            onChange={(e) => setMes(e.target.value)}
+          />
+        </div>
+
+        {/* Resumen de egresos del mes */}
+        <div className="resumen-grid">
+          <div className="resumen-tile resumen-tile-total">
+            <span>Total gastado (mes)</span>
+            <strong>{formatearPrecio(totalMes)}</strong>
           </div>
-        )}
+          {porRubro.map(([nombre, total]) => (
+            <div key={nombre} className="resumen-tile resumen-tile-rubro">
+              <span>{nombre}</span>
+              <strong>{formatearPrecio(total)}</strong>
+            </div>
+          ))}
+        </div>
 
         {/* Pestañas */}
         <div className="tabs-bar">

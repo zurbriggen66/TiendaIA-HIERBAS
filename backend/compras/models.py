@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 
-from gastos.models import Insumo
 from pedidos.models import METODOS_PAGO
 
 
@@ -21,14 +20,14 @@ class Proveedor(models.Model):
 
 
 class Compra(models.Model):
-    """Una factura/compra a un proveedor, de un insumo puntual (opcional). El
-    seguimiento de pago es simple (monto pagado acumulado, no un listado de pagos
-    individuales) — alcanza para saber cuánto se debe sin la complejidad de un
-    libro de pagos como el de Pedido/Pago."""
+    """Una factura/compra. El proveedor es opcional (puede ser un gasto suelto), y en
+    vez de vincular un insumo se anota en texto qué se compró. El seguimiento de pago
+    es simple (monto pagado acumulado, no un libro de pagos como Pedido/Pago)."""
 
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, related_name='compras')
-    insumo = models.ForeignKey(Insumo, null=True, blank=True, on_delete=models.SET_NULL, related_name='compras')
-    cantidad = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    proveedor = models.ForeignKey(
+        Proveedor, on_delete=models.PROTECT, related_name='compras', null=True, blank=True,
+    )
+    detalle = models.CharField(max_length=200, blank=True)
     numero_factura = models.CharField(max_length=50, blank=True)
     fecha = models.DateField(default=timezone.localdate)
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='efectivo')
@@ -41,7 +40,8 @@ class Compra(models.Model):
         ordering = ['-fecha', '-id']
 
     def __str__(self):
-        return f'{self.proveedor.nombre} - {self.fecha}'
+        nombre = self.proveedor.nombre if self.proveedor else 'Sin proveedor'
+        return f'{nombre} - {self.fecha}'
 
     def saldo(self):
         return self.total - self.pagado

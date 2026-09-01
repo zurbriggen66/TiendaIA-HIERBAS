@@ -97,7 +97,8 @@ class EstadisticasView(APIView):
 
         # En qué se fue la plata de los gastos: por rubro y por medio de pago.
         # Mismo criterio que CobranzasView.por_metodo (se omiten los que dan 0).
-        etiquetas_categoria = dict(Gasto.CATEGORIAS)
+        # El rubro del gasto ya es texto libre (CategoriaGasto), así que es su propia
+        # etiqueta; solo los medios de pago tienen un mapa clave→nombre.
         etiquetas_metodo = dict(Gasto.METODOS_PAGO)
 
         # Con qué cobraron las ventas del período. Ojo: los pagos son lo efectivamente
@@ -133,7 +134,7 @@ class EstadisticasView(APIView):
                 'descripcion': gasto['descripcion'],
                 'monto': gasto['monto'],
                 'fecha': gasto['fecha'],
-                'categoria_label': etiquetas_categoria.get(gasto['categoria'], gasto['categoria']),
+                'categoria_label': gasto['categoria'],
                 'metodo_label': etiquetas_metodo.get(gasto['metodo_pago'], gasto['metodo_pago']),
             }
             detalle_por_categoria[gasto['categoria']].append(detalle)
@@ -142,7 +143,7 @@ class EstadisticasView(APIView):
         gastos_por_categoria = [
             {
                 'categoria': fila['categoria'],
-                'categoria_label': etiquetas_categoria.get(fila['categoria'], fila['categoria']),
+                'categoria_label': fila['categoria'],
                 'total': fila['total'],
                 'gastos': detalle_por_categoria[fila['categoria']],
             }

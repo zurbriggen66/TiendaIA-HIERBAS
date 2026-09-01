@@ -40,19 +40,27 @@ class Insumo(models.Model):
         return self.precio
 
 
-class Gasto(models.Model):
-    CATEGORIAS = [
-        ('insumos', 'Insumos / Stock'),
-        ('servicios', 'Servicios'),
-        ('sueldos', 'Sueldos'),
-        ('otros', 'Otros'),
-    ]
+class CategoriaGasto(models.Model):
+    """Rubro de gasto, editable por el dueño. Antes era un enum fijo
+    (insumos/servicios/sueldos/otros); ahora se pueden crear los que hagan falta."""
 
+    nombre = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
+class Gasto(models.Model):
     # Misma lista que usan los cobros de pedidos (pedidos.models.Pago.METODOS), para que
     # Cobranzas y Gastos hablen el mismo idioma y no haya dos listas que mantener aparte.
     METODOS_PAGO = Pago.METODOS
 
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS)
+    # Guarda el nombre del rubro como texto (no un FK): así un gasto viejo no se rompe
+    # si después se borra o renombra una CategoriaGasto, y el resumen agrupa por este valor.
+    categoria = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=200)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='efectivo')
@@ -82,7 +90,7 @@ class GastoFijo(models.Model):
     ]
 
     nombre = models.CharField(max_length=120)
-    categoria = models.CharField(max_length=20, choices=Gasto.CATEGORIAS, default='otros')
+    categoria = models.CharField(max_length=50, default='Otros')
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     frecuencia = models.CharField(max_length=20, choices=FRECUENCIAS, default='mensual')
     proximo_vencimiento = models.DateField()

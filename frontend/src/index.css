@@ -496,6 +496,20 @@ body {
   }
 }
 
+/* Algunas páginas del admin envuelven el header + .scroll-area en un <div class="X-page">
+   (otras usan un Fragment). Ese div tiene que ser una columna flex que llene
+   .main-content, si no .scroll-area no tiene altura acotada y no se puede scrollear. */
+.estadisticas-page,
+.gastos-page,
+.pedidos-page,
+.precios-page,
+.productos-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .scroll-area {
   flex: 1;
   min-height: 0;
@@ -3978,38 +3992,7 @@ body {
   vertical-align: baseline;
 }
 
-/* Gráfico de torta (recharts) + leyenda propia + botón de descarga. */
-.grafico-torta {
-  position: relative;
-}
-
-.grafico-torta-descargar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.grafico-torta-descargar:hover {
-  color: var(--text);
-  border-color: var(--text-muted);
-}
-
-.grafico-torta-descargar .material-symbols-outlined {
-  font-size: 0.95rem;
-}
-
+/* Gráfico de torta (recharts) con leyenda propia. */
 .grafico-torta-leyenda {
   list-style: none;
   margin: 8px 0 0;

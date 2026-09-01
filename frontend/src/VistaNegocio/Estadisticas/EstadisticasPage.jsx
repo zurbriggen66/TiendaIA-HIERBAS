@@ -215,7 +215,6 @@ export default function EstadisticasPage() {
                 ) : (
                   <Suspense fallback={<CargandoTorta />}>
                     <GraficoTorta
-                      nombreArchivo="ventas-por-medio-de-pago"
                       datos={(datos.ventas_por_metodo || []).map((f) => ({ nombre: f.metodo_label, total: f.total }))}
                     />
                   </Suspense>
@@ -231,7 +230,6 @@ export default function EstadisticasPage() {
                 ) : (
                   <Suspense fallback={<CargandoTorta />}>
                     <GraficoTorta
-                      nombreArchivo="ventas-por-categoria"
                       datos={datos.ventas_por_categoria.map((c) => ({ nombre: c.categoria_nombre, total: c.total }))}
                     />
                   </Suspense>

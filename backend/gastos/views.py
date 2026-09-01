@@ -5,8 +5,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from config.permissions import EsAdmin
-from .models import Insumo, Gasto, GastoFijo
-from .serializers import InsumoSerializer, GastoSerializer, GastoFijoSerializer
+from .models import Insumo, Gasto, GastoFijo, CategoriaGasto
+from .serializers import (
+    InsumoSerializer, GastoSerializer, GastoFijoSerializer, CategoriaGastoSerializer,
+)
+
+
+class CategoriaGastoViewSet(viewsets.ModelViewSet):
+    permission_classes = [EsAdmin]
+    queryset = CategoriaGasto.objects.all()
+    serializer_class = CategoriaGastoSerializer
 
 
 class InsumoViewSet(viewsets.ModelViewSet):
@@ -26,17 +34,20 @@ class InsumoViewSet(viewsets.ModelViewSet):
 
 class GastoViewSet(viewsets.ModelViewSet):
     permission_classes = [EsAdmin]
-    queryset = Gasto.objects.select_related('insumo')
+    queryset = Gasto.objects.all()
     serializer_class = GastoSerializer
 
     @action(detail=False, methods=['get'])
     def resumen(self, request):
-        gastos = self.get_queryset()
-        total = sum(g.monto for g in gastos)
-        por_categoria = []
-        for clave, etiqueta in Gasto.CATEGORIAS:
-            monto_categoria = sum(g.monto for g in gastos if g.categoria == clave)
-            por_categoria.append({'categoria': clave, 'categoria_label': etiqueta, 'total': monto_categoria})
+        gastos = list(self.get_queryset())
+        total = sum((g.monto for g in gastos), Decimal('0'))
+        rubros = {}
+        for g in gastos:
+            rubros[g.categoria] = rubros.get(g.categoria, Decimal('0')) + g.monto
+        por_categoria = [
+            {'categoria': nombre, 'categoria_label': nombre, 'total': monto}
+            for nombre, monto in sorted(rubros.items(), key=lambda kv: kv[1], reverse=True)
+        ]
         return Response({'total': total, 'por_categoria': por_categoria})
 
 

@@ -379,7 +379,6 @@ export default function Inicio() {
                 <h4 className="gastos-desglose-titulo">Ventas por categoría (últimos 7 días)</h4>
                 <Suspense fallback={<p className="estado-vacio-chico">Cargando gráfico…</p>}>
                   <GraficoTorta
-                    nombreArchivo="ventas-por-categoria-7-dias"
                     datos={ventasPorCategoria.map((c) => ({ nombre: c.categoria_nombre, total: c.total }))}
                   />
                 </Suspense>

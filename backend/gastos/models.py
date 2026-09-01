@@ -60,8 +60,9 @@ class Gasto(models.Model):
 
     # Guarda el nombre del rubro como texto (no un FK): así un gasto viejo no se rompe
     # si después se borra o renombra una CategoriaGasto, y el resumen agrupa por este valor.
-    categoria = models.CharField(max_length=50)
-    descripcion = models.CharField(max_length=200)
+    # Puede ir vacío: se muestra como "Sin categoría".
+    categoria = models.CharField(max_length=50, blank=True, default='')
+    descripcion = models.CharField(max_length=200, blank=True, default='')
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='efectivo')
     insumo = models.ForeignKey(Insumo, null=True, blank=True, on_delete=models.SET_NULL, related_name='gastos')
@@ -90,7 +91,7 @@ class GastoFijo(models.Model):
     ]
 
     nombre = models.CharField(max_length=120)
-    categoria = models.CharField(max_length=50, default='Otros')
+    categoria = models.CharField(max_length=50, blank=True, default='')
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     frecuencia = models.CharField(max_length=20, choices=FRECUENCIAS, default='mensual')
     proximo_vencimiento = models.DateField()

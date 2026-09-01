@@ -46,13 +46,14 @@ export default function GastosPage() {
   const totalMes = gastosDelMes.reduce((s, g) => s + Number(g.monto), 0);
   const porRubro = Object.entries(
     gastosDelMes.reduce((acc, g) => {
-      acc[g.categoria] = (acc[g.categoria] || 0) + Number(g.monto);
+      const rubro = g.categoria || 'Sin categoría';
+      acc[rubro] = (acc[rubro] || 0) + Number(g.monto);
       return acc;
     }, {}),
   ).sort((a, b) => b[1] - a[1]);
 
   const eliminarGasto = async (gasto) => {
-    if (!(await confirmar(`¿Eliminar el gasto "${gasto.descripcion}"?`))) return;
+    if (!(await confirmar(`¿Eliminar el gasto "${gasto.descripcion || `de ${formatearPrecio(gasto.monto)}`}"?`))) return;
     try {
       await api.delete(`/gastos/${gasto.id}/`);
       cargarDatos();
@@ -158,9 +159,9 @@ export default function GastosPage() {
               <div className="gastos-tabla">
                 {gastosDelMes.map((gasto) => (
                   <div key={gasto.id} className="gasto-fila">
-                    <span className="badge-categoria">{gasto.categoria}</span>
+                    <span className="badge-categoria">{gasto.categoria || "Sin categoría"}</span>
                     <div className="gasto-fila-info">
-                      <strong>{gasto.descripcion}</strong>
+                      <strong>{gasto.descripcion || 'Gasto sin descripción'}</strong>
                       <span className="gasto-fila-insumo">💳 {gasto.metodo_pago_label}</span>
                     </div>
                     <span className="gasto-fila-fecha">{formatearFecha(gasto.fecha)}</span>
@@ -195,7 +196,7 @@ export default function GastosPage() {
               <div className="gastos-tabla">
                 {gastosFijos.map((fijo) => (
                   <div key={fijo.id} className={`gasto-fila gasto-fila-fijo ${fijo.esta_por_vencer ? 'gasto-fila-vence' : ''}`}>
-                    <span className="badge-categoria">{fijo.categoria}</span>
+                    <span className="badge-categoria">{fijo.categoria || "Sin categoría"}</span>
                     <div className="gasto-fila-info">
                       <strong>{fijo.nombre}</strong>
                       <span className="gasto-fila-insumo">

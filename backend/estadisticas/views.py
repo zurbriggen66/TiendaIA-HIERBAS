@@ -134,7 +134,7 @@ class EstadisticasView(APIView):
                 'descripcion': gasto['descripcion'],
                 'monto': gasto['monto'],
                 'fecha': gasto['fecha'],
-                'categoria_label': gasto['categoria'],
+                'categoria_label': gasto['categoria'] or 'Sin categoría',
                 'metodo_label': etiquetas_metodo.get(gasto['metodo_pago'], gasto['metodo_pago']),
             }
             detalle_por_categoria[gasto['categoria']].append(detalle)
@@ -143,7 +143,7 @@ class EstadisticasView(APIView):
         gastos_por_categoria = [
             {
                 'categoria': fila['categoria'],
-                'categoria_label': fila['categoria'],
+                'categoria_label': fila['categoria'] or 'Sin categoría',
                 'total': fila['total'],
                 'gastos': detalle_por_categoria[fila['categoria']],
             }

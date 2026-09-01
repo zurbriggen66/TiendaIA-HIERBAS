@@ -15,16 +15,23 @@ export default function GastoModal({ onClose, onSaved }) {
 
   useEffect(() => {
     api.get('/categorias-gasto/')
-      .then(({ data }) => {
-        setCategorias(data);
-        if (data[0]) setCategoria(data[0].nombre);
-      })
+      .then(({ data }) => setCategorias(data))
       .catch((error) => console.error('Error al cargar categorías de gasto:', error));
   }, []);
 
   const crearCategoria = async () => {
     const nombre = nuevaCategoria.trim();
     if (!nombre) return;
+
+    // Si ya existe una con ese nombre (sin importar mayúsculas), la elegimos y listo.
+    const existente = categorias.find((c) => c.nombre.toLowerCase() === nombre.toLowerCase());
+    if (existente) {
+      setCategoria(existente.nombre);
+      setNuevaCategoria('');
+      setMostrarNueva(false);
+      return;
+    }
+
     try {
       const { data } = await api.post('/categorias-gasto/', { nombre });
       setCategorias((prev) => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
@@ -33,18 +40,14 @@ export default function GastoModal({ onClose, onSaved }) {
       setMostrarNueva(false);
     } catch (error) {
       console.error('Error al crear la categoría:', error);
-      notificar('No se pudo crear la categoría (¿ya existe una con ese nombre?).');
+      notificar('No se pudo crear la categoría. Probá de nuevo en un rato.');
     }
   };
 
   const guardar = async (e) => {
     e.preventDefault();
-    if (!categoria) {
-      notificar('Elegí una categoría (o creá una).');
-      return;
-    }
-    if (!descripcion.trim() || !monto) {
-      notificar('Completá al menos la descripción y el monto.');
+    if (!monto) {
+      notificar('Poné el monto del gasto.');
       return;
     }
 
@@ -94,7 +97,7 @@ export default function GastoModal({ onClose, onSaved }) {
             ) : (
               <div className="form-row">
                 <select className="input-vibrante" value={categoria} onChange={(e) => setCategoria(e.target.value)} style={{ flex: 1 }}>
-                  {categorias.length === 0 && <option value="">—</option>}
+                  <option value="">Sin categoría</option>
                   {categorias.map((c) => (
                     <option key={c.id} value={c.nombre}>{c.nombre}</option>
                   ))}

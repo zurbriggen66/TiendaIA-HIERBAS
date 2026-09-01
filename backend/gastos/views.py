@@ -45,7 +45,7 @@ class GastoViewSet(viewsets.ModelViewSet):
         for g in gastos:
             rubros[g.categoria] = rubros.get(g.categoria, Decimal('0')) + g.monto
         por_categoria = [
-            {'categoria': nombre, 'categoria_label': nombre, 'total': monto}
+            {'categoria': nombre, 'categoria_label': nombre or 'Sin categoría', 'total': monto}
             for nombre, monto in sorted(rubros.items(), key=lambda kv: kv[1], reverse=True)
         ]
         return Response({'total': total, 'por_categoria': por_categoria})

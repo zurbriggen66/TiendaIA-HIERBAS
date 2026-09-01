@@ -28,10 +28,7 @@ export default function GastoFijoModal({ gastoFijo, onClose, onSaved }) {
 
   useEffect(() => {
     api.get('/categorias-gasto/')
-      .then(({ data }) => {
-        setCategorias(data);
-        setCategoria((actual) => actual || (data[0] ? data[0].nombre : ''));
-      })
+      .then(({ data }) => setCategorias(data))
       .catch((error) => console.error('Error al cargar categorías de gasto:', error));
   }, []);
 
@@ -116,7 +113,7 @@ export default function GastoFijoModal({ gastoFijo, onClose, onSaved }) {
             <div className="form-group">
               <label className="form-label">Categoría</label>
               <select className="input-vibrante" value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                {categorias.length === 0 && <option value="">—</option>}
+                <option value="">Sin categoría</option>
                 {categorias.map((c) => (
                   <option key={c.id} value={c.nombre}>{c.nombre}</option>
                 ))}

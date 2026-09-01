@@ -53,6 +53,51 @@ function TarjetaProductoGranel({ producto, categoria, unidadLabel, onAgregar }) 
   );
 }
 
+// Tarjeta con selector de cantidad (+/-) para categorías que se venden por kg o por
+// unidad sin lista cerrada de opciones (Hierbas Medicinales por Kg, Yuyitos Combo
+// Emprendedor, etc.): se agrega directo desde la lista sin entrar al detalle.
+// Arranca en el "mínimo por variedad" si la categoría lo define, si no en 1.
+function TarjetaProductoSelector({ producto, categoria, unidadLabel, precio, onAgregar, onVerDetalle }) {
+  const paso = 1;
+  const inicial = Number(categoria.cantidad_minima_variedad) > 0 ? Number(categoria.cantidad_minima_variedad) : paso;
+  const [cantidad, setCantidad] = useState(inicial);
+  const ajustar = (delta) => setCantidad((c) => Math.max(paso, Math.round((c + delta) * 100) / 100));
+
+  return (
+    <div className="categoria-detalle-producto-granel">
+      <div className="categoria-detalle-producto-granel-encabezado">
+        <button type="button" className="categoria-detalle-producto-imagen categoria-detalle-producto-imagen-link" onClick={onVerDetalle} aria-label={`Ver ${producto.nombre}`}>
+          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
+        </button>
+        <div className="categoria-detalle-producto-info">
+          <button type="button" className="categoria-detalle-producto-nombre-link" onClick={onVerDetalle}>{producto.nombre}</button>
+          {producto.descripcion && <p className="categoria-detalle-producto-descripcion">{producto.descripcion}</p>}
+          {precio > 0 && <strong>{formatearPrecio(precio)} / {unidadLabel}</strong>}
+        </div>
+      </div>
+
+      <div className="categoria-detalle-selector-fila">
+        <div className="categoria-detalle-stepper">
+          <button type="button" onClick={() => ajustar(-paso)} aria-label="Restar">
+            <span className="material-symbols-outlined" aria-hidden="true">remove</span>
+          </button>
+          <span className="categoria-detalle-stepper-valor">
+            <strong>{cantidad}</strong>
+            <small>{unidadLabel}</small>
+          </span>
+          <button type="button" onClick={() => ajustar(paso)} aria-label="Sumar">
+            <span className="material-symbols-outlined" aria-hidden="true">add</span>
+          </button>
+        </div>
+        <button type="button" className="categoria-detalle-producto-granel-agregar" onClick={() => onAgregar(producto, cantidad)}>
+          <span className="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+          Agregar al carrito
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CategoriaDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -207,31 +252,15 @@ export default function CategoriaDetalle() {
             }
 
             return (
-              <button
+              <TarjetaProductoSelector
                 key={producto.id}
-                type="button"
-                className="categoria-detalle-producto"
-                onClick={() => navigate(`/producto/${producto.id}`)}
-              >
-                <div className="categoria-detalle-producto-imagen">
-                  {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
-                </div>
-                <div className="categoria-detalle-producto-info">
-                  <h3>{producto.nombre}</h3>
-                  {producto.descripcion && <p className="categoria-detalle-producto-descripcion">{producto.descripcion}</p>}
-                  {precioMinorista > 0 && (
-                    <strong>{formatearPrecio(precioMinorista)} / {unidadLabel}</strong>
-                  )}
-                  {producto.contenido && <span className="categoria-detalle-producto-contenido">{producto.contenido}</span>}
-                </div>
-                <span
-                  className="material-symbols-outlined categoria-detalle-producto-agregar"
-                  aria-hidden="true"
-                  onClick={(e) => { e.stopPropagation(); agregarAlCarrito(producto, 1); }}
-                >
-                  add_shopping_cart
-                </span>
-              </button>
+                producto={producto}
+                categoria={categoria}
+                unidadLabel={unidadLabel}
+                precio={precioMinorista}
+                onAgregar={agregarAlCarrito}
+                onVerDetalle={() => navigate(`/producto/${producto.id}`)}
+              />
             );
           })}
         </div>
@@ -664,6 +693,87 @@ export default function CategoriaDetalle() {
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        .categoria-detalle-producto-imagen-link {
+          border: none;
+          padding: 0;
+          cursor: pointer;
+        }
+
+        .categoria-detalle-producto-nombre-link {
+          align-self: flex-start;
+          border: none;
+          background: none;
+          padding: 0;
+          font-family: inherit;
+          font-size: 0.98rem;
+          font-weight: 700;
+          color: var(--text);
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .categoria-detalle-producto-nombre-link:hover {
+          text-decoration: underline;
+        }
+
+        .categoria-detalle-selector-fila {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .categoria-detalle-selector-fila .categoria-detalle-producto-granel-agregar {
+          flex: 1;
+          width: auto;
+        }
+
+        .categoria-detalle-stepper {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          padding: 3px;
+          background: var(--surface-2);
+        }
+
+        .categoria-detalle-stepper button {
+          width: 34px;
+          height: 34px;
+          border: none;
+          border-radius: 50%;
+          background: var(--surface);
+          color: var(--accent);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
+
+        .categoria-detalle-stepper button .material-symbols-outlined {
+          font-size: 18px;
+        }
+
+        .categoria-detalle-stepper-valor {
+          min-width: 46px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          line-height: 1;
+        }
+
+        .categoria-detalle-stepper-valor strong {
+          font-size: 1rem;
+          color: var(--text);
+        }
+
+        .categoria-detalle-stepper-valor small {
+          font-size: 0.62rem;
+          color: var(--text-muted);
         }
       `}</style>
     </section>

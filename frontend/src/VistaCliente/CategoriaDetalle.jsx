@@ -233,10 +233,10 @@ export default function CategoriaDetalle() {
           max-width: 1100px;
           margin: 0 auto;
           padding: 20px 20px 56px;
-          /* Textura sutil tipo tela, solo en esta página (no es un cambio global) */
+          /* Textura tipo tela, solo en esta página (no es un cambio global) */
           background:
-            repeating-linear-gradient(45deg, rgba(26, 54, 27, 0.025) 0, rgba(26, 54, 27, 0.025) 1px, transparent 1px, transparent 7px),
-            repeating-linear-gradient(-45deg, rgba(26, 54, 27, 0.025) 0, rgba(26, 54, 27, 0.025) 1px, transparent 1px, transparent 7px),
+            repeating-linear-gradient(45deg, rgba(26, 54, 27, 0.09) 0, rgba(26, 54, 27, 0.09) 2px, transparent 2px, transparent 8px),
+            repeating-linear-gradient(-45deg, rgba(26, 54, 27, 0.09) 0, rgba(26, 54, 27, 0.09) 2px, transparent 2px, transparent 8px),
             var(--bg, #eaf0e6);
         }
 

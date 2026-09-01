@@ -46,6 +46,9 @@ export default function Dashboard() {
   const [quienesSomosActiva, setQuienesSomosActiva] = useState(null);
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [instagramDescripcion, setInstagramDescripcion] = useState('');
+  const [instagramSecundario, setInstagramSecundario] = useState('');
+  const [instagramSecundarioDescripcion, setInstagramSecundarioDescripcion] = useState('');
   const [colorNavbar, setColorNavbar] = useState('#f2f7ef');
   const [colorFondo, setColorFondo] = useState('#eaf0e6');
   const [colorSuperficie, setColorSuperficie] = useState('#f2f7ef');
@@ -68,6 +71,9 @@ export default function Dashboard() {
           setQuienesSomosActiva(ultimaConfig.imagen_quienes_somos);
           setWhatsapp(ultimaConfig.whatsapp || '');
           setInstagram(ultimaConfig.instagram || '');
+          setInstagramDescripcion(ultimaConfig.instagram_descripcion || '');
+          setInstagramSecundario(ultimaConfig.instagram_secundario || '');
+          setInstagramSecundarioDescripcion(ultimaConfig.instagram_secundario_descripcion || '');
           setColorNavbar(ultimaConfig.color_navbar || '#f2f7ef');
           setColorFondo(ultimaConfig.color_fondo || '#eaf0e6');
           setColorSuperficie(ultimaConfig.color_superficie || '#f2f7ef');
@@ -148,6 +154,9 @@ export default function Dashboard() {
     if (quienesSomos) formData.append('imagen_quienes_somos', quienesSomos);
     formData.append('whatsapp', whatsapp);
     formData.append('instagram', instagram);
+    formData.append('instagram_descripcion', instagramDescripcion);
+    formData.append('instagram_secundario', instagramSecundario);
+    formData.append('instagram_secundario_descripcion', instagramSecundarioDescripcion);
     formData.append('color_navbar', colorNavbar);
     formData.append('color_fondo', colorFondo);
     formData.append('color_superficie', colorSuperficie);
@@ -446,13 +455,40 @@ export default function Dashboard() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Instagram (URL del perfil)</label>
+                <label className="form-label">Instagram 1 — usuario o URL (va con el logo principal)</label>
                 <input
                   type="text"
                   className="input-vibrante"
-                  placeholder="https://www.instagram.com/tu_negocio/"
+                  placeholder="@hierbas_serranas  o  https://www.instagram.com/hierbas_serranas/"
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="input-vibrante"
+                  placeholder="Descripción (ej: Hierbas Serranas La Paz)"
+                  value={instagramDescripcion}
+                  onChange={(e) => setInstagramDescripcion(e.target.value)}
+                  style={{ marginTop: '8px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Instagram 2 — usuario o URL (va con el logo secundario)</label>
+                <input
+                  type="text"
+                  className="input-vibrante"
+                  placeholder="@hierbas_medicinales_cba  o  URL completa"
+                  value={instagramSecundario}
+                  onChange={(e) => setInstagramSecundario(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="input-vibrante"
+                  placeholder="Descripción (ej: Hierbas Medicinales Córdoba)"
+                  value={instagramSecundarioDescripcion}
+                  onChange={(e) => setInstagramSecundarioDescripcion(e.target.value)}
+                  style={{ marginTop: '8px' }}
                 />
               </div>
 

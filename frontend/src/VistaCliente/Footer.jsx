@@ -19,58 +19,71 @@ export default function Footer({ configuracion }) {
       position: 'relative'
     }}>
       
-      {/* 1. Logos del negocio (las dos marcas), con efecto de resplandor */}
-      {(configuracion?.logo || configuracion?.logo_secundario) && (
-        <div style={{ marginBottom: '10px', display: 'flex', gap: '16px' }}>
-          {[configuracion.logo, configuracion.logo_secundario].filter(Boolean).map((src) => (
-            <img
-              key={src}
-              src={src}
-              alt="Logo"
-              style={{
-                width: '110px',
-                height: '110px',
-                objectFit: 'contain',
-                borderRadius: '50%',
-                backgroundColor: '#0a0a0a',
-                padding: '12px',
-                boxShadow: '0 0 25px rgba(140, 170, 120, 0.18), inset 0 0 15px rgba(140, 170, 120, 0.12)',
-                border: '1px solid rgba(140, 170, 120, 0.15)',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {/* 1. Seguinos en redes: cada marca con su logo, su Instagram y una descripción.
+             El negocio maneja 2 cuentas (una por marca) — logo principal → instagram,
+             logo secundario → instagram_secundario. */}
+      {(() => {
+        const marcas = [
+          { logo: configuracion?.logo, url: configuracion?.instagram, desc: configuracion?.instagram_descripcion },
+          { logo: configuracion?.logo_secundario, url: configuracion?.instagram_secundario, desc: configuracion?.instagram_secundario_descripcion },
+        ].filter((m) => m.logo || m.url);
+        if (marcas.length === 0) return null;
 
-      {/* 2. Botón de Instagram Brillante */}
-      {configuracion?.instagram && (
-        <a 
-          href={configuracion.instagram} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+        const iconoInstagram = (
+          <span style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '86px', height: '86px', borderRadius: '50%',
             background: 'linear-gradient(135deg, #aac398 0%, #8caa78 100%)',
-            color: '#ffffff',
-            padding: '14px',
-            borderRadius: '50%',
-            textDecoration: 'none',
+            color: '#ffffff', border: '1px solid #aac398',
             boxShadow: '0 0 20px rgba(140, 170, 120, 0.5), 0 4px 10px rgba(0,0,0,0.5)',
-            transition: 'all 0.3s ease',
-            border: '1px solid #aac398'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 0 30px rgba(140, 170, 120, 0.8)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(140, 170, 120, 0.5), 0 4px 10px rgba(0,0,0,0.5)'; }}
-        >
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-          </svg>
-        </a>
-      )}
+          }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </span>
+        );
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+            <span style={{ color: '#aac398', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+              Seguinos en redes
+            </span>
+            <div style={{ display: 'flex', gap: '26px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {marcas.map((m, i) => {
+                const cuerpo = (
+                  <>
+                    {m.logo ? (
+                      <img src={m.logo} alt={m.desc || 'Instagram'} style={{
+                        width: '96px', height: '96px', objectFit: 'contain', borderRadius: '50%',
+                        backgroundColor: '#0a0a0a', padding: '12px',
+                        boxShadow: '0 0 25px rgba(140, 170, 120, 0.18), inset 0 0 15px rgba(140, 170, 120, 0.12)',
+                        border: '1px solid rgba(140, 170, 120, 0.15)',
+                      }} />
+                    ) : iconoInstagram}
+                    {m.desc && (
+                      <span style={{ color: 'rgba(245,237,231,0.78)', fontSize: '0.78rem', textAlign: 'center', maxWidth: '130px' }}>
+                        {m.desc}
+                      </span>
+                    )}
+                  </>
+                );
+                return m.url ? (
+                  <a key={i} href={m.url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                    {cuerpo}
+                  </a>
+                ) : (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    {cuerpo}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 3. Nota discreta: invitación a crear una tienda propia (sin competir con la marca) */}
       <a

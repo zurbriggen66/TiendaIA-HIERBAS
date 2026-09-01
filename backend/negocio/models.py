@@ -26,9 +26,17 @@ class ConfiguracionSitio(models.Model):
         help_text="Reemplaza los 2 logos de la sección de marcas. Formato vertical 9:16 recomendado.",
     )
     whatsapp = models.CharField(max_length=20, blank=True, default='')
-    # CharField (no URLField): así se acepta "instagram.com/tu_negocio" sin que Django
-    # rechace el guardado por faltarle el "https://" — se lo completamos solos en save().
+    # CharField (no URLField): así se acepta "instagram.com/tu_negocio" o directamente
+    # el usuario "@tu_negocio" sin que Django rechace el guardado por faltarle el
+    # "https://" — se lo completamos solos en save().
+    # El negocio maneja dos cuentas de Instagram (una por marca): la principal va con
+    # el logo principal en el footer, la secundaria con el logo secundario. La
+    # descripción es el texto que se muestra debajo de cada logo ("Hierbas Serranas",
+    # "Hierbas Medicinales Cba", etc.).
     instagram = models.CharField(max_length=250, blank=True, default='')
+    instagram_descripcion = models.CharField(max_length=200, blank=True, default='')
+    instagram_secundario = models.CharField(max_length=250, blank=True, default='')
+    instagram_secundario_descripcion = models.CharField(max_length=200, blank=True, default='')
     video_principal = models.FileField(
         upload_to='videos/', 
         null=True, 
@@ -58,9 +66,19 @@ class ConfiguracionSitio(models.Model):
     )
     color_boton_agregar = models.CharField(max_length=7, default='#1a361b')
 
+    @staticmethod
+    def _normalizar_instagram(valor):
+        valor = (valor or '').strip()
+        if not valor or valor.startswith(('http://', 'https://')):
+            return valor
+        # "@usuario" o "usuario" sueltos → perfil completo; "instagram.com/x" → + https
+        if '/' not in valor:
+            return f'https://www.instagram.com/{valor.lstrip("@")}'
+        return f'https://{valor}'
+
     def save(self, *args, **kwargs):
-        if self.instagram and not self.instagram.startswith(('http://', 'https://')):
-            self.instagram = f'https://{self.instagram}'
+        self.instagram = self._normalizar_instagram(self.instagram)
+        self.instagram_secundario = self._normalizar_instagram(self.instagram_secundario)
         # wa.me (y el link de "Escribinos por WhatsApp") solo funcionan bien en
         # Android/iPhone si el número es SOLO dígitos en formato internacional (ej.
         # 5493511234567). Si el dueño lo carga con espacios, guiones o un "+", el botón

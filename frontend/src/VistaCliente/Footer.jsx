@@ -29,6 +29,14 @@ export default function Footer({ configuracion }) {
         ].filter((m) => m.logo || m.url);
         if (marcas.length === 0) return null;
 
+        const glifoInstagram = (tamaño) => (
+          <svg width={tamaño} height={tamaño} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        );
+
         const iconoInstagram = (
           <span style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -37,11 +45,7 @@ export default function Footer({ configuracion }) {
             color: '#ffffff', border: '1px solid #aac398',
             boxShadow: '0 0 20px rgba(140, 170, 120, 0.5), 0 4px 10px rgba(0,0,0,0.5)',
           }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-            </svg>
+            {glifoInstagram(30)}
           </span>
         );
 
@@ -57,7 +61,7 @@ export default function Footer({ configuracion }) {
                     {m.logo ? (
                       <img src={m.logo} alt={m.desc || 'Instagram'} style={{
                         width: '96px', height: '96px', objectFit: 'contain', borderRadius: '50%',
-                        backgroundColor: '#0a0a0a', padding: '12px',
+                        backgroundColor: '#ffffff', padding: '12px',
                         boxShadow: '0 0 25px rgba(140, 170, 120, 0.18), inset 0 0 15px rgba(140, 170, 120, 0.12)',
                         border: '1px solid rgba(140, 170, 120, 0.15)',
                       }} />
@@ -66,6 +70,9 @@ export default function Footer({ configuracion }) {
                       <span style={{ color: 'rgba(245,237,231,0.78)', fontSize: '0.78rem', textAlign: 'center', maxWidth: '130px' }}>
                         {m.desc}
                       </span>
+                    )}
+                    {m.logo && m.url && (
+                      <span style={{ color: '#aac398' }}>{glifoInstagram(18)}</span>
                     )}
                   </>
                 );

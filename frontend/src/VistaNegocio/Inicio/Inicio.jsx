@@ -717,6 +717,24 @@ export default function Inicio() {
             padding: 9px 16px;
           }
 
+          @media (max-width: 560px) {
+            .inicio-pedido-confirmar-item {
+              flex-direction: column;
+              align-items: stretch;
+              gap: 10px;
+            }
+            .inicio-pedido-info-bottom {
+              flex-wrap: wrap;
+            }
+            .inicio-pedido-confirmar-acciones {
+              width: 100%;
+              justify-content: space-between;
+            }
+            .inicio-btn-confirmar {
+              flex: 1;
+            }
+          }
+
           @keyframes inicioPunteo {
             0% { content: ''; }
             25% { content: '.'; }

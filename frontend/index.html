@@ -1,10 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!-- Fuentes: se cargan con <link> en el <head> (no con @import encadenado en el
+         CSS) para que el navegador las descubra apenas parsea el HTML. En iOS con red
+         lenta, el @import en cadena hacía que la fuente de íconos (Material Symbols)
+         no llegara y los botones mostraran el texto de la ligadura ("arrow_back").
+         Los íconos van con display=block: mejor un instante en blanco que ver la
+         palabra suelta (que además Safari traducía). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;600;700&family=Work+Sans:wght@400;600&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
+    />
+
+    <title>Hierbas Serranas La Paz</title>
   </head>
   <body>
     <div id="root"></div>

@@ -115,10 +115,10 @@ export default function CategoriaDetalle() {
         Volver
       </button>
 
-      <header
-        className="categoria-detalle-header"
-        style={categoria.imagen ? { backgroundImage: `url(${categoria.imagen})` } : undefined}
-      >
+      <header className="categoria-detalle-header">
+        {categoria.imagen && (
+          <img className="categoria-detalle-header-foto" src={categoria.imagen} alt={categoria.nombre} />
+        )}
         <div className="categoria-detalle-header-texto">
           <h1 className="fuente-impacto">{categoria.nombre}</h1>
           {Number(categoria.cantidad_minima) > 0 && (
@@ -288,30 +288,29 @@ export default function CategoriaDetalle() {
         }
 
         .categoria-detalle-header {
-          position: relative;
-          border-radius: 24px;
-          overflow: hidden;
-          min-height: 320px;
           display: flex;
-          align-items: center;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 24px;
+        }
+
+        .categoria-detalle-header-foto {
+          width: 100%;
+          max-height: 420px;
+          object-fit: cover;
+          border-radius: 24px;
           background-color: var(--surface-2);
-          background-size: cover;
-          background-position: center;
-          margin-bottom: 32px;
         }
 
         .categoria-detalle-header-texto {
-          position: relative;
-          z-index: 1;
-          margin: 24px 28px;
-          padding: 24px 26px;
+          padding: 22px 24px;
           background: var(--surface, #f2f7ef);
-          border-radius: 18px;
-          box-shadow: 0 20px 40px -18px rgba(28, 28, 22, 0.4);
+          border-radius: 20px;
+          box-shadow: 0 10px 30px -20px rgba(28, 28, 22, 0.35);
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          max-width: min(90%, 460px);
+          gap: 12px;
+          align-items: flex-start;
         }
 
         .categoria-detalle-header-texto h1 {

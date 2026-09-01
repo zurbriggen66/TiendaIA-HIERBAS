@@ -4324,9 +4324,32 @@ body {
   gap: 2px;
 }
 
+.tp-prod-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tp-prod-grupo + .tp-prod-grupo {
+  margin-top: 6px;
+}
+
+.tp-prod-cat {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.tp-prod-item {
+  color: var(--text);
+}
+
 .tp-productos-mas {
   color: var(--text-muted);
   font-size: 0.72rem;
+  margin-top: 4px;
 }
 
 .tp-entrega {

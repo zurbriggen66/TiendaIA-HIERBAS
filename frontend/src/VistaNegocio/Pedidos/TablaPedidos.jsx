@@ -18,13 +18,30 @@ const Ico = ({ nombre }) => (
   <span className="material-symbols-outlined" aria-hidden="true">{nombre}</span>
 );
 
+// Los productos del pedido se agrupan por categoría para que se lea de qué rubro es
+// cada línea (ej: "Hierbas Medicinales por Kg — 46 × Manzanilla").
 function ResumenProductos({ items }) {
-  const visibles = items.slice(0, 3);
+  const LIMITE = 6;
+  const visibles = items.slice(0, LIMITE);
   const resto = items.length - visibles.length;
+
+  const grupos = [];
+  for (const it of visibles) {
+    const cat = it.categoria_nombre || 'Sin categoría';
+    const grupo = grupos.find((g) => g.cat === cat);
+    if (grupo) grupo.items.push(it);
+    else grupos.push({ cat, items: [it] });
+  }
+
   return (
     <div className="tp-productos">
-      {visibles.map((it) => (
-        <span key={it.id}>{Number(it.cantidad)} × {it.producto_nombre}</span>
+      {grupos.map((g) => (
+        <div key={g.cat} className="tp-prod-grupo">
+          <span className="tp-prod-cat">{g.cat}</span>
+          {g.items.map((it) => (
+            <span key={it.id} className="tp-prod-item">{Number(it.cantidad)} × {it.producto_nombre}</span>
+          ))}
+        </div>
       ))}
       {resto > 0 && <span className="tp-productos-mas">+{resto} producto{resto > 1 ? 's' : ''} más</span>}
     </div>

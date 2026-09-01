@@ -24,11 +24,12 @@ class PagoSerializer(serializers.ModelSerializer):
 class DetallePedidoSerializer(serializers.ModelSerializer):
     producto_nombre = serializers.SerializerMethodField()
     categoria_id = serializers.IntegerField(source='producto.categoria_id', read_only=True)
+    categoria_nombre = serializers.CharField(source='producto.categoria.nombre', read_only=True)
     subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = DetallePedido
-        fields = ['id', 'producto', 'producto_nombre', 'categoria_id', 'cantidad', 'precio_unitario', 'subtotal']
+        fields = ['id', 'producto', 'producto_nombre', 'categoria_id', 'categoria_nombre', 'cantidad', 'precio_unitario', 'subtotal']
         read_only_fields = ['precio_unitario']
 
     def get_producto_nombre(self, obj):

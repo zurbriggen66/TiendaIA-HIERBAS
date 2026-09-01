@@ -40,7 +40,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Pedido.objects.prefetch_related(
-            'items__producto', 'pagos',
+            'items__producto__categoria', 'pagos',
         ).select_related('localidad')
         desde = parse_date(self.request.query_params.get('desde') or '')
         hasta = parse_date(self.request.query_params.get('hasta') or '')

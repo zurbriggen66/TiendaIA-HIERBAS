@@ -4,31 +4,22 @@ import { METODOS_PAGO } from '../../utils/metodosPago';
 import { notificar } from '../notificaciones';
 
 const CATEGORIAS = [
-  { value: 'insumos', label: 'Insumos / Stock' },
   { value: 'servicios', label: 'Servicios' },
   { value: 'sueldos', label: 'Sueldos' },
   { value: 'otros', label: 'Otros' },
 ];
 
-export default function GastoModal({ insumos, onClose, onSaved }) {
-  const [categoria, setCategoria] = useState('insumos');
+export default function GastoModal({ onClose, onSaved }) {
+  const [categoria, setCategoria] = useState('servicios');
   const [descripcion, setDescripcion] = useState('');
   const [monto, setMonto] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
-  const [insumoId, setInsumoId] = useState(insumos[0] ? insumos[0].id : '');
-  const [cantidad, setCantidad] = useState('');
   const [guardando, setGuardando] = useState(false);
-
-  const esInsumo = categoria === 'insumos';
 
   const guardar = async (e) => {
     e.preventDefault();
     if (!descripcion.trim() || !monto) {
       notificar('Completá al menos la descripción y el monto.');
-      return;
-    }
-    if (esInsumo && insumos.length > 0 && (!insumoId || !cantidad)) {
-      notificar('Elegí el insumo y la cantidad comprada.');
       return;
     }
 
@@ -38,10 +29,6 @@ export default function GastoModal({ insumos, onClose, onSaved }) {
       monto,
       metodo_pago: metodoPago,
     };
-    if (esInsumo && insumoId && cantidad) {
-      payload.insumo = insumoId;
-      payload.cantidad = cantidad;
-    }
 
     setGuardando(true);
     try {
@@ -107,35 +94,6 @@ export default function GastoModal({ insumos, onClose, onSaved }) {
               </select>
             </div>
           </div>
-
-          {esInsumo && (
-            insumos.length === 0 ? (
-              <p className="aviso-sin-insumos">Todavía no cargaste ningún insumo. Creá uno primero para poder sumar stock.</p>
-            ) : (
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Insumo</label>
-                  <select className="input-vibrante" value={insumoId} onChange={(e) => setInsumoId(e.target.value)}>
-                    {insumos.map((i) => (
-                      <option key={i.id} value={i.id}>{i.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Cantidad comprada</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    className="input-vibrante"
-                    placeholder="0"
-                    value={cantidad}
-                    onChange={(e) => setCantidad(e.target.value)}
-                  />
-                </div>
-              </div>
-            )
-          )}
 
           <div className="modal-actions">
             <button type="button" className="btn-secundario" onClick={onClose}>Cancelar</button>

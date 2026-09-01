@@ -12,7 +12,7 @@ import { notificar, confirmar } from '../notificaciones';
 
 // recharts pesa ~100 KB gzip: se carga aparte, solo al abrir Inicio, para no
 // engordar el bundle de la tienda pública.
-const DonutCategorias = lazy(() => import('../Estadisticas/DonutCategorias'));
+const GraficoTorta = lazy(() => import('../Estadisticas/GraficoTorta'));
 
 const pad2 = (n) => String(n).padStart(2, '0');
 // OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
@@ -378,7 +378,10 @@ export default function Inicio() {
               <div className="inicio-grafico-card">
                 <h4 className="gastos-desglose-titulo">Ventas por categoría (últimos 7 días)</h4>
                 <Suspense fallback={<p className="estado-vacio-chico">Cargando gráfico…</p>}>
-                  <DonutCategorias datos={ventasPorCategoria} />
+                  <GraficoTorta
+                    nombreArchivo="ventas-por-categoria-7-dias"
+                    datos={ventasPorCategoria.map((c) => ({ nombre: c.categoria_nombre, total: c.total }))}
+                  />
                 </Suspense>
               </div>
             </div>

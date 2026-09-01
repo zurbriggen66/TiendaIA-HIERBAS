@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import api from '../../services/api';
 import BarrasDesglose, { formatearPrecio } from './BarrasDesglose';
 import GraficoVentas from './GraficoVentas';
+
+// recharts pesa ~100 KB gzip: se carga aparte, solo al abrir Estadísticas.
+const GraficoTorta = lazy(() => import('./GraficoTorta'));
+const CargandoTorta = () => <p className="estado-vacio-chico">Cargando gráfico…</p>;
 
 const pad2 = (n) => String(n).padStart(2, '0');
 // OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
@@ -201,45 +205,39 @@ export default function EstadisticasPage() {
               </>
             )}
 
-            <div className="seccion-header">
-              <h3>Con qué te pagaron las ventas</h3>
-            </div>
-            {Number(datos.ventas_totales) === 0 ? (
-              <p className="estado-vacio-chico">No hay ventas registradas en este período.</p>
-            ) : (
-              <div className="gastos-desglose-grid">
-                <div>
-                  <BarrasDesglose
-                    filas={(datos.ventas_por_metodo || []).map((f) => ({
-                      clave: f.metodo,
-                      etiqueta: f.metodo_label,
-                      total: f.total,
-                    }))}
-                    total={Number(datos.ventas_totales)}
-                  />
+            <div className="estadisticas-tortas-grid">
+              <div>
+                <div className="seccion-header">
+                  <h3>Con qué te pagaron las ventas</h3>
                 </div>
+                {Number(datos.ventas_totales) === 0 ? (
+                  <p className="estado-vacio-chico">No hay ventas registradas en este período.</p>
+                ) : (
+                  <Suspense fallback={<CargandoTorta />}>
+                    <GraficoTorta
+                      nombreArchivo="ventas-por-medio-de-pago"
+                      datos={(datos.ventas_por_metodo || []).map((f) => ({ nombre: f.metodo_label, total: f.total }))}
+                    />
+                  </Suspense>
+                )}
               </div>
-            )}
 
-            <div className="seccion-header">
-              <h3>Ventas por categoría</h3>
-            </div>
-            {(datos.ventas_por_categoria || []).length === 0 ? (
-              <p className="estado-vacio-chico">No hay ventas registradas en este período.</p>
-            ) : (
-              <div className="gastos-desglose-grid">
-                <div>
-                  <BarrasDesglose
-                    filas={datos.ventas_por_categoria.map((c) => ({
-                      clave: c.categoria_id,
-                      etiqueta: c.categoria_nombre,
-                      total: c.total,
-                    }))}
-                    total={datos.ventas_por_categoria.reduce((suma, c) => suma + Number(c.total), 0)}
-                  />
+              <div>
+                <div className="seccion-header">
+                  <h3>Ventas por categoría</h3>
                 </div>
+                {(datos.ventas_por_categoria || []).length === 0 ? (
+                  <p className="estado-vacio-chico">No hay ventas registradas en este período.</p>
+                ) : (
+                  <Suspense fallback={<CargandoTorta />}>
+                    <GraficoTorta
+                      nombreArchivo="ventas-por-categoria"
+                      datos={datos.ventas_por_categoria.map((c) => ({ nombre: c.categoria_nombre, total: c.total }))}
+                    />
+                  </Suspense>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="seccion-header">
               <h3>En qué se fue la plata</h3>

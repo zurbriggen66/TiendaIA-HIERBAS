@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import GastoModal from './GastoModal';
-import InsumoModal from './InsumoModal';
 import GastoFijoModal from './GastoFijoModal';
 import GastoFijoPagarModal from './GastoFijoPagarModal';
 import { notificar, confirmar } from '../notificaciones';
@@ -15,31 +14,27 @@ const ETIQUETA_CATEGORIA = {
 
 export default function GastosPage() {
   const [gastos, setGastos] = useState([]);
-  const [insumos, setInsumos] = useState([]);
   const [gastosFijos, setGastosFijos] = useState([]);
   const [resumen, setResumen] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [mostrarGastoModal, setMostrarGastoModal] = useState(false);
-  const [modalInsumo, setModalInsumo] = useState(null);
   const [modalGastoFijo, setModalGastoFijo] = useState(null);
   const [modalPagar, setModalPagar] = useState(null);
-  const [tab, setTab] = useState('stock');
+  const [tab, setTab] = useState('gastos');
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     try {
-      const [resGastos, resInsumos, resResumen, resFijos] = await Promise.all([
+      const [resGastos, resResumen, resFijos] = await Promise.all([
         api.get('/gastos/'),
-        api.get('/insumos/'),
         api.get('/gastos/resumen/'),
         api.get('/gastos-fijos/'),
       ]);
       setGastos(resGastos.data);
-      setInsumos(resInsumos.data);
       setResumen(resResumen.data);
       setGastosFijos(resFijos.data);
     } catch (error) {
-      console.error('Error al cargar gastos/insumos:', error);
+      console.error('Error al cargar gastos:', error);
     } finally {
       setCargando(false);
     }
@@ -99,24 +94,19 @@ export default function GastosPage() {
               <span>Total gastado</span>
               <strong>{formatearPrecio(resumen.total)}</strong>
             </div>
-            {resumen.por_categoria.map((cat) => (
-              <div key={cat.categoria} className={`resumen-tile resumen-tile-${cat.categoria}`}>
-                <span>{cat.categoria_label}</span>
-                <strong>{formatearPrecio(cat.total)}</strong>
-              </div>
-            ))}
+            {resumen.por_categoria
+              .filter((cat) => cat.categoria !== 'insumos')
+              .map((cat) => (
+                <div key={cat.categoria} className={`resumen-tile resumen-tile-${cat.categoria}`}>
+                  <span>{cat.categoria_label}</span>
+                  <strong>{formatearPrecio(cat.total)}</strong>
+                </div>
+              ))}
           </div>
         )}
 
         {/* Pestañas */}
         <div className="tabs-bar">
-          <button
-            type="button"
-            className={`tab-boton ${tab === 'stock' ? 'tab-activo' : ''}`}
-            onClick={() => setTab('stock')}
-          >
-            Stock
-          </button>
           <button
             type="button"
             className={`tab-boton ${tab === 'gastos' ? 'tab-activo' : ''}`}
@@ -132,50 +122,6 @@ export default function GastosPage() {
             Gastos fijos
           </button>
         </div>
-
-        {tab === 'stock' && (
-          <>
-            <div className="seccion-header">
-              <h3>Insumos & Stock</h3>
-              <button type="button" className="btn-vibrante" onClick={() => setModalInsumo({ insumo: null })}>
-                + Nuevo insumo
-              </button>
-            </div>
-
-            {insumos.length === 0 ? (
-              <div className="estado-vacio">
-                <p>Todavía no cargaste insumos.</p>
-                <button type="button" className="btn-vibrante" onClick={() => setModalInsumo({ insumo: null })}>
-                  Cargar el primer insumo
-                </button>
-              </div>
-            ) : (
-              <div className="stock-grid">
-                {insumos.map((insumo) => {
-                  const bajo = Number(insumo.stock_minimo) > 0 && Number(insumo.cantidad_disponible) <= Number(insumo.stock_minimo);
-                  return (
-                    <div
-                      key={insumo.id}
-                      className={`stock-card ${bajo ? 'stock-card-bajo' : ''}`}
-                      onClick={() => setModalInsumo({ insumo })}
-                      role="button"
-                      tabIndex={0}
-                      title="Editar insumo"
-                    >
-                      {bajo && <span className="stock-card-aviso">⚠️ Queda poco</span>}
-                      {insumo.descuento_activo && (
-                        <span className="badge-descuento">🏷️ -{insumo.descuento_pct}%</span>
-                      )}
-                      <span className="stock-card-nombre">{insumo.nombre}</span>
-                      <strong className="stock-card-cantidad">{insumo.cantidad_disponible}</strong>
-                      <span className="stock-card-unidad">{insumo.unidad}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
 
         {tab === 'gastos' && (
           <>
@@ -274,17 +220,8 @@ export default function GastosPage() {
 
       {mostrarGastoModal && (
         <GastoModal
-          insumos={insumos}
           onClose={() => setMostrarGastoModal(false)}
           onSaved={() => { setMostrarGastoModal(false); cargarDatos(); }}
-        />
-      )}
-
-      {modalInsumo && (
-        <InsumoModal
-          insumo={modalInsumo.insumo}
-          onClose={() => setModalInsumo(null)}
-          onSaved={() => { setModalInsumo(null); cargarDatos(); }}
         />
       )}
 

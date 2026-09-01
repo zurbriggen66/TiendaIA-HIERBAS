@@ -1,4 +1,5 @@
 import React from 'react';
+import { notificar } from '../notificaciones';
 
 // Los pedidos solo se confirman (o se cancelan). No hay flujo de preparación
 // (en preparación / listo / entregado): esta tabla muestra fecha, cliente, qué
@@ -106,6 +107,13 @@ export default function TablaPedidos({
                     </button>
                     <button type="button" className="tp-accion" onClick={() => onImprimir(pedido)}>
                       <Ico nombre="print" />Imprimir
+                    </button>
+                    <button
+                      type="button"
+                      className="tp-accion"
+                      onClick={() => notificar('La facturación todavía no está disponible — próximamente.')}
+                    >
+                      <Ico nombre="request_quote" />Facturar
                     </button>
                     {onCancelar && !cancelado && (
                       <button type="button" className="tp-accion tp-accion-peligro" onClick={() => onCancelar(pedido)}>

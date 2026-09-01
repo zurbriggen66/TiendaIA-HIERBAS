@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import PedidoModal from './PedidoModal';
 import TablaPedidos from './TablaPedidos';
-import LocalidadModal from './LocalidadModal';
 import PedidoEnvioDescuentoModal from './PedidoEnvioDescuentoModal';
 import PedidoPagoModal from './PedidoPagoModal';
 import { imprimirPedido } from '../../utils/impresion';
@@ -41,14 +40,12 @@ export default function PedidosPage() {
   const [hayMas, setHayMas] = useState(false);
   const [totalPedidos, setTotalPedidos] = useState(0);
   const [paginaActual, setPaginaActual] = useState(1);
-  const [tab, setTab] = useState('pedidos');
   const [filtroPeriodo, setFiltroPeriodo] = useState('rango');
   const [mesSeleccionado, setMesSeleccionado] = useState(mesActualISO());
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoyISO());
   const [desdeRango, setDesdeRango] = useState(hace7DiasISO());
   const [hastaRango, setHastaRango] = useState(hoyISO());
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [modalLocalidad, setModalLocalidad] = useState(null);
   const [modalEnvio, setModalEnvio] = useState(null);
   const [modalPago, setModalPago] = useState(null);
 
@@ -151,20 +148,6 @@ export default function PedidosPage() {
     }
   };
 
-  const eliminarLocalidad = async (localidad) => {
-    if (!(await confirmar(`¿Eliminar la localidad "${localidad.nombre}"?`))) return;
-    try {
-      await api.delete(`/localidades/${localidad.id}/`);
-      setLocalidades((prev) => prev.filter((l) => l.id !== localidad.id));
-    } catch (error) {
-      console.error('Error al eliminar la localidad:', error);
-      notificar('No se pudo eliminar la localidad.');
-    }
-  };
-
-  const formatearPrecio = (precio) =>
-    new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
-
   return (
     <div className="pedidos-page">
       <header className="main-header">
@@ -174,32 +157,21 @@ export default function PedidosPage() {
 
       <div className="scroll-area">
         <div className="tabs-bar">
-          <button type="button" className={`tab-boton ${tab === 'pedidos' ? 'tab-activo' : ''}`} onClick={() => setTab('pedidos')}>
-            Pedidos
+          <button type="button" className={`tab-boton ${filtroPeriodo === 'rango' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('rango')}>
+            Rango
           </button>
-          <button type="button" className={`tab-boton ${tab === 'localidades' ? 'tab-activo' : ''}`} onClick={() => setTab('localidades')}>
-            Localidades
+          <button type="button" className={`tab-boton ${filtroPeriodo === 'dia' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('dia')}>
+            Por día
+          </button>
+          <button type="button" className={`tab-boton ${filtroPeriodo === 'mensual' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('mensual')}>
+            Mensual
+          </button>
+          <button type="button" className={`tab-boton ${filtroPeriodo === 'general' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('general')}>
+            General
           </button>
         </div>
 
-        {tab === 'pedidos' && (
-          <div className="tabs-bar">
-            <button type="button" className={`tab-boton ${filtroPeriodo === 'rango' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('rango')}>
-              Rango
-            </button>
-            <button type="button" className={`tab-boton ${filtroPeriodo === 'dia' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('dia')}>
-              Por día
-            </button>
-            <button type="button" className={`tab-boton ${filtroPeriodo === 'mensual' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('mensual')}>
-              Mensual
-            </button>
-            <button type="button" className={`tab-boton ${filtroPeriodo === 'general' ? 'tab-activo' : ''}`} onClick={() => setFiltroPeriodo('general')}>
-              General
-            </button>
-          </div>
-        )}
-
-        {tab === 'pedidos' && filtroPeriodo === 'rango' && (
+        {filtroPeriodo === 'rango' && (
           <div className="form-row estadisticas-selector-periodo">
             <div className="form-group">
               <label className="form-label">Desde</label>
@@ -224,7 +196,7 @@ export default function PedidosPage() {
           </div>
         )}
 
-        {tab === 'pedidos' && filtroPeriodo === 'mensual' && (
+        {filtroPeriodo === 'mensual' && (
           <div className="form-group estadisticas-selector-periodo">
             <label className="form-label">Mes</label>
             <input
@@ -236,7 +208,7 @@ export default function PedidosPage() {
           </div>
         )}
 
-        {tab === 'pedidos' && filtroPeriodo === 'dia' && (
+        {filtroPeriodo === 'dia' && (
           <div className="form-group estadisticas-selector-periodo">
             <label className="form-label">Día</label>
             <input
@@ -248,7 +220,7 @@ export default function PedidosPage() {
           </div>
         )}
 
-        {tab === 'pedidos' && (
+        {(
           cargando ? (
             <p className="estado-vacio">Cargando...</p>
           ) : pedidos.length === 0 ? (
@@ -285,7 +257,7 @@ export default function PedidosPage() {
           )
         )}
 
-        {tab === 'pedidos' && !cargando && pedidos.length > 0 && (
+        {!cargando && pedidos.length > 0 && (
           <div className="pedidos-paginacion">
             <span className="pedidos-paginacion-conteo">
               Mostrando {pedidos.length} de {totalPedidos} pedidos
@@ -303,39 +275,6 @@ export default function PedidosPage() {
           </div>
         )}
 
-        {tab === 'localidades' && (
-          <>
-            <div className="seccion-header">
-              <h3>Localidades</h3>
-              <button type="button" className="btn-vibrante" onClick={() => setModalLocalidad({ localidad: null })}>
-                + Nueva localidad
-              </button>
-            </div>
-
-            {localidades.length === 0 ? (
-              <div className="estado-vacio">
-                <p>Todavía no cargaste localidades.</p>
-                <button type="button" className="btn-vibrante" onClick={() => setModalLocalidad({ localidad: null })}>
-                  Cargar la primera localidad
-                </button>
-              </div>
-            ) : (
-              <div className="stock-grid">
-                {localidades.map((localidad) => (
-                  <div key={localidad.id} className="stock-card">
-                    <span className="stock-card-nombre">{localidad.nombre}</span>
-                    <strong className="stock-card-cantidad">{formatearPrecio(localidad.costo_envio)}</strong>
-                    <span className="stock-card-unidad">envío</span>
-                    <div className="producto-acciones">
-                      <button type="button" onClick={() => setModalLocalidad({ localidad })}>✎</button>
-                      <button type="button" onClick={() => eliminarLocalidad(localidad)}>🗑</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
       </div>
 
       {mostrarModal && (
@@ -345,14 +284,6 @@ export default function PedidosPage() {
           localidades={localidades}
           onClose={() => setMostrarModal(false)}
           onSaved={() => { setMostrarModal(false); cargarDatos(); }}
-        />
-      )}
-
-      {modalLocalidad && (
-        <LocalidadModal
-          localidad={modalLocalidad.localidad}
-          onClose={() => setModalLocalidad(null)}
-          onSaved={() => { setModalLocalidad(null); cargarDatos(); }}
         />
       )}
 

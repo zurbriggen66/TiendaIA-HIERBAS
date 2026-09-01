@@ -882,7 +882,53 @@ body {
 .precios-lista {
   display: flex;
   flex-direction: column;
+  gap: 24px;
+}
+
+.precios-grupo {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.precios-grupo-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 4px 4px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.precios-grupo-cabecera h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.precios-escalones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.precios-escalones-titulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent-light, #aac398);
+}
+
+.precios-escalones-campos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
 }
 
 .precios-fila {
@@ -985,18 +1031,49 @@ body {
 }
 
 @media (max-width: 720px) {
+  .precios-lista {
+    gap: 20px;
+  }
+
   .precios-fila {
     flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .precios-fila-info {
+    /* Que el nombre + categoría ocupen el resto de la fila junto a la miniatura. */
+    flex: 1 1 140px;
   }
 
   .precios-fila-campos {
     width: 100%;
-    padding-left: 68px;
     flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .precios-campo {
+    flex: 1 1 130px;
+  }
+
+  .precios-campo input {
+    width: 100%;
+  }
+
+  .precios-fila-nota {
+    width: 100%;
+    max-width: none;
   }
 
   .precios-guardado {
     width: auto;
+  }
+
+  .precios-escalones {
+    width: 100%;
+  }
+
+  .precios-escalones-campos .precios-campo {
+    flex: 1 1 120px;
   }
 }
 

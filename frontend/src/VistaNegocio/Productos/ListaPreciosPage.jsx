@@ -12,6 +12,7 @@ export default function ListaPreciosPage() {
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [guardandoId, setGuardandoId] = useState(null);
+  const [guardandoEscalon, setGuardandoEscalon] = useState(null); // id de la categoría
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
@@ -33,7 +34,7 @@ export default function ListaPreciosPage() {
     cargarDatos();
   }, [cargarDatos]);
 
-  const categoriaDe = (id) => categorias.find((c) => c.id === id);
+  const categoriaDe = useCallback((id) => categorias.find((c) => c.id === id), [categorias]);
 
   const productosFiltrados = useMemo(() => {
     const texto = normalizar(busqueda.trim());
@@ -42,6 +43,19 @@ export default function ListaPreciosPage() {
       .filter((p) => !texto || normalizar(p.nombre).includes(texto))
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [productos, categoriaActiva, busqueda]);
+
+  // Los productos se agrupan por categoría: los escalones de "precio por volumen" son
+  // de la categoría (no del producto), así que se editan una sola vez por grupo.
+  const grupos = useMemo(() => {
+    const mapa = new Map();
+    for (const p of productosFiltrados) {
+      if (!mapa.has(p.categoria)) mapa.set(p.categoria, []);
+      mapa.get(p.categoria).push(p);
+    }
+    return [...mapa.entries()]
+      .map(([catId, prods]) => ({ categoria: categoriaDe(catId), prods }))
+      .sort((a, b) => (a.categoria?.nombre || '').localeCompare(b.categoria?.nombre || ''));
+  }, [productosFiltrados, categoriaDe]);
 
   const cambiarCampoLocal = (id, campo, valor) => {
     setProductos((prev) => prev.map((p) => (p.id === id ? { ...p, [campo]: valor } : p)));
@@ -56,6 +70,24 @@ export default function ListaPreciosPage() {
       notificar(`No se pudo guardar el precio de "${producto.nombre}".`);
     } finally {
       setGuardandoId((actual) => (actual === producto.id ? null : actual));
+    }
+  };
+
+  const cambiarEscalonLocal = (catId, escId, valor) => {
+    setCategorias((prev) => prev.map((c) => (c.id === catId
+      ? { ...c, escalones: c.escalones.map((e) => (e.id === escId ? { ...e, precio_unitario: valor } : e)) }
+      : c)));
+  };
+
+  const guardarEscalon = async (catId, escalon, valor) => {
+    setGuardandoEscalon(catId);
+    try {
+      await api.patch(`/escalones-precio/${escalon.id}/`, { precio_unitario: Number(valor) || 0 });
+    } catch (error) {
+      console.error('Error al guardar el escalón:', error);
+      notificar('No se pudo guardar el precio por volumen.');
+    } finally {
+      setGuardandoEscalon((actual) => (actual === catId ? null : actual));
     }
   };
 
@@ -102,64 +134,102 @@ export default function ListaPreciosPage() {
 
         {cargando ? (
           <p className="estado-vacio">Cargando...</p>
-        ) : productosFiltrados.length === 0 ? (
+        ) : grupos.length === 0 ? (
           <p className="estado-vacio">No hay productos que coincidan con la búsqueda.</p>
         ) : (
           <div className="precios-lista">
-            {productosFiltrados.map((prod) => {
-              const categoria = categoriaDe(prod.categoria);
-              const usaEscalones = categoria && categoria.escalones && categoria.escalones.length > 0;
+            {grupos.map(({ categoria, prods }) => {
+              const escalones = [...(categoria?.escalones || [])]
+                .sort((a, b) => Number(a.cantidad_desde) - Number(b.cantidad_desde));
+              const usaEscalones = escalones.length > 0;
               const usaGranel = categoria && Number(categoria.granel_cantidad_minima) > 0;
               return (
-                <div key={prod.id} className="precios-fila">
-                  <div className="precios-fila-imagen">
-                    {prod.imagen ? (
-                      <img src={prod.imagen} alt={prod.nombre} />
-                    ) : (
-                      <span className="material-symbols-outlined" aria-hidden="true">eco</span>
+                <div key={categoria?.id ?? 'sin'} className="precios-grupo">
+                  <div className="precios-grupo-cabecera">
+                    <h3>{categoria?.nombre ?? 'Sin categoría'}</h3>
+                    {usaEscalones && (
+                      <div className="precios-escalones">
+                        <span className="precios-escalones-titulo">
+                          Precio por volumen — aplica a toda la categoría
+                        </span>
+                        <div className="precios-escalones-campos">
+                          {escalones.map((esc) => (
+                            <label key={esc.id} className="precios-campo">
+                              <span>{esc.etiqueta || `Desde ${esc.cantidad_desde}`}</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={esc.precio_unitario ?? ''}
+                                onChange={(e) => cambiarEscalonLocal(categoria.id, esc.id, e.target.value)}
+                                onBlur={(e) => guardarEscalon(categoria.id, esc, e.target.value)}
+                              />
+                            </label>
+                          ))}
+                          <span className={`precios-guardado ${guardandoEscalon === categoria?.id ? 'precios-guardado-visible' : ''}`}>
+                            Guardando...
+                          </span>
+                        </div>
+                      </div>
                     )}
                   </div>
 
-                  <div className="precios-fila-info">
-                    <strong>{prod.nombre}</strong>
-                    <span className="precios-fila-categoria">{prod.categoria_nombre}</span>
-                  </div>
+                  {prods.map((prod) => (
+                    <div key={prod.id} className="precios-fila">
+                      <div className="precios-fila-imagen">
+                        {prod.imagen ? (
+                          <img src={prod.imagen} alt={prod.nombre} />
+                        ) : (
+                          <span className="material-symbols-outlined" aria-hidden="true">eco</span>
+                        )}
+                      </div>
 
-                  <div className="precios-fila-campos">
-                    {usaEscalones ? (
-                      <span className="precios-fila-nota">Precio por volumen (editar en Categorías)</span>
-                    ) : (
-                      <label className="precios-campo">
-                        <span>Precio propio</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={prod.precio_base ?? ''}
-                          onChange={(e) => cambiarCampoLocal(prod.id, 'precio_base', e.target.value)}
-                          onBlur={(e) => guardarCampo(prod, 'precio_base', e.target.value)}
-                        />
-                      </label>
-                    )}
+                      <div className="precios-fila-info">
+                        <strong>{prod.nombre}</strong>
+                        <span className="precios-fila-categoria">{prod.categoria_nombre}</span>
+                      </div>
 
-                    {usaGranel && (
-                      <label className="precios-campo">
-                        <span>Precio a granel</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={prod.precio_granel ?? ''}
-                          onChange={(e) => cambiarCampoLocal(prod.id, 'precio_granel', e.target.value)}
-                          onBlur={(e) => guardarCampo(prod, 'precio_granel', e.target.value)}
-                        />
-                      </label>
-                    )}
+                      {(!usaEscalones || usaGranel) && (
+                        <div className="precios-fila-campos">
+                          {!usaEscalones && (
+                            <label className="precios-campo">
+                              <span>Precio propio</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={prod.precio_base ?? ''}
+                                onChange={(e) => cambiarCampoLocal(prod.id, 'precio_base', e.target.value)}
+                                onBlur={(e) => guardarCampo(prod, 'precio_base', e.target.value)}
+                              />
+                            </label>
+                          )}
 
-                    <span className={`precios-guardado ${guardandoId === prod.id ? 'precios-guardado-visible' : ''}`}>
-                      Guardando...
-                    </span>
-                  </div>
+                          {usaGranel && (
+                            <label className="precios-campo">
+                              <span>Precio a granel</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={prod.precio_granel ?? ''}
+                                onChange={(e) => cambiarCampoLocal(prod.id, 'precio_granel', e.target.value)}
+                                onBlur={(e) => guardarCampo(prod, 'precio_granel', e.target.value)}
+                              />
+                            </label>
+                          )}
+
+                          <span className={`precios-guardado ${guardandoId === prod.id ? 'precios-guardado-visible' : ''}`}>
+                            Guardando...
+                          </span>
+                        </div>
+                      )}
+
+                      {usaEscalones && !usaGranel && (
+                        <span className="precios-fila-nota">precio por volumen ↑</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               );
             })}

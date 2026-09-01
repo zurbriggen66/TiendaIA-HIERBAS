@@ -76,14 +76,23 @@ class EstadisticasView(APIView):
             dia = timezone.localtime(p['creado']).date()
             por_dia[dia] += totales_por_pedido[p['id']]
 
+        # Sin límite: "Estadísticas" muestra el ranking completo (con paginado del lado
+        # del cliente); "Inicio" solo usa los primeros 5 del array para su resumen del día.
         productos_mas_vendidos_qs = (
             items_validos.filter(producto__isnull=False)
-            .values('producto__id', 'producto__nombre')
+            .values('producto__id', 'producto__nombre', 'producto__categoria__id', 'producto__categoria__nombre')
             .annotate(
                 cantidad_total=Sum('cantidad'),
                 total=Sum(F('cantidad') * F('precio_unitario'), output_field=MONTO),
             )
-            .order_by('-cantidad_total')[:5]
+            .order_by('-cantidad_total')
+        )
+
+        ventas_por_categoria_qs = (
+            items_validos.filter(producto__categoria__isnull=False)
+            .values('producto__categoria__id', 'producto__categoria__nombre')
+            .annotate(total=Sum(F('cantidad') * F('precio_unitario'), output_field=MONTO))
+            .order_by('-total')
         )
 
         # En qué se fue la plata de los gastos: por rubro y por medio de pago.
@@ -167,10 +176,21 @@ class EstadisticasView(APIView):
                 {
                     'producto_id': p['producto__id'],
                     'producto_nombre': p['producto__nombre'],
+                    'categoria_id': p['producto__categoria__id'],
+                    'categoria_nombre': p['producto__categoria__nombre'],
                     'cantidad_total': p['cantidad_total'],
                     'total': p['total'],
                 }
                 for p in productos_mas_vendidos_qs
+            ],
+            'ventas_por_categoria': [
+                {
+                    'categoria_id': c['producto__categoria__id'],
+                    'categoria_nombre': c['producto__categoria__nombre'],
+                    'total': c['total'],
+                }
+                for c in ventas_por_categoria_qs
+                if c['total']
             ],
         })
 

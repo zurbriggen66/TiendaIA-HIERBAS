@@ -35,3 +35,8 @@ class EstadisticasPorRangoDeFechasTests(TestCase):
 
         metodos = {f['metodo']: Decimal(str(f['total'])) for f in datos['ventas_por_metodo']}
         self.assertEqual(metodos, {'efectivo': Decimal('1000'), 'transferencia': Decimal('500')})
+
+        # Las 3 ventas del fixture son del mismo producto (misma categoría); en el rango
+        # de un solo día entran 2 de ellas ($1000 + $500).
+        por_categoria = {c['categoria_nombre']: Decimal(str(c['total'])) for c in datos['ventas_por_categoria']}
+        self.assertEqual(por_categoria, {'Categoría de prueba (estadísticas)': Decimal('1500')})

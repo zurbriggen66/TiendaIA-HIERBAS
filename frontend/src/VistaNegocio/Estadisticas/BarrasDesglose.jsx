@@ -6,6 +6,10 @@ export const formatearPrecio = (precio) =>
 const formatearFechaCorta = (iso) =>
   new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+// Paleta categórica validada para fondo oscuro (skill dataviz). Orden fijo, no cíclica:
+// una 9na serie (rarísimo en estos desgloses, que tienen 4-6 filas) cae en gris.
+const PALETA_SERIES = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
+
 // Lista de barras proporcionales (mismo formato visual que el ranking de productos),
 // donde cada fila se puede tocar para desplegar el detalle de esos gastos.
 export default function BarrasDesglose({ filas, total, detalleSecundario }) {
@@ -16,7 +20,7 @@ export default function BarrasDesglose({ filas, total, detalleSecundario }) {
 
   return (
     <div className="ranking-productos">
-      {filas.map((fila) => {
+      {filas.map((fila, indice) => {
         const monto = Number(fila.total);
         const porcentajeDelTotal = total > 0 ? Math.round((monto / total) * 100) : 0;
         const estaAbierta = abierta === fila.clave;
@@ -27,7 +31,8 @@ export default function BarrasDesglose({ filas, total, detalleSecundario }) {
           <div className="ranking-info">
             <div className="ranking-nombre-linea">
               <strong>
-                {sePuedeAbrir && <span className="desglose-flecha">{estaAbierta ? '▾' : '▸'}</span>} {fila.etiqueta}
+                {sePuedeAbrir && <span className="desglose-flecha">{estaAbierta ? '▾' : '▸'}</span>}
+                <span className="desglose-swatch" aria-hidden="true" /> {fila.etiqueta}
               </strong>
               <span>{formatearPrecio(monto)} · {porcentajeDelTotal}%</span>
             </div>
@@ -37,8 +42,10 @@ export default function BarrasDesglose({ filas, total, detalleSecundario }) {
           </div>
         );
 
+        const estiloSerie = { '--serie-color': PALETA_SERIES[indice] || 'var(--text-muted)' };
+
         return (
-          <div key={fila.clave} className="desglose-grupo">
+          <div key={fila.clave} className="desglose-grupo" style={estiloSerie}>
             {sePuedeAbrir ? (
               <button
                 type="button"

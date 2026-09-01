@@ -13,9 +13,22 @@ import { notificar, confirmar } from '../notificaciones';
 const pad2 = (n) => String(n).padStart(2, '0');
 // OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
 // que "hoy" salte al día siguiente a partir de las 21:00 hora local.
-const hoyISO = () => {
+const isoMasDias = (deltaDias) => {
   const d = new Date();
+  d.setDate(d.getDate() + deltaDias);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+const hoyISO = () => isoMasDias(0);
+
+// Variación de hoy contra ayer para las tarjetas del resumen. Si ayer fue 0 no se
+// puede calcular un %, así que solo marca "nuevo" cuando hoy hay algo.
+const compararConAyer = (valorHoy, valorAyer) => {
+  const ayer = Number(valorAyer) || 0;
+  const hoy = Number(valorHoy) || 0;
+  if (ayer === 0) return hoy > 0 ? { signo: 'sube', texto: 'nuevo' } : null;
+  const pct = Math.round(((hoy - ayer) / ayer) * 100);
+  if (pct === 0) return { signo: 'igual', texto: 'igual que ayer' };
+  return { signo: pct > 0 ? 'sube' : 'baja', texto: `${pct > 0 ? '+' : ''}${pct}% vs ayer` };
 };
 
 const formatearPrecio = (valor) =>
@@ -34,6 +47,18 @@ const formatearHora = (fecha) =>
 
 const ORDEN_ESTADOS = ['pendiente', 'en_preparacion', 'listo', 'entregado'];
 
+const ICONO_DELTA = { sube: 'trending_up', baja: 'trending_down', igual: 'trending_flat' };
+
+function DeltaResumen({ dato }) {
+  if (!dato) return null;
+  return (
+    <span className={`resumen-delta resumen-delta-${dato.signo}`}>
+      <span className="material-symbols-outlined" aria-hidden="true">{ICONO_DELTA[dato.signo]}</span>
+      {dato.texto}
+    </span>
+  );
+}
+
 export default function Inicio() {
   const [reloj, setReloj] = useState(new Date());
   const [pedidosRecientes, setPedidosRecientes] = useState([]);
@@ -46,7 +71,9 @@ export default function Inicio() {
   const [totalGastosFijos, setTotalGastosFijos] = useState(0);
 
   const [estadisticasHoy, setEstadisticasHoy] = useState(null);
+  const [estadisticasAyer, setEstadisticasAyer] = useState(null);
   const [ventasUltimos7, setVentasUltimos7] = useState([]);
+  const [ventasPorCategoria, setVentasPorCategoria] = useState([]);
 
   const [configId, setConfigId] = useState(null);
   const [tiendaAbierta, setTiendaAbierta] = useState(true);
@@ -69,7 +96,9 @@ export default function Inicio() {
     setCargando(true);
     try {
       const hoy = hoyISO();
-      const [resPorConfirmar, resRecientes, resProductos, resCategorias, resLocalidades, resFijos, resConfig, resHoy, resSemana] = await Promise.all([
+      const ayer = isoMasDias(-1);
+      const hace7 = isoMasDias(-6);
+      const [resPorConfirmar, resRecientes, resProductos, resCategorias, resLocalidades, resFijos, resConfig, resHoy, resAyer, resSemana] = await Promise.all([
         // page_size alto: ambas listas se muestran enteras, no queremos que un día
         // movido las recorte a los 20 por defecto de la paginación.
         api.get('/pedidos/', { params: { confirmado: 'false', origen: 'web', page_size: 100 } }),
@@ -80,10 +109,13 @@ export default function Inicio() {
         api.get('/gastos-fijos/alertas/'),
         api.get('/configuracion/'),
         api.get('/estadisticas/', { params: { desde: hoy, hasta: hoy } }),
-        api.get('/estadisticas/'),
+        api.get('/estadisticas/', { params: { desde: ayer, hasta: ayer } }),
+        api.get('/estadisticas/', { params: { desde: hace7, hasta: hoy } }),
       ]);
       setEstadisticasHoy(resHoy.data);
+      setEstadisticasAyer(resAyer.data);
       setVentasUltimos7((resSemana.data.ventas_por_dia || []).slice(-7));
+      setVentasPorCategoria(resSemana.data.ventas_por_categoria || []);
       if (resConfig.data && resConfig.data.length > 0) {
         const ultimaConfig = resConfig.data[resConfig.data.length - 1];
         setConfigId(ultimaConfig.id);
@@ -268,7 +300,7 @@ export default function Inicio() {
           {!cargando && !error && porConfirmar.length > 0 ? (
             <div className="inicio-card inicio-card-confirmar">
               <div className="inicio-card-encabezado">
-                <span className="inicio-card-icono">📥</span>
+                <span className="material-symbols-outlined inicio-card-icono">move_to_inbox</span>
                 <h3 className="inicio-card-titulo">Pedidos por confirmar</h3>
                 <span className="inicio-contador-pedidos inicio-contador-confirmar">{porConfirmar.length}</span>
               </div>
@@ -284,8 +316,13 @@ export default function Inicio() {
                         <h4>{pedido.cliente || `Pedido #${pedido.id}`}</h4>
                       </div>
                       <div className="inicio-pedido-info-bottom">
-                        <span>🕐 {formatearHora(pedido.creado)}</span>
-                        <span>{pedido.tipo_entrega === 'envio' ? '🚚 Envío' : '🏬 Retiro'}</span>
+                        <span><span className="material-symbols-outlined inicio-inline-ico" aria-hidden="true">schedule</span>{formatearHora(pedido.creado)}</span>
+                        <span>
+                          <span className="material-symbols-outlined inicio-inline-ico" aria-hidden="true">
+                            {pedido.tipo_entrega === 'envio' ? 'local_shipping' : 'storefront'}
+                          </span>
+                          {pedido.tipo_entrega === 'envio' ? 'Envío' : 'Retiro'}
+                        </span>
                         <span>{formatearPrecio(pedido.total)}</span>
                       </div>
                     </div>
@@ -314,7 +351,7 @@ export default function Inicio() {
           ) : (
             <div className="inicio-card inicio-card-reloj">
               <div className="inicio-card-encabezado">
-                <span className="inicio-card-icono">🕐</span>
+                <span className="material-symbols-outlined inicio-card-icono">schedule</span>
                 <h3 className="inicio-card-titulo">Reloj en vivo</h3>
               </div>
               <div className="inicio-reloj-numeros">
@@ -332,7 +369,7 @@ export default function Inicio() {
           {!cargando && !error && gastosFijos.length > 0 && (
             <div className={`inicio-card inicio-card-gastos-fijos ${hayVencidos ? 'inicio-card-alerta' : ''}`}>
               <div className="inicio-card-encabezado">
-                <span className="inicio-card-icono">📅</span>
+                <span className="material-symbols-outlined inicio-card-icono">event</span>
                 <h3 className="inicio-card-titulo">Gastos fijos por pagar</h3>
                 {porVencer.length > 0 && (
                   <span className="inicio-contador-pedidos inicio-contador-alerta">{porVencer.length}</span>
@@ -369,7 +406,8 @@ export default function Inicio() {
         </div>
 
         <button type="button" className="btn-vibrante inicio-btn-nuevo-pedido-top" onClick={() => setMostrarNuevoPedido(true)}>
-          + Nuevo pedido
+          <span className="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
+          Nuevo pedido
         </button>
 
         {!cargando && !error && estadisticasHoy && (
@@ -378,10 +416,12 @@ export default function Inicio() {
               <div className="resumen-tile resumen-tile-servicios">
                 <span>Ventas de hoy</span>
                 <strong>{formatearPrecio(estadisticasHoy.ventas_totales)}</strong>
+                {estadisticasAyer && <DeltaResumen dato={compararConAyer(estadisticasHoy.ventas_totales, estadisticasAyer.ventas_totales)} />}
               </div>
               <div className="resumen-tile resumen-tile-total">
                 <span>Pedidos de hoy</span>
                 <strong>{estadisticasHoy.total_pedidos}</strong>
+                {estadisticasAyer && <DeltaResumen dato={compararConAyer(estadisticasHoy.total_pedidos, estadisticasAyer.total_pedidos)} />}
               </div>
               <div className="resumen-tile resumen-tile-insumos">
                 <span>Ticket promedio</span>
@@ -402,6 +442,22 @@ export default function Inicio() {
               <Link to="/admin/estadisticas" className="inicio-link-caja">ver todas las estadísticas →</Link>
             </div>
             <GraficoVentas datos={ventasUltimos7} />
+
+            <div className="seccion-header">
+              <h3>Ventas por categoría (últimos 7 días)</h3>
+            </div>
+            {ventasPorCategoria.length === 0 ? (
+              <p className="estado-vacio-chico">Todavía no hay ventas en los últimos 7 días.</p>
+            ) : (
+              <BarrasDesglose
+                filas={ventasPorCategoria.map((c) => ({
+                  clave: c.categoria_id,
+                  etiqueta: c.categoria_nombre,
+                  total: c.total,
+                }))}
+                total={ventasPorCategoria.reduce((suma, c) => suma + Number(c.total), 0)}
+              />
+            )}
 
             <div className="gastos-desglose-grid">
               <div>
@@ -425,8 +481,8 @@ export default function Inicio() {
                   <p className="estado-vacio-chico">Todavía no hay ventas hoy.</p>
                 ) : (
                   <div className="ranking-productos">
-                    {estadisticasHoy.productos_mas_vendidos.map((p, i) => {
-                      const maxCantidad = estadisticasHoy.productos_mas_vendidos[0].cantidad_total;
+                    {estadisticasHoy.productos_mas_vendidos.slice(0, 5).map((p, i, top5) => {
+                      const maxCantidad = top5[0].cantidad_total;
                       const porcentaje = Math.max((p.cantidad_total / maxCantidad) * 100, 6);
                       return (
                         <div key={p.producto_id} className="ranking-fila">
@@ -452,7 +508,7 @@ export default function Inicio() {
 
         <div className="inicio-card inicio-card-pedidos">
           <div className="inicio-card-encabezado">
-            <span className="inicio-card-icono">🧾</span>
+            <span className="material-symbols-outlined inicio-card-icono">receipt_long</span>
             <h3 className="inicio-card-titulo">Pedidos de las últimas 24 horas</h3>
             {!cargando && !error && pedidosRecientes.length > 0 && (
               <span className="inicio-contador-pedidos">{pedidosRecientes.length}</span>
@@ -666,9 +722,51 @@ export default function Inicio() {
           }
 
           .inicio-card-icono {
-            font-size: 1.1rem;
+            font-size: 1.4rem;
+            color: #aac398;
             filter: drop-shadow(0 0 6px rgba(140, 170, 120, 0.35));
           }
+
+          .inicio-inline-ico {
+            font-size: 0.95rem;
+            margin-right: 4px;
+            position: relative;
+            top: 2px;
+            color: rgba(255, 255, 255, 0.4);
+          }
+
+          .inicio-btn-nuevo-pedido-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          }
+
+          .inicio-btn-nuevo-pedido-top .material-symbols-outlined {
+            font-size: 1.15rem;
+          }
+
+          /* Chip de variación vs. ayer en las tarjetas del resumen del día. */
+          .resumen-delta {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            align-self: flex-start;
+            margin-top: 2px;
+            padding: 2px 8px 2px 5px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.18);
+          }
+
+          .resumen-delta .material-symbols-outlined {
+            font-size: 0.95rem;
+          }
+
+          .resumen-delta-sube { color: #dcfce7; }
+          .resumen-delta-baja { color: #fee2e2; }
+          .resumen-delta-igual { color: rgba(255, 255, 255, 0.75); }
 
           .inicio-card-titulo {
             margin: 0;

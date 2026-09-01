@@ -21,6 +21,77 @@ const primerYUltimoDiaDelMes = (mesStr) => {
   return { primero: `${mesStr}-01`, ultimo: `${mesStr}-${String(ultimoDia).padStart(2, '0')}` };
 };
 
+const POR_PAGINA = 20;
+
+// Ranking completo de productos vendidos en el período, como tabla paginada y
+// filtrable por categoría (el ranking puede tener decenas de filas — una lista de
+// barras como en "Inicio" no escala).
+function TablaProductosVendidos({ productos }) {
+  const [categoria, setCategoria] = useState('');
+  const [pagina, setPagina] = useState(0);
+
+  const categorias = [...new Set(productos.map((p) => p.categoria_nombre).filter(Boolean))].sort();
+  const filtrados = categoria ? productos.filter((p) => p.categoria_nombre === categoria) : productos;
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+  const paginaActual = Math.min(pagina, totalPaginas - 1);
+  const visibles = filtrados.slice(paginaActual * POR_PAGINA, paginaActual * POR_PAGINA + POR_PAGINA);
+
+  return (
+    <div className="tabla-datos-wrap">
+      <div className="tabla-datos-toolbar">
+        <select
+          className="input-vibrante"
+          value={categoria}
+          onChange={(e) => { setCategoria(e.target.value); setPagina(0); }}
+        >
+          <option value="">Todas las categorías</option>
+          {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <span className="tabla-datos-conteo">{filtrados.length} productos</span>
+      </div>
+
+      <div className="tabla-datos-scroll">
+        <table className="tabla-datos">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th className="num">Unidades</th>
+              <th className="num">Valor total</th>
+              <th className="num">Prom. unitario</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibles.map((p, i) => (
+              <tr key={p.producto_id}>
+                <td className="tabla-datos-rank">{paginaActual * POR_PAGINA + i + 1}</td>
+                <td>{p.producto_nombre}</td>
+                <td>{p.categoria_nombre || '—'}</td>
+                <td className="num">{Number(p.cantidad_total).toLocaleString('es-AR')}</td>
+                <td className="num">{formatearPrecio(p.total)}</td>
+                <td className="num">{formatearPrecio(Number(p.total) / Number(p.cantidad_total || 1))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPaginas > 1 && (
+        <div className="tabla-datos-paginado">
+          <button type="button" onClick={() => setPagina(paginaActual - 1)} disabled={paginaActual === 0}>
+            <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+          </button>
+          <span>Página {paginaActual + 1} de {totalPaginas}</span>
+          <button type="button" onClick={() => setPagina(paginaActual + 1)} disabled={paginaActual >= totalPaginas - 1}>
+            <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EstadisticasPage() {
   const [datos, setDatos] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -151,6 +222,26 @@ export default function EstadisticasPage() {
             )}
 
             <div className="seccion-header">
+              <h3>Ventas por categoría</h3>
+            </div>
+            {(datos.ventas_por_categoria || []).length === 0 ? (
+              <p className="estado-vacio-chico">No hay ventas registradas en este período.</p>
+            ) : (
+              <div className="gastos-desglose-grid">
+                <div>
+                  <BarrasDesglose
+                    filas={datos.ventas_por_categoria.map((c) => ({
+                      clave: c.categoria_id,
+                      etiqueta: c.categoria_nombre,
+                      total: c.total,
+                    }))}
+                    total={datos.ventas_por_categoria.reduce((suma, c) => suma + Number(c.total), 0)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="seccion-header">
               <h3>En qué se fue la plata</h3>
             </div>
             {Number(datos.gastos_totales) === 0 ? (
@@ -192,26 +283,7 @@ export default function EstadisticasPage() {
             {datos.productos_mas_vendidos.length === 0 ? (
               <p className="estado-vacio-chico">Todavía no hay ventas registradas.</p>
             ) : (
-              <div className="ranking-productos">
-                {datos.productos_mas_vendidos.map((p, i) => {
-                  const maxCantidad = datos.productos_mas_vendidos[0].cantidad_total;
-                  const porcentaje = Math.max((p.cantidad_total / maxCantidad) * 100, 6);
-                  return (
-                    <div key={p.producto_id} className="ranking-fila">
-                      <span className="ranking-puesto">#{i + 1}</span>
-                      <div className="ranking-info">
-                        <div className="ranking-nombre-linea">
-                          <strong>{p.producto_nombre}</strong>
-                          <span>{p.cantidad_total} vendidos · {formatearPrecio(p.total)}</span>
-                        </div>
-                        <div className="ranking-barra-fondo">
-                          <div className="ranking-barra" style={{ '--bar-width': `${porcentaje}%` }} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <TablaProductosVendidos productos={datos.productos_mas_vendidos} />
             )}
           </>
         )}

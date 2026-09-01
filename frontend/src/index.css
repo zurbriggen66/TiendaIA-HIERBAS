@@ -1650,6 +1650,29 @@ body {
   font-size: 0.85rem;
   line-height: 1.4;
 }
+
+/* Iconos (Material Symbols) dentro de las tarjetas de pedido, en reemplazo de los
+   emojis: tamaño y alineación parejos con el texto que acompañan. */
+.pedido-ico {
+  font-size: 1rem;
+  vertical-align: -3px;
+}
+
+.pedido-accion .pedido-ico {
+  font-size: 1.05rem;
+}
+
+.badge-cobro .pedido-ico,
+.badge-entrega .pedido-ico {
+  font-size: 0.95rem;
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.pedido-fecha-creacion .pedido-ico {
+  font-size: 0.9rem;
+  vertical-align: -2px;
+}
 .pedido-card-header-derecha {
   display: flex;
   align-items: center;
@@ -3440,16 +3463,41 @@ body {
   padding: 0;
 }
 
-.grafico-ventas-barra {
+.grafico-ventas-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-width: 24px;
-  height: var(--bar-height, 0%);
-  background: #8caa78;
-  border-radius: 4px 4px 0 0;
-  transition: background 0.15s;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.grafico-ventas-barra-activa {
+.grafico-ventas-linea {
+  stroke: #8caa78;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.grafico-ventas-punto-wrap {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.grafico-ventas-punto {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8caa78;
+  box-shadow: 0 0 0 2px var(--surface);
+  transition: width 0.12s ease, height 0.12s ease;
+}
+
+.grafico-ventas-punto-activo {
+  width: 11px;
+  height: 11px;
   background: #6f8c5c;
 }
 
@@ -3547,8 +3595,124 @@ body {
 .ranking-barra {
   height: 100%;
   width: var(--bar-width, 0%);
-  background: linear-gradient(90deg, #aac398, #8caa78);
+  background: var(--serie-color, linear-gradient(90deg, #aac398, #8caa78));
   border-radius: 999px;
+}
+
+/* Punto de color por serie en los desgloses (BarrasDesglose): las series se
+   distinguen por color además del texto, así cada fila del desglose (medio de pago,
+   rubro, categoría) se lee de un vistazo. Paleta categórica validada para fondo
+   oscuro (skill dataviz, orden fijo, no cíclico). */
+.desglose-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--serie-color, #8caa78);
+  vertical-align: baseline;
+}
+
+/* Tabla de datos del admin (ranking de productos vendidos y similares). */
+.tabla-datos-wrap {
+  margin-bottom: 32px;
+}
+
+.tabla-datos-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tabla-datos-toolbar select {
+  max-width: 260px;
+}
+
+.tabla-datos-conteo {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.tabla-datos-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tabla-datos {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabla-datos thead th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tabla-datos th.num,
+.tabla-datos td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-datos tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.tabla-datos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-datos tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabla-datos-rank {
+  width: 1%;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-datos-paginado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.tabla-datos-paginado button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tabla-datos-paginado button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* === VISTA NEGOCIO - AVISO DE PEDIDO NUEVO (DashboardLayout.jsx) === */

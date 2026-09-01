@@ -233,11 +233,6 @@ export default function CategoriaDetalle() {
           max-width: 1100px;
           margin: 0 auto;
           padding: 20px 20px 56px;
-          /* Textura tipo tela, solo en esta página (no es un cambio global) */
-          background:
-            repeating-linear-gradient(45deg, rgba(26, 54, 27, 0.09) 0, rgba(26, 54, 27, 0.09) 2px, transparent 2px, transparent 8px),
-            repeating-linear-gradient(-45deg, rgba(26, 54, 27, 0.09) 0, rgba(26, 54, 27, 0.09) 2px, transparent 2px, transparent 8px),
-            var(--bg, #eaf0e6);
         }
 
         .categoria-detalle-vacio {
@@ -282,9 +277,9 @@ export default function CategoriaDetalle() {
         .categoria-detalle-header-rombo {
           position: absolute;
           top: 50%;
-          left: 6%;
-          width: 68%;
-          max-width: 320px;
+          left: 5%;
+          width: 82%;
+          max-width: 380px;
           aspect-ratio: 1;
           background: var(--surface, #f2f7ef);
           border-radius: 14px;
@@ -298,12 +293,16 @@ export default function CategoriaDetalle() {
           padding: 32px 28px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          max-width: 60%;
+          gap: 10px;
+          /* Ancho cómodo para el título (una o dos palabras cortas no deberían
+             partirse en 3 líneas). El párrafo de abajo tiene su PROPIO ancho más
+             angosto — el rombo se achica hacia arriba/abajo, así que un párrafo
+             largo siempre iba a chocar contra ese borde si usara este mismo ancho. */
+          max-width: 58%;
         }
 
         .categoria-detalle-header-texto h1 {
-          font-size: 2rem;
+          font-size: 1.9rem;
           line-height: 1.15;
           color: var(--accent, #1a361b);
           margin: 0;
@@ -311,8 +310,17 @@ export default function CategoriaDetalle() {
 
         .categoria-detalle-header-texto p {
           margin: 0;
-          color: var(--text-muted, #434841);
+          color: var(--text-muted, #546854);
           font-size: 0.95rem;
+          /* ponytail: tope de 2 líneas con "..." para descripciones largas (ej.
+             Blends) — no persigue el ancho exacto del rombo en cada renglón, así
+             que una descripción larga puede rozar el borde en la 2da línea. Subir
+             a un ajuste geométrico exacto (ancho por línea según altura) si eso
+             llega a notarse mal en la práctica. */
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
 
         .categoria-detalle-minimo {
@@ -405,12 +413,6 @@ export default function CategoriaDetalle() {
         .categoria-detalle-galeria-puntos span.activo {
           width: 18px;
           background: var(--accent, #1a361b);
-        }
-
-        @media (max-width: 640px) {
-          .categoria-detalle-header-texto {
-            max-width: 100%;
-          }
         }
 
         .categoria-detalle-subtitulo {

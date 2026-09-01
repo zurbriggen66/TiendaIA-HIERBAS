@@ -109,7 +109,14 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg);
+  /* Textura tipo lino/papel de toda la tienda: 100% CSS (repeating-linear-gradient),
+     nada de imagen ni SVG externo — no pesa un solo byte extra ni afecta el LCP.
+     Opacidad baja a propósito (0.04): tiene que notarse al mirar de cerca, no leerse
+     como un patrón. */
+  background:
+    repeating-linear-gradient(45deg, rgba(26, 54, 27, 0.04) 0, rgba(26, 54, 27, 0.04) 1px, transparent 1px, transparent 10px),
+    repeating-linear-gradient(-45deg, rgba(26, 54, 27, 0.04) 0, rgba(26, 54, 27, 0.04) 1px, transparent 1px, transparent 10px),
+    var(--bg);
 }
 
 .cliente-footer {

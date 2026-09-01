@@ -1173,6 +1173,11 @@ body {
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
 }
 
+/* El modal "Nuevo pedido" necesita más ancho para las dos columnas del formulario. */
+.modal-card-ancho {
+  width: min(100%, 900px);
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -2286,6 +2291,226 @@ body {
 
 .pedido-total-estimado strong {
   font-size: 1.1rem;
+}
+
+/* === Formulario de alta de pedido (PedidoFormulario) ===
+   'modal'  → una columna; 'inline' → dos columnas con el resumen fijo a la derecha. */
+.pedido-formulario {
+  display: block;
+}
+
+.pf-seccion {
+  margin-bottom: 20px;
+}
+
+.pf-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.pf-seccion-titulo span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.pf-buscador {
+  margin-bottom: 12px;
+}
+
+.pf-picker-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  max-height: 320px;
+}
+
+.pf-picker-grid .pedido-producto-picker-item {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 13px;
+}
+
+.pf-picker-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.pf-picker-item-info strong {
+  font-size: 0.85rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-picker-item-info span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.pf-picker-item-mas {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(140, 170, 120, 0.18);
+  color: var(--accent-light, #aac398);
+  font-size: 1.1rem;
+}
+
+.pf-picker-item-activo {
+  border-color: var(--accent, #8caa78) !important;
+  background: rgba(140, 170, 120, 0.12);
+}
+
+.pf-resumen-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.pf-resumen-items {
+  margin-bottom: 12px;
+}
+
+.pf-resumen-aviso-grupo {
+  margin-bottom: 4px;
+}
+
+.pf-resumen-totales {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.pf-resumen-totales > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.pf-descuento {
+  color: #4ade80;
+}
+
+.pf-resumen-total {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+  font-size: 1rem;
+  color: var(--text) !important;
+}
+
+.pf-resumen-total strong {
+  font-size: 1.35rem;
+  color: var(--accent-light, #aac398);
+}
+
+.pf-resumen-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pf-btn-crear {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  font-size: 0.95rem;
+}
+
+.pf-btn-crear .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+/* --- Variante inline (Inicio): dos columnas, resumen fijo --- */
+.pedido-formulario-inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.pedido-formulario-inline .pf-resumen {
+  position: sticky;
+  top: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.pedido-formulario-inline .input-vibrante,
+.pedido-formulario-inline .tipo-entrega-selector button {
+  font-size: 0.95rem;
+}
+
+.pedido-formulario-inline .pf-picker-grid {
+  max-height: 380px;
+}
+
+.inicio-nuevo-pedido {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.inicio-nuevo-pedido-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.inicio-nuevo-pedido-header h3 {
+  color: var(--text);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.inicio-nuevo-pedido-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 820px) {
+  .pedido-formulario-inline {
+    grid-template-columns: 1fr;
+  }
+
+  .pedido-formulario-inline .pf-resumen {
+    position: static;
+  }
 }
 
 /* === VISTA NEGOCIO - GASTOS (GastosPage.jsx) === */

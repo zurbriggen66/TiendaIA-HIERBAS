@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import PedidoModal from '../Pedidos/PedidoModal';
+import PedidoFormulario from '../Pedidos/PedidoFormulario';
 import TablaPedidos from '../Pedidos/TablaPedidos';
 import PedidoPagoModal from '../Pedidos/PedidoPagoModal';
 import PedidoEnvioDescuentoModal from '../Pedidos/PedidoEnvioDescuentoModal';
@@ -284,10 +284,30 @@ export default function Inicio() {
         </div>
         )}
 
-        <button type="button" className="btn-vibrante inicio-btn-nuevo-pedido-top" onClick={() => setMostrarNuevoPedido(true)}>
-          <span className="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
-          Nuevo pedido
-        </button>
+        {mostrarNuevoPedido ? (
+          <div className="inicio-nuevo-pedido">
+            <div className="inicio-nuevo-pedido-header">
+              <div>
+                <h3>Nuevo pedido</h3>
+                <p>Completá los datos para crear un nuevo pedido.</p>
+              </div>
+              <button type="button" className="modal-close" onClick={() => setMostrarNuevoPedido(false)} aria-label="Cerrar">✕</button>
+            </div>
+            <PedidoFormulario
+              variante="inline"
+              productos={productos}
+              categorias={categorias}
+              localidades={localidades}
+              onCancelar={() => setMostrarNuevoPedido(false)}
+              onSaved={() => { setMostrarNuevoPedido(false); cargarInicio(); }}
+            />
+          </div>
+        ) : (
+          <button type="button" className="btn-vibrante inicio-btn-nuevo-pedido-top" onClick={() => setMostrarNuevoPedido(true)}>
+            <span className="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
+            Nuevo pedido
+          </button>
+        )}
 
         <div className="inicio-card inicio-card-pedidos inicio-card-protagonista">
           <div className="inicio-card-encabezado">
@@ -410,16 +430,6 @@ export default function Inicio() {
           </>
         )}
       </div>
-
-      {mostrarNuevoPedido && (
-        <PedidoModal
-          productos={productos}
-          categorias={categorias}
-          localidades={localidades}
-          onClose={() => setMostrarNuevoPedido(false)}
-          onSaved={() => { setMostrarNuevoPedido(false); cargarInicio(); }}
-        />
-      )}
 
       {modalPago && (
         <PedidoPagoModal

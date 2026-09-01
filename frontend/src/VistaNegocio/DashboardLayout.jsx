@@ -32,8 +32,17 @@ function reproducirSonidoAviso() {
   }
 }
 
+const linkClass = ({ isActive }) => `menu-item${isActive ? ' active' : ''}`;
+
+// Cada ítem del menú con su ícono (Material Symbols, ya cargado por index.css).
+const Item = ({ to, icono, children, end }) => (
+  <NavLink to={to} end={end} className={linkClass}>
+    <span className="material-symbols-outlined" aria-hidden="true">{icono}</span>
+    <span className="menu-item-texto">{children}</span>
+  </NavLink>
+);
+
 export default function DashboardLayout() {
-  const linkClass = ({ isActive }) => `menu-item${isActive ? ' active' : ''}`;
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -115,45 +124,50 @@ export default function DashboardLayout() {
         onClick={() => setSidebarAbierta((v) => !v)}
         aria-label="Abrir menú"
       >
-        {sidebarAbierta ? '✕' : '☰'}
+        <span className="material-symbols-outlined" aria-hidden="true">{sidebarAbierta ? 'close' : 'menu'}</span>
       </button>
 
       {sidebarAbierta && <div className="sidebar-backdrop" onClick={() => setSidebarAbierta(false)} />}
 
       {/* Sidebar */}
       <aside className={`sidebar${sidebarAbierta ? ' sidebar-abierta' : ''}`}>
-        <div>
-          <div className="sidebar-brand">
-            🌿 Hierbas La Paz Admin
-          </div>
-
-          <nav className="sidebar-menu">
-            <div className="menu-section-title">Inicio</div>
-            <NavLink to="/admin/inicio" className={linkClass}>Inicio</NavLink>
-
-            <div className="menu-section-title">Gestión</div>
-            <NavLink to="/admin/categorias" className={linkClass}>🗂️ Categorías</NavLink>
-            <NavLink to="/admin/productos" className={linkClass}>Productos & Stock</NavLink>
-            <NavLink to="/admin/precios" className={linkClass}>💲 Lista de Precios</NavLink>
-            <NavLink to="/admin/estadisticas" className={linkClass}>Estadísticas</NavLink>
-            <NavLink to="/admin" end className={linkClass}>Diseño & Colores</NavLink>
-            <NavLink to="/admin/pedidos" className={linkClass}>
-              Ventas & Pedidos
-              {pedidosNuevos > 0 && <span className="sidebar-badge">{pedidosNuevos}</span>}
-            </NavLink>
-            <NavLink to="/admin/gastos" className={linkClass}>Gastos</NavLink>
-            <NavLink to="/admin/proveedores" className={linkClass}>🚚 Proveedores</NavLink>
-            <NavLink to="/admin/compras" className={linkClass}>🧾 Compras</NavLink>
-            <NavLink to="/admin/impresion" className={linkClass}>🖨️ Impresión</NavLink>
-          </nav>
+        <div className="sidebar-brand">
+          <span className="material-symbols-outlined sidebar-brand-icono" aria-hidden="true">eco</span>
+          <span className="sidebar-brand-texto">
+            <strong>Hierbas La Paz</strong>
+            <span>Admin</span>
+          </span>
         </div>
+
+        <nav className="sidebar-menu">
+          <div className="menu-section-title">Inicio</div>
+          <Item to="/admin/inicio" icono="home">Inicio</Item>
+
+          <div className="menu-section-title">Gestión</div>
+          <Item to="/admin/categorias" icono="category">Categorías</Item>
+          <Item to="/admin/productos" icono="inventory_2">Productos &amp; Stock</Item>
+          <Item to="/admin/precios" icono="sell">Lista de Precios</Item>
+          <Item to="/admin/estadisticas" icono="monitoring">Estadísticas</Item>
+          <Item to="/admin" end icono="palette">Diseño &amp; Colores</Item>
+          <NavLink to="/admin/pedidos" className={linkClass}>
+            <span className="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+            <span className="menu-item-texto">Ventas &amp; Pedidos</span>
+            {pedidosNuevos > 0 && <span className="sidebar-badge">{pedidosNuevos}</span>}
+          </NavLink>
+          <Item to="/admin/gastos" icono="account_balance_wallet">Gastos</Item>
+          <Item to="/admin/proveedores" icono="local_shipping">Proveedores</Item>
+          <Item to="/admin/compras" icono="shopping_cart">Compras</Item>
+          <Item to="/admin/impresion" icono="print">Impresión</Item>
+        </nav>
 
         <div className="sidebar-footer">
           <a href="/" className="menu-item menu-item-externa">
-            👁️ Ver tienda online
+            <span className="material-symbols-outlined" aria-hidden="true">storefront</span>
+            <span className="menu-item-texto">Ver tienda online</span>
           </a>
           <button type="button" className="menu-item menu-item-externa sidebar-cerrar-sesion" onClick={cerrarSesionAdmin}>
-            🚪 Cerrar sesión
+            <span className="material-symbols-outlined" aria-hidden="true">logout</span>
+            <span className="menu-item-texto">Cerrar sesión</span>
           </button>
         </div>
       </aside>

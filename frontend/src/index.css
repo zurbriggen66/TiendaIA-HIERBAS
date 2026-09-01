@@ -5033,3 +5033,159 @@ body {
     flex-basis: 100%;
   }
 }
+/* ============================================================
+   ADMIN RESPONSIVE — uso fluido en celular.
+   Abajo de 720px las columnas se apilan, los modales son hoja
+   inferior y los botones tienen tamaño cómodo para el pulgar.
+   ============================================================ */
+@media (max-width: 720px) {
+  .scroll-area {
+    padding: 16px 14px 44px;
+  }
+
+  /* Pares de campos apilados */
+  .form-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Encabezado de sección: el botón de acción cae abajo, a full width */
+  .seccion-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .seccion-header > .btn-vibrante,
+  .seccion-header > button {
+    width: 100%;
+  }
+
+  /* Tabs: no se comprimen, scrollean de costado */
+  .tabs-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-boton {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* Filtros / buscadores a ancho completo */
+  .estadisticas-selector-periodo,
+  .gastos-filtro-mes,
+  .precios-buscador {
+    max-width: none;
+  }
+
+  /* Modales como hoja inferior con scroll propio */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal-card,
+  .modal-card-ancho {
+    width: 100%;
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    padding: 22px 16px calc(28px + env(safe-area-inset-bottom));
+  }
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .modal-actions > * {
+    width: 100%;
+  }
+
+  /* KPIs y grillas de 2 columnas -> una sola columna */
+  .resumen-grid,
+  .inicio-resumen-grid,
+  .inicio-graficos-grid,
+  .gastos-desglose-grid,
+  .estadisticas-tortas-grid,
+  .productos-grid,
+  .stock-grid,
+  .pedidos-grid {
+    grid-template-columns: 1fr;
+  }
+  .resumen-tile strong {
+    font-size: 1.25rem;
+  }
+
+  /* --- Nuevo pedido (bloque embebido en Inicio) --- */
+  .inicio-nuevo-pedido {
+    padding: 14px;
+  }
+  .inicio-nuevo-pedido-header {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .inicio-nuevo-pedido-header h3 {
+    font-size: 1.05rem;
+  }
+  .pedido-formulario-inline .pf-resumen {
+    padding: 14px;
+  }
+  .pf-seccion-titulo {
+    font-size: 0.95rem;
+  }
+  .pf-picker-grid,
+  .pedido-formulario-inline .pf-picker-grid {
+    grid-template-columns: 1fr;
+    max-height: 46vh;
+  }
+  .pedido-picker-categorias {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .pf-resumen-acciones {
+    flex-direction: column-reverse;
+  }
+  .pf-resumen-acciones > * {
+    width: 100%;
+    flex: none;
+  }
+
+  /* --- Filas de gasto: badge y descripción arriba, números abajo --- */
+  .gasto-fila,
+  .gasto-fila-fijo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+  }
+  .gasto-fila-info {
+    flex: 1 1 100%;
+    order: 2;
+  }
+  .gasto-fila .badge-categoria {
+    order: 1;
+  }
+  .gasto-fila-fecha {
+    order: 3;
+  }
+  .gasto-fila-monto {
+    order: 4;
+    margin-left: auto;
+  }
+  .gasto-fila-borrar {
+    order: 5;
+  }
+  .gasto-fila-fijo .gasto-fijo-pagar {
+    order: 6;
+    flex: 1 1 100%;
+  }
+
+  /* Objetivos de toque más grandes */
+  .btn-vibrante,
+  .btn-secundario {
+    min-height: 44px;
+  }
+}

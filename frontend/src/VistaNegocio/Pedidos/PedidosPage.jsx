@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import PedidoModal from './PedidoModal';
-import PedidoCard from './PedidoCard';
+import TablaPedidos from './TablaPedidos';
 import LocalidadModal from './LocalidadModal';
 import PedidoEnvioDescuentoModal from './PedidoEnvioDescuentoModal';
 import PedidoPagoModal from './PedidoPagoModal';
 import { imprimirPedido } from '../../utils/impresion';
 import { notificar, confirmar } from '../notificaciones';
-
-const ORDEN_ESTADOS = ['pendiente', 'en_preparacion', 'listo', 'entregado'];
 
 const pad2 = (n) => String(n).padStart(2, '0');
 // OJO: no usar toISOString() acá — convierte a UTC y en Argentina (UTC-3) eso hace
@@ -127,10 +125,14 @@ export default function PedidosPage() {
     }
   };
 
-  const avanzarEstado = (pedido) => {
-    const indice = ORDEN_ESTADOS.indexOf(pedido.estado);
-    const siguiente = ORDEN_ESTADOS[indice + 1];
-    if (siguiente) cambiarEstado(pedido, siguiente);
+  const confirmarPedido = async (pedido) => {
+    try {
+      await api.post(`/pedidos/${pedido.id}/confirmar/`);
+      cargarPedidos();
+    } catch (error) {
+      console.error('Error al confirmar el pedido:', error);
+      notificar('No se pudo confirmar el pedido.');
+    }
   };
 
   const cancelarPedido = async (pedido) => {
@@ -263,29 +265,23 @@ export default function PedidosPage() {
               )}
             </div>
           ) : (
-            <div className="pedidos-grid">
-              <button
-                type="button"
-                className="pedido-card pedido-card-nuevo"
-                onClick={() => setMostrarModal(true)}
-              >
-                <span className="producto-card-nueva-icono">+</span>
-                <span>Nuevo pedido</span>
-              </button>
-
-              {pedidos.map((pedido) => (
-                <PedidoCard
-                  key={pedido.id}
-                  pedido={pedido}
-                  onCobrar={(p) => setModalPago(p.id)}
-                  onDetalle={setModalEnvio}
-                  onImprimir={imprimirPedido}
-                  onEliminar={eliminarPedido}
-                  onAvanzarEstado={avanzarEstado}
-                  onCancelar={cancelarPedido}
-                />
-              ))}
-            </div>
+            <>
+              <div className="pedidos-tabla-acciones">
+                <button type="button" className="btn-vibrante" onClick={() => setMostrarModal(true)}>
+                  <span className="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
+                  Nuevo pedido
+                </button>
+              </div>
+              <TablaPedidos
+                pedidos={pedidos}
+                onCobrar={(p) => setModalPago(p.id)}
+                onDetalle={setModalEnvio}
+                onImprimir={imprimirPedido}
+                onEliminar={eliminarPedido}
+                onConfirmar={confirmarPedido}
+                onCancelar={cancelarPedido}
+              />
+            </>
           )
         )}
 

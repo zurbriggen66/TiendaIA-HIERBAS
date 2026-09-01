@@ -3715,6 +3715,271 @@ body {
   cursor: not-allowed;
 }
 
+.pedidos-tabla-acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.pedidos-tabla-acciones .btn-vibrante {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pedidos-tabla-acciones .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+/* === Tabla de pedidos (Inicio y Ventas & Pedidos) ===
+   En desktop es una tabla horizontal; abajo de 860px cada pedido se apila como
+   ficha. Los pedidos solo se confirman/cancelan: no hay estado de preparación. */
+.tabla-pedidos-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.tabla-pedidos {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.tabla-pedidos thead th {
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tabla-pedidos th.num,
+.tabla-pedidos td.num {
+  text-align: right;
+}
+
+.tabla-pedidos tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+
+.tabla-pedidos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-pedidos tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tp-id {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tp-total {
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-cliente {
+  display: block;
+  font-weight: 600;
+}
+
+.tp-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.tp-nota {
+  font-style: italic;
+}
+
+.tp-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tp-productos-mas {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.tp-entrega {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tp-entrega .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.tp-tag {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tp-tag-espera {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+}
+
+.tp-tag-cancelado {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+.tp-fila-cancelada td {
+  opacity: 0.55;
+}
+
+.tp-fila-cancelada .tp-id,
+.tp-fila-cancelada .tp-cliente {
+  text-decoration: line-through;
+}
+
+.tp-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tp-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 5px 9px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tp-accion .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.tp-accion:hover {
+  border-color: var(--text-muted);
+}
+
+.tp-accion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tp-accion-cobrar {
+  color: #4ade80;
+}
+
+.tp-accion-cobrar-pendiente {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.tp-accion-confirmar {
+  background: linear-gradient(135deg, #aac398, #8caa78);
+  border-color: transparent;
+  color: #1a2820;
+}
+
+.tp-accion-peligro {
+  color: #f87171;
+}
+
+.tp-accion-peligro:hover {
+  border-color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 860px) {
+  .tabla-pedidos-scroll {
+    overflow-x: visible;
+    border: none;
+  }
+
+  .tabla-pedidos {
+    min-width: 0;
+  }
+
+  .tabla-pedidos thead {
+    display: none;
+  }
+
+  .tabla-pedidos tbody tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 2px;
+    margin-bottom: 12px;
+  }
+
+  .tabla-pedidos tbody td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    border: none;
+    padding: 7px 14px;
+    text-align: left;
+  }
+
+  .tabla-pedidos tbody td.num {
+    text-align: left;
+  }
+
+  .tabla-pedidos tbody td::before {
+    content: attr(data-label);
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+  }
+
+  .tp-productos,
+  .tp-acciones {
+    align-items: flex-start;
+  }
+}
+
 /* === VISTA NEGOCIO - AVISO DE PEDIDO NUEVO (DashboardLayout.jsx) === */
 @keyframes toast-entrada {
   from {

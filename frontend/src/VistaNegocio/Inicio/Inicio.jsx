@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import PedidoModal from '../Pedidos/PedidoModal';
-import PedidoCard from '../Pedidos/PedidoCard';
+import TablaPedidos from '../Pedidos/TablaPedidos';
 import PedidoPagoModal from '../Pedidos/PedidoPagoModal';
 import PedidoEnvioDescuentoModal from '../Pedidos/PedidoEnvioDescuentoModal';
 import { imprimirPedido } from '../../utils/impresion';
@@ -44,8 +44,6 @@ const formatearHora = (fecha) =>
     minute: '2-digit',
     hour12: false,
   });
-
-const ORDEN_ESTADOS = ['pendiente', 'en_preparacion', 'listo', 'entregado'];
 
 const ICONO_DELTA = { sube: 'trending_up', baja: 'trending_down', igual: 'trending_flat' };
 
@@ -196,18 +194,6 @@ export default function Inicio() {
       await api.patch(`/configuracion/${configId}/`, { mensaje_cerrado: mensajeCerrado });
     } catch (err) {
       console.error('Error al guardar el mensaje de cierre:', err);
-    }
-  };
-
-  const avanzarEstadoReciente = async (pedido) => {
-    const siguiente = ORDEN_ESTADOS[ORDEN_ESTADOS.indexOf(pedido.estado) + 1];
-    if (!siguiente) return;
-    try {
-      const { data } = await api.patch(`/pedidos/${pedido.id}/`, { estado: siguiente });
-      setPedidosRecientes((prev) => prev.map((p) => (p.id === pedido.id ? data : p)));
-    } catch (err) {
-      console.error('Error al cambiar el estado del pedido:', err);
-      notificar('No se pudo cambiar el estado del pedido.');
     }
   };
 
@@ -524,20 +510,14 @@ export default function Inicio() {
               <p>Todavía no entró ningún pedido en las últimas 24 horas.</p>
             </div>
           ) : (
-            <div className="pedidos-grid inicio-pedidos-grid">
-              {pedidosRecientes.map((pedido) => (
-                <PedidoCard
-                  key={pedido.id}
-                  pedido={pedido}
-                  onCobrar={(p) => setModalPago(p.id)}
-                  onDetalle={setModalEnvio}
-                  onImprimir={imprimirPedido}
-                  onEliminar={eliminarPedidoReciente}
-                  onAvanzarEstado={avanzarEstadoReciente}
-                  onCancelar={cancelarPedidoReciente}
-                />
-              ))}
-            </div>
+            <TablaPedidos
+              pedidos={pedidosRecientes}
+              onCobrar={(p) => setModalPago(p.id)}
+              onDetalle={setModalEnvio}
+              onImprimir={imprimirPedido}
+              onEliminar={eliminarPedidoReciente}
+              onCancelar={cancelarPedidoReciente}
+            />
           )}
         </div>
       </div>

@@ -27,11 +27,11 @@ class Localidad(models.Model):
 
 
 class Pedido(models.Model):
+    # Los pedidos solo se confirman (Pedido.confirmado) o se cancelan. No hay flujo de
+    # preparación: 'pendiente' es simplemente "vigente" (no cancelado) y es lo único
+    # que distingue estadísticas y cobranzas de un pedido anulado.
     ESTADOS = [
-        ('pendiente', 'Pendiente'),
-        ('en_preparacion', 'En preparación'),
-        ('listo', 'Listo'),
-        ('entregado', 'Entregado'),
+        ('pendiente', 'Vigente'),
         ('cancelado', 'Cancelado'),
     ]
 

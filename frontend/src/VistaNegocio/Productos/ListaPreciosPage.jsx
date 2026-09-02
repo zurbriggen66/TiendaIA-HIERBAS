@@ -109,27 +109,20 @@ export default function ListaPreciosPage() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
-        </div>
 
-        <div className="categorias-bar">
-          <button
-            type="button"
-            className={`chip-categoria chip-todas ${categoriaActiva === 'todas' ? 'chip-activo' : ''}`}
-            onClick={() => setCategoriaActiva('todas')}
-          >
-            Todas
-          </button>
-          {categorias.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              className={`chip-categoria chip-naranja ${categoriaActiva === cat.id ? 'chip-activo' : ''}`}
-              onClick={() => setCategoriaActiva(cat.id)}
+          <label className="precios-filtro-categoria">
+            <span className="form-label">Categoría</span>
+            <select
+              className="input-vibrante"
+              value={categoriaActiva}
+              onChange={(e) => setCategoriaActiva(e.target.value === 'todas' ? 'todas' : Number(e.target.value))}
             >
-              {cat.imagen && <img src={cat.imagen} alt="" className="chip-imagen" />}
-              <span>{cat.nombre}</span>
-            </button>
-          ))}
+              <option value="todas">Todas las categorías</option>
+              {categorias.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {cargando ? (

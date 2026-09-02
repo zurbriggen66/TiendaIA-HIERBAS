@@ -881,10 +881,15 @@ body {
 }
 
 .precios-buscador-fila {
-  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin-bottom: 20px;
 }
 
 .precios-buscador {
+  flex: 1 1 260px;
   max-width: 420px;
   display: flex;
   align-items: center;
@@ -893,6 +898,21 @@ body {
   border-radius: 10px;
   border: 1.5px solid var(--border);
   background: var(--surface-2);
+}
+
+.precios-filtro-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 1 260px;
+}
+
+.precios-filtro-categoria .form-label {
+  margin-bottom: 0;
+}
+
+.precios-filtro-categoria select {
+  width: 100%;
 }
 
 .precios-buscador .material-symbols-outlined {

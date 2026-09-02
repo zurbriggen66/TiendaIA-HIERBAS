@@ -432,11 +432,11 @@ export default function Dashboard() {
 
               {/* Contacto */}
               <div className="form-group">
-                <label className="form-label">WhatsApp (con código de país, sin espacios)</label>
+                <label className="form-label">WhatsApp principal — acá llegan los pedidos del carrito</label>
                 <input
                   type="text"
                   className="input-vibrante"
-                  placeholder="5493511234567"
+                  placeholder="5493511234567 (con código de país, sin espacios)"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
                 />

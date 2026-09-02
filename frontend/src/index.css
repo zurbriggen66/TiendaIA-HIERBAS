@@ -168,10 +168,25 @@ body {
   width: 248px;
   min-width: 248px;
   height: 100%;
-  background-color: var(--surface);
-  border-right: 1px solid var(--border);
+  /* El sidebar va en blanco aunque el resto del admin sea verde oscuro. Se redefine
+     acá la paleta local: así las reglas de adentro (menú, marca, footer) que usan
+     var(--text), var(--border), var(--surface-2), var(--accent-light) se adaptan
+     solas al fondo claro sin tocar cada una. */
+  --text: #1f2a22;
+  --text-muted: #5f6d63;
+  --border: #e4e8e1;
+  --surface: #ffffff;
+  --surface-2: #eef2ec;
+  --accent-light: #2f4f30;
+  background-color: #ffffff;
+  border-right: 1px solid #e4e8e1;
   display: flex;
   flex-direction: column;
+}
+
+/* El pill del ítem activo: tinte verde suave sobre blanco. */
+.sidebar .menu-item.active {
+  background: rgba(47, 79, 48, 0.1);
 }
 
 .sidebar-brand {

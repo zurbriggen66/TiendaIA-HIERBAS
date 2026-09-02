@@ -139,7 +139,7 @@ export default function EstadisticasPage() {
   const [datos, setDatos] = useState(null);
   const [datosPrev, setDatosPrev] = useState(null); // período anterior, para la tendencia
   const [cargando, setCargando] = useState(true);
-  const [tab, setTab] = useState('general');
+  const [tab, setTab] = useState('mensual');
   const [mesSeleccionado, setMesSeleccionado] = useState(mesActualISO());
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoyISO());
 
@@ -183,14 +183,14 @@ export default function EstadisticasPage() {
 
       <div className="scroll-area">
         <div className="tabs-bar">
-          <button type="button" className={`tab-boton ${tab === 'general' ? 'tab-activo' : ''}`} onClick={() => setTab('general')}>
-            General
-          </button>
           <button type="button" className={`tab-boton ${tab === 'mensual' ? 'tab-activo' : ''}`} onClick={() => setTab('mensual')}>
             Mensual
           </button>
           <button type="button" className={`tab-boton ${tab === 'dia' ? 'tab-activo' : ''}`} onClick={() => setTab('dia')}>
             Por día
+          </button>
+          <button type="button" className={`tab-boton ${tab === 'general' ? 'tab-activo' : ''}`} onClick={() => setTab('general')}>
+            General
           </button>
         </div>
 

@@ -1097,9 +1097,131 @@ body {
   opacity: 1;
 }
 
+/* Cada escalón por volumen: etiqueta opcional + inputs de cantidad-desde y precio,
+   los dos editables. */
+.precios-escalon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.precios-escalon-etiqueta {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.precios-escalon-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.precios-escalon-inputs .precios-campo input {
+  width: 92px;
+}
+
+/* Ajuste masivo de precios (porcentaje o monto fijo). */
+.precios-ajuste-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.precios-ajuste-toggle .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.precios-ajuste-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.precios-ajuste-modo {
+  display: flex;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.precios-ajuste-modo button {
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.precios-ajuste-modo button.activo {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.precios-ajuste-valor input {
+  width: 130px;
+}
+
+.precios-ajuste-alcance {
+  flex: 1 1 220px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.precios-ajuste-alcance strong {
+  color: var(--text);
+}
+
+.precios-ajuste-acciones {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
 @media (max-width: 720px) {
   .precios-lista {
     gap: 20px;
+  }
+
+  .precios-ajuste-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .precios-ajuste-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .precios-ajuste-modo {
+    width: 100%;
+  }
+
+  .precios-ajuste-modo button {
+    flex: 1;
+  }
+
+  .precios-ajuste-valor,
+  .precios-ajuste-valor input {
+    width: 100%;
+  }
+
+  .precios-ajuste-acciones {
+    margin-left: 0;
+  }
+
+  .precios-ajuste-acciones button {
+    flex: 1;
   }
 
   .precios-fila {

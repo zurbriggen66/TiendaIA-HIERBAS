@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import api from '../../services/api';
-import { notificar } from '../notificaciones';
+import { notificar, confirmar } from '../notificaciones';
 
 // Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
 const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -13,6 +13,12 @@ export default function ListaPreciosPage() {
   const [cargando, setCargando] = useState(true);
   const [guardandoId, setGuardandoId] = useState(null);
   const [guardandoEscalon, setGuardandoEscalon] = useState(null); // id de la categoría
+
+  // Ajuste masivo de precios (porcentaje o monto fijo, opcionalmente por categoría).
+  const [ajusteAbierto, setAjusteAbierto] = useState(false);
+  const [ajusteModo, setAjusteModo] = useState('porcentaje');
+  const [ajusteValor, setAjusteValor] = useState('');
+  const [aplicandoAjuste, setAplicandoAjuste] = useState(false);
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
@@ -73,21 +79,58 @@ export default function ListaPreciosPage() {
     }
   };
 
-  const cambiarEscalonLocal = (catId, escId, valor) => {
+  const cambiarEscalonLocal = (catId, escId, campo, valor) => {
     setCategorias((prev) => prev.map((c) => (c.id === catId
-      ? { ...c, escalones: c.escalones.map((e) => (e.id === escId ? { ...e, precio_unitario: valor } : e)) }
+      ? { ...c, escalones: c.escalones.map((e) => (e.id === escId ? { ...e, [campo]: valor } : e)) }
       : c)));
   };
 
-  const guardarEscalon = async (catId, escalon, valor) => {
+  const guardarEscalon = async (catId, escalon, campo, valor) => {
     setGuardandoEscalon(catId);
     try {
-      await api.patch(`/escalones-precio/${escalon.id}/`, { precio_unitario: Number(valor) || 0 });
+      await api.patch(`/escalones-precio/${escalon.id}/`, { [campo]: Number(valor) || 0 });
     } catch (error) {
       console.error('Error al guardar el escalón:', error);
-      notificar('No se pudo guardar el precio por volumen.');
+      notificar(campo === 'cantidad_desde'
+        ? 'No se pudo guardar: esa cantidad "desde" ya está usada en otro tramo de la categoría.'
+        : 'No se pudo guardar el precio por volumen.');
+      cargarDatos(); // revierte el cambio local que el servidor rechazó
     } finally {
       setGuardandoEscalon((actual) => (actual === catId ? null : actual));
+    }
+  };
+
+  const scopeAjuste = categoriaActiva === 'todas'
+    ? null
+    : categorias.find((c) => c.id === categoriaActiva);
+
+  const aplicarAjusteMasivo = async () => {
+    const valor = Number(ajusteValor);
+    if (!valor) {
+      notificar('Ingresá un valor distinto de cero.');
+      return;
+    }
+    const signo = valor > 0 ? 'aumentar' : 'bajar';
+    const cuanto = ajusteModo === 'porcentaje' ? `un ${Math.abs(valor)}%` : `$${Math.abs(valor)}`;
+    const alcance = scopeAjuste ? `de "${scopeAjuste.nombre}"` : 'de TODAS las categorías';
+    if (!(await confirmar(`¿${signo === 'aumentar' ? 'Aumentar' : 'Bajar'} ${cuanto} los precios ${alcance}? Esta acción no se puede deshacer.`))) return;
+
+    setAplicandoAjuste(true);
+    try {
+      const { data } = await api.post('/productos/ajuste-masivo/', {
+        modo: ajusteModo,
+        valor,
+        categoria: scopeAjuste ? scopeAjuste.id : null,
+      });
+      notificar(`Listo: ${data.productos} producto(s) y ${data.escalones} escalón(es) actualizados.`);
+      setAjusteAbierto(false);
+      setAjusteValor('');
+      cargarDatos();
+    } catch (error) {
+      console.error('Error en el ajuste masivo:', error);
+      notificar(error.response?.data?.detail || 'No se pudo aplicar el ajuste.');
+    } finally {
+      setAplicandoAjuste(false);
     }
   };
 
@@ -123,7 +166,61 @@ export default function ListaPreciosPage() {
               ))}
             </select>
           </label>
+
+          <button
+            type="button"
+            className="btn-secundario precios-ajuste-toggle"
+            onClick={() => setAjusteAbierto((v) => !v)}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">percent</span>
+            Aumentar precios
+          </button>
         </div>
+
+        {ajusteAbierto && (
+          <div className="precios-ajuste-panel">
+            <div className="precios-ajuste-modo">
+              <button
+                type="button"
+                className={ajusteModo === 'porcentaje' ? 'activo' : ''}
+                onClick={() => setAjusteModo('porcentaje')}
+              >
+                Porcentaje (%)
+              </button>
+              <button
+                type="button"
+                className={ajusteModo === 'monto' ? 'activo' : ''}
+                onClick={() => setAjusteModo('monto')}
+              >
+                Monto fijo ($)
+              </button>
+            </div>
+
+            <label className="precios-campo precios-ajuste-valor">
+              <span>{ajusteModo === 'porcentaje' ? 'Aumento en %' : 'Aumento en $'}</span>
+              <input
+                type="number"
+                step={ajusteModo === 'porcentaje' ? '0.5' : '1'}
+                inputMode="decimal"
+                placeholder={ajusteModo === 'porcentaje' ? 'Ej: 10' : 'Ej: 500'}
+                value={ajusteValor}
+                onChange={(e) => setAjusteValor(e.target.value)}
+              />
+            </label>
+
+            <p className="precios-ajuste-alcance">
+              Se aplica a {scopeAjuste ? <strong>{scopeAjuste.nombre}</strong> : <strong>todas las categorías</strong>}
+              {' '}(precio propio, precio a granel y precios por volumen). Usá un valor negativo para bajar.
+            </p>
+
+            <div className="precios-ajuste-acciones">
+              <button type="button" className="btn-secundario" onClick={() => setAjusteAbierto(false)}>Cancelar</button>
+              <button type="button" className="btn-vibrante" onClick={aplicarAjusteMasivo} disabled={aplicandoAjuste}>
+                {aplicandoAjuste ? 'Aplicando...' : 'Aplicar ajuste'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {cargando ? (
           <p className="estado-vacio">Cargando...</p>
@@ -147,17 +244,33 @@ export default function ListaPreciosPage() {
                         </span>
                         <div className="precios-escalones-campos">
                           {escalones.map((esc) => (
-                            <label key={esc.id} className="precios-campo">
-                              <span>{esc.etiqueta || `Desde ${esc.cantidad_desde}`}</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={esc.precio_unitario ?? ''}
-                                onChange={(e) => cambiarEscalonLocal(categoria.id, esc.id, e.target.value)}
-                                onBlur={(e) => guardarEscalon(categoria.id, esc, e.target.value)}
-                              />
-                            </label>
+                            <div key={esc.id} className="precios-escalon">
+                              {esc.etiqueta && <span className="precios-escalon-etiqueta">{esc.etiqueta}</span>}
+                              <div className="precios-escalon-inputs">
+                                <label className="precios-campo">
+                                  <span>Desde (cant.)</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={esc.cantidad_desde ?? ''}
+                                    onChange={(e) => cambiarEscalonLocal(categoria.id, esc.id, 'cantidad_desde', e.target.value)}
+                                    onBlur={(e) => guardarEscalon(categoria.id, esc, 'cantidad_desde', e.target.value)}
+                                  />
+                                </label>
+                                <label className="precios-campo">
+                                  <span>Precio</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={esc.precio_unitario ?? ''}
+                                    onChange={(e) => cambiarEscalonLocal(categoria.id, esc.id, 'precio_unitario', e.target.value)}
+                                    onBlur={(e) => guardarEscalon(categoria.id, esc, 'precio_unitario', e.target.value)}
+                                  />
+                                </label>
+                              </div>
+                            </div>
                           ))}
                           <span className={`precios-guardado ${guardandoEscalon === categoria?.id ? 'precios-guardado-visible' : ''}`}>
                             Guardando...

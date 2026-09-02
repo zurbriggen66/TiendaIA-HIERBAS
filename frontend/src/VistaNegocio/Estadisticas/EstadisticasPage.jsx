@@ -142,6 +142,9 @@ export default function EstadisticasPage() {
   const [tab, setTab] = useState('mensual');
   const [mesSeleccionado, setMesSeleccionado] = useState(mesActualISO());
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoyISO());
+  // Rango opcional para la pestaña General (vacío = todo el historial).
+  const [desdeGeneral, setDesdeGeneral] = useState('');
+  const [hastaGeneral, setHastaGeneral] = useState('');
 
   useEffect(() => {
     const cargar = async () => {
@@ -158,6 +161,9 @@ export default function EstadisticasPage() {
           params = { desde: diaSeleccionado, hasta: diaSeleccionado };
           const d = diaAnteriorISO(diaSeleccionado);
           paramsPrev = { desde: d, hasta: d };
+        } else if (tab === 'general') {
+          if (desdeGeneral) params.desde = desdeGeneral;
+          if (hastaGeneral) params.hasta = hastaGeneral;
         }
         const [{ data }, prev] = await Promise.all([
           api.get('/estadisticas/', { params }),
@@ -172,7 +178,7 @@ export default function EstadisticasPage() {
       }
     };
     cargar();
-  }, [tab, mesSeleccionado, diaSeleccionado]);
+  }, [tab, mesSeleccionado, diaSeleccionado, desdeGeneral, hastaGeneral]);
 
   return (
     <div className="estadisticas-page">
@@ -218,6 +224,38 @@ export default function EstadisticasPage() {
           </div>
         )}
 
+        {tab === 'general' && (
+          <div className="estadisticas-rango">
+            <span className="estadisticas-rango-label">Período</span>
+            <input
+              type="date"
+              className="input-vibrante"
+              aria-label="Desde"
+              value={desdeGeneral}
+              max={hastaGeneral || undefined}
+              onChange={(e) => setDesdeGeneral(e.target.value)}
+            />
+            <span className="estadisticas-rango-sep" aria-hidden="true">→</span>
+            <input
+              type="date"
+              className="input-vibrante"
+              aria-label="Hasta"
+              value={hastaGeneral}
+              min={desdeGeneral || undefined}
+              onChange={(e) => setHastaGeneral(e.target.value)}
+            />
+            {(desdeGeneral || hastaGeneral) && (
+              <button
+                type="button"
+                className="estadisticas-rango-limpiar"
+                onClick={() => { setDesdeGeneral(''); setHastaGeneral(''); }}
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        )}
+
         {cargando || !datos ? (
           <p className="estado-vacio">Cargando...</p>
         ) : (
@@ -258,7 +296,13 @@ export default function EstadisticasPage() {
             {tab !== 'dia' && (
               <>
                 <div className="seccion-header">
-                  <h3>{tab === 'mensual' ? 'Ventas del mes' : 'Ventas de los últimos 14 días'}</h3>
+                  <h3>
+                    {tab === 'mensual'
+                      ? 'Ventas del mes'
+                      : tab === 'general' && desdeGeneral && hastaGeneral
+                        ? 'Ventas del período'
+                        : 'Ventas de los últimos 14 días'}
+                  </h3>
                 </div>
                 <GraficoVentas datos={datos.ventas_por_dia} />
               </>

@@ -3105,6 +3105,53 @@ body {
   max-width: 220px;
 }
 
+/* Rango desde/hasta de la pestaña General: discreto, en una sola línea. */
+.estadisticas-rango {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 24px;
+  color: var(--text-muted);
+}
+
+.estadisticas-rango .input-vibrante {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.estadisticas-rango-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.estadisticas-rango-sep {
+  opacity: 0.6;
+}
+
+.estadisticas-rango-limpiar {
+  border: none;
+  background: none;
+  color: var(--accent-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.estadisticas-rango-limpiar:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .estadisticas-rango .input-vibrante {
+    flex: 1 1 130px;
+  }
+}
+
 .tab-boton {
   position: relative;
   border: none;

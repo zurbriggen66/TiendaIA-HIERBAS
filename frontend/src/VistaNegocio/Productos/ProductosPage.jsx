@@ -3,10 +3,14 @@ import api from '../../services/api';
 import ProductoModal from './ProductoModal';
 import { notificar, confirmar } from '../notificaciones';
 
+// Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
+const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 export default function ProductosPage() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState('todas');
+  const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
 
   const [modalProducto, setModalProducto] = useState(null); // { producto: null|obj }
@@ -43,9 +47,10 @@ export default function ProductosPage() {
     }
   };
 
-  const productosFiltrados = categoriaActiva === 'todas'
-    ? productos
-    : productos.filter((p) => p.categoria === categoriaActiva);
+  const texto = normalizar(busqueda.trim());
+  const productosFiltrados = productos
+    .filter((p) => categoriaActiva === 'todas' || p.categoria === categoriaActiva)
+    .filter((p) => !texto || normalizar(`${p.nombre} ${p.categoria_nombre || ''} ${p.contenido || ''}`).includes(texto));
 
   const formatearPrecio = (precio) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
@@ -65,6 +70,18 @@ export default function ProductosPage() {
       </header>
 
       <div className="scroll-area">
+        <div className="precios-buscador-fila">
+          <div className="precios-buscador">
+            <span className="material-symbols-outlined" aria-hidden="true">search</span>
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
+        </div>
+
         {!cargando && categorias.length > 0 && (
           <div className="cat-filtro">
             <button
@@ -95,6 +112,15 @@ export default function ProductosPage() {
           </div>
         ) : (
           <div className="productos-grid">
+            <button
+              type="button"
+              className="producto-card producto-card-nueva"
+              onClick={() => setModalProducto({ producto: null })}
+            >
+              <span className="producto-card-nueva-icono">+</span>
+              <span>Nuevo producto</span>
+            </button>
+
             {productosFiltrados.map((prod) => {
               const categoria = categoriaDe(prod.categoria);
               const usaEscalones = categoria && categoria.escalones && categoria.escalones.length > 0;
@@ -137,15 +163,6 @@ export default function ProductosPage() {
                 </div>
               );
             })}
-
-            <button
-              type="button"
-              className="producto-card producto-card-nueva"
-              onClick={() => setModalProducto({ producto: null })}
-            >
-              <span className="producto-card-nueva-icono">+</span>
-              <span>Nuevo producto</span>
-            </button>
           </div>
         )}
       </div>

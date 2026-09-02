@@ -18,6 +18,23 @@
   --accent-light: #aac398;
   --accent-dark: #6f8c5c;
   --accent-gradient: linear-gradient(135deg, var(--accent-light), var(--accent));
+
+  /* Colores semánticos de las métricas del admin. Son tonos claros a propósito:
+     el número va sobre --surface (verde oscuro), así que un verde/rojo saturado
+     quedaría con poco contraste. */
+  --color-positive: #34d399;
+  --color-positive-soft: rgba(52, 211, 153, 0.15);
+  --color-negative: #f87171;
+  --color-negative-soft: rgba(248, 113, 113, 0.15);
+  --color-neutral: #9bb0bd;
+  --color-neutral-soft: rgba(155, 176, 189, 0.16);
+  --color-highlight: #fbbf24;
+  --color-highlight-soft: rgba(251, 191, 36, 0.16);
+
+  /* Radios y sombra uniformes en todo el panel. */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.16), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
 }
 
 /* Paleta de la Vista Cliente ("Apothecary Harvest": pergamino + verde bosque),
@@ -1885,7 +1902,9 @@ body {
 }
 
 @media (max-width: 480px) {
-  .resumen-grid,
+  /* .resumen-grid se queda en 2 columnas incluso en el iPhone: las cards son
+     compactas y agrupar de a dos (ingresos / egresos) se lee mejor que una
+     tira larga de una sola columna. */
   .stock-grid {
     grid-template-columns: 1fr;
   }
@@ -2802,76 +2821,155 @@ body {
   }
 }
 
-/* === VISTA NEGOCIO - GASTOS (GastosPage.jsx) === */
+/* === VISTA NEGOCIO - KPIs / SECCIONES / TABS (compartido por Estadísticas,
+   Inicio, Gastos, Compras) === */
 .resumen-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
+/* Card de métrica: superficie sobria + sombra sutil. El color no va en un fondo
+   pleno sino en el chip del ícono y, para ganancia/pérdida/destacado, en el
+   número. Jerarquía: label chico arriba, número grande abajo. */
 .resumen-tile {
-  border-radius: 16px;
-  padding: 18px 20px;
+  --kpi-accent: var(--color-neutral);
+  --kpi-accent-soft: var(--color-neutral-soft);
+  position: relative;
+  border-radius: var(--radius);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #ffffff;
-  /* Fallback: rubros de gasto creados por el dueño no tienen clase de color propia.
-     Los modificadores (.resumen-tile-total, etc.) lo pisan por orden de cascada. */
-  background: var(--surface-2);
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
 }
 
-.resumen-tile span {
-  font-size: 0.78rem;
-  font-weight: 600;
+/* Deja lugar al chip del ícono (arriba a la derecha) solo en las cards que lo tienen. */
+.resumen-tile:has(.kpi-icon) span:not(.kpi-icon),
+.resumen-tile:has(.kpi-icon) strong {
+  padding-right: 42px;
+}
+
+.resumen-tile span:not(.kpi-icon) {
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  opacity: 0.9;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
 }
 
 .resumen-tile strong {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
-.resumen-tile-total {
-  background: linear-gradient(135deg, #4b5563, #1f2937);
+/* Chip del ícono (lo agrega el JSX de cada card). */
+.kpi-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--kpi-accent-soft);
+  color: var(--kpi-accent);
 }
 
+.kpi-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Indicador de tendencia: flecha + % contra el período anterior. */
+.kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.kpi-trend .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.kpi-trend-sube { color: var(--color-positive); }
+.kpi-trend-baja { color: var(--color-negative); }
+
+/* Acento semántico por card — se conservan los nombres de clase existentes. */
+.resumen-tile-servicios,
+.resumen-tile-ganancia-positiva {
+  --kpi-accent: var(--color-positive);
+  --kpi-accent-soft: var(--color-positive-soft);
+}
+.resumen-tile-ganancia-negativa {
+  --kpi-accent: var(--color-negative);
+  --kpi-accent-soft: var(--color-negative-soft);
+}
 .resumen-tile-insumos {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #78350f;
+  --kpi-accent: var(--color-highlight);
+  --kpi-accent-soft: var(--color-highlight-soft);
+}
+.resumen-tile-total,
+.resumen-tile-otros,
+.resumen-tile-sueldos,
+.resumen-tile-rubro {
+  --kpi-accent: var(--color-neutral);
+  --kpi-accent-soft: var(--color-neutral-soft);
 }
 
-.resumen-tile-servicios {
-  background: linear-gradient(135deg, #aac398, #8caa78);
-}
+.resumen-tile-servicios strong,
+.resumen-tile-ganancia-positiva strong { color: var(--color-positive); }
+.resumen-tile-ganancia-negativa strong { color: var(--color-negative); }
+.resumen-tile-insumos strong { color: var(--color-highlight); }
 
-.resumen-tile-sueldos {
-  background: linear-gradient(135deg, #38bdf8, #0891b2);
-}
-
-.resumen-tile-otros {
-  background: linear-gradient(135deg, #a3a3a3, #737373);
-}
-
+/* Encabezado de sección con línea divisoria, para cortar bien entre bloques. */
 .seccion-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  margin-top: 8px;
+  gap: 12px;
+  margin: 32px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 
 .seccion-header h3 {
   color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
+/* Contenedor estándar de gráfico: fondo apenas distinto al base + borde redondeado. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.panel .seccion-header {
+  margin-top: 0;
+}
+
+/* Tabs: pill sólida en el activo + subrayado que crece bajo él. */
 .tabs-bar {
+  position: relative;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
 }
@@ -2881,24 +2979,45 @@ body {
 }
 
 .tab-boton {
+  position: relative;
   border: none;
   background: none;
-  padding: 10px 18px;
-  font-weight: 600;
+  padding: 9px 16px;
+  font-weight: 700;
   font-size: 0.9rem;
   color: var(--text-muted);
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
+  opacity: 0.65;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.tab-boton::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 0;
+  height: 3px;
+  background: var(--accent-dark);
+  border-radius: 3px 3px 0 0;
+  transform: translateX(-50%);
+  transition: width 0.22s ease;
 }
 
 .tab-boton:hover {
-  color: #8caa78;
+  opacity: 1;
+  color: var(--text);
 }
 
 .tab-boton.tab-activo {
-  color: #8caa78;
-  border-bottom-color: #8caa78;
+  opacity: 1;
+  color: var(--bg);
+  background: var(--accent);
+}
+
+.tab-boton.tab-activo::after {
+  width: 100%;
 }
 
 .stock-grid {
@@ -3982,20 +4101,13 @@ body {
 }
 
 /* === VISTA NEGOCIO - ESTADÍSTICAS (EstadisticasPage.jsx) === */
-.resumen-tile-ganancia-positiva {
-  background: linear-gradient(135deg, #4ade80, #16a34a);
-}
-
-.resumen-tile-ganancia-negativa {
-  background: linear-gradient(135deg, #f87171, #dc2626);
-}
-
 .grafico-ventas {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px 24px 12px;
-  margin-bottom: 32px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px 16px 8px;
+  margin-bottom: 20px;
 }
 
 .grafico-ventas-plot {
@@ -4195,27 +4307,28 @@ body {
   vertical-align: baseline;
 }
 
-/* Gráfico de torta (recharts) con leyenda propia. */
+/* Gráfico de torta (recharts) con leyenda propia, bien despegada del gráfico. */
 .grafico-torta-leyenda {
   list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .grafico-torta-leyenda li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.82rem;
 }
 
 .grafico-torta-punto {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
@@ -4237,8 +4350,8 @@ body {
 .estadisticas-tortas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 28px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 /* Tabla de datos del admin (ranking de productos vendidos y similares). */
@@ -5324,7 +5437,7 @@ body {
    ============================================================ */
 @media (max-width: 720px) {
   .scroll-area {
-    padding: 16px 14px 44px;
+    padding: 16px 16px 44px;
     /* Red de seguridad: nada empuja la página de costado (las tablas anchas ya
        scrollean dentro de su propia caja .tabla-*-scroll). */
     overflow-x: hidden;
@@ -5399,8 +5512,8 @@ body {
     width: 100%;
   }
 
-  /* KPIs y grillas de 2 columnas -> una sola columna */
-  .resumen-grid,
+  /* Grillas de 2 columnas -> una sola columna. .resumen-grid queda aparte:
+     mantiene 2 columnas de cards compactas (ver @media 768). */
   .inicio-resumen-grid,
   .inicio-graficos-grid,
   .gastos-desglose-grid,
@@ -5410,8 +5523,12 @@ body {
   .pedidos-grid {
     grid-template-columns: 1fr;
   }
+  .resumen-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
   .resumen-tile strong {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
 
   /* --- Nuevo pedido (bloque embebido en Inicio) --- */

@@ -61,6 +61,12 @@ function DeltaResumen({ dato }) {
   );
 }
 
+const KpiIcono = ({ nombre }) => (
+  <span className="kpi-icon">
+    <span className="material-symbols-outlined" aria-hidden="true">{nombre}</span>
+  </span>
+);
+
 export default function Inicio() {
   const [pedidosRecientes, setPedidosRecientes] = useState([]);
   const [porConfirmar, setPorConfirmar] = useState([]);
@@ -347,24 +353,29 @@ export default function Inicio() {
             </div>
             <div className="resumen-grid">
               <div className="resumen-tile resumen-tile-servicios">
+                <KpiIcono nombre="payments" />
                 <span>Ventas de hoy</span>
                 <strong>{formatearPrecio(estadisticasHoy.ventas_totales)}</strong>
                 {estadisticasAyer && <DeltaResumen dato={compararConAyer(estadisticasHoy.ventas_totales, estadisticasAyer.ventas_totales)} />}
               </div>
               <div className="resumen-tile resumen-tile-total">
+                <KpiIcono nombre="shopping_bag" />
                 <span>Pedidos de hoy</span>
                 <strong>{estadisticasHoy.total_pedidos}</strong>
                 {estadisticasAyer && <DeltaResumen dato={compararConAyer(estadisticasHoy.total_pedidos, estadisticasAyer.total_pedidos)} />}
               </div>
               <div className="resumen-tile resumen-tile-insumos">
+                <KpiIcono nombre="local_offer" />
                 <span>Ticket promedio</span>
                 <strong>{formatearPrecio(estadisticasHoy.ticket_promedio)}</strong>
               </div>
               <div className="resumen-tile resumen-tile-otros">
+                <KpiIcono nombre="receipt_long" />
                 <span>Gastos de hoy</span>
                 <strong>{formatearPrecio(estadisticasHoy.gastos_totales)}</strong>
               </div>
               <div className={`resumen-tile ${estadisticasHoy.ganancia_neta >= 0 ? 'resumen-tile-ganancia-positiva' : 'resumen-tile-ganancia-negativa'}`}>
+                <KpiIcono nombre="savings" />
                 <span>Balance del día</span>
                 <strong>{formatearPrecio(estadisticasHoy.ganancia_neta)}</strong>
               </div>
@@ -555,20 +566,18 @@ export default function Inicio() {
             gap: 3px;
             align-self: flex-start;
             margin-top: 2px;
-            padding: 2px 8px 2px 5px;
-            border-radius: 999px;
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            background: rgba(0, 0, 0, 0.18);
+            color: var(--text-muted);
           }
 
           .resumen-delta .material-symbols-outlined {
             font-size: 0.95rem;
           }
 
-          .resumen-delta-sube { color: #dcfce7; }
-          .resumen-delta-baja { color: #fee2e2; }
-          .resumen-delta-igual { color: rgba(255, 255, 255, 0.75); }
+          .resumen-delta-sube { color: var(--color-positive); }
+          .resumen-delta-baja { color: var(--color-negative); }
+          .resumen-delta-igual { color: var(--text-muted); }
 
           .inicio-card-titulo {
             margin: 0;

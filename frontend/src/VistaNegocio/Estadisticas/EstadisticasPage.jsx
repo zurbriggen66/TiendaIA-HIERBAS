@@ -25,6 +25,45 @@ const primerYUltimoDiaDelMes = (mesStr) => {
   return { primero: `${mesStr}-01`, ultimo: `${mesStr}-${String(ultimoDia).padStart(2, '0')}` };
 };
 
+const mesAnteriorISO = (mesStr) => {
+  const [anio, mes] = mesStr.split('-').map(Number);
+  return mes === 1 ? `${anio - 1}-12` : `${anio}-${pad2(mes - 1)}`;
+};
+const diaAnteriorISO = (diaStr) => {
+  const d = new Date(`${diaStr}T12:00:00`);
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+
+// Flecha + % contra el período anterior (mes o día). Mismo criterio que el
+// "vs. ayer" del Inicio: si antes fue 0 no hay % posible, solo "nuevo".
+const ICONO_TENDENCIA = { sube: 'trending_up', baja: 'trending_down', igual: 'trending_flat' };
+const calcularTendencia = (actual, previo) => {
+  const a = Number(actual) || 0;
+  const p = Number(previo) || 0;
+  if (p === 0) return a > 0 ? { signo: 'sube', texto: 'nuevo' } : null;
+  const pct = Math.round(((a - p) / p) * 100);
+  if (pct === 0) return { signo: 'igual', texto: 'sin cambios' };
+  return { signo: pct > 0 ? 'sube' : 'baja', texto: `${pct > 0 ? '+' : ''}${pct}%` };
+};
+
+function DeltaKpi({ actual, previo }) {
+  const t = calcularTendencia(actual, previo);
+  if (!t) return null;
+  return (
+    <span className={`kpi-trend kpi-trend-${t.signo}`}>
+      <span className="material-symbols-outlined" aria-hidden="true">{ICONO_TENDENCIA[t.signo]}</span>
+      {t.texto}
+    </span>
+  );
+}
+
+const KpiIcono = ({ nombre }) => (
+  <span className="kpi-icon">
+    <span className="material-symbols-outlined" aria-hidden="true">{nombre}</span>
+  </span>
+);
+
 const POR_PAGINA = 20;
 
 // Ranking completo de productos vendidos en el período, como tabla paginada y
@@ -98,6 +137,7 @@ function TablaProductosVendidos({ productos }) {
 
 export default function EstadisticasPage() {
   const [datos, setDatos] = useState(null);
+  const [datosPrev, setDatosPrev] = useState(null); // período anterior, para la tendencia
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState('general');
   const [mesSeleccionado, setMesSeleccionado] = useState(mesActualISO());
@@ -108,14 +148,23 @@ export default function EstadisticasPage() {
       setCargando(true);
       try {
         let params = {};
+        let paramsPrev = null;
         if (tab === 'mensual') {
           const { primero, ultimo } = primerYUltimoDiaDelMes(mesSeleccionado);
           params = { desde: primero, hasta: ultimo };
+          const p = primerYUltimoDiaDelMes(mesAnteriorISO(mesSeleccionado));
+          paramsPrev = { desde: p.primero, hasta: p.ultimo };
         } else if (tab === 'dia') {
           params = { desde: diaSeleccionado, hasta: diaSeleccionado };
+          const d = diaAnteriorISO(diaSeleccionado);
+          paramsPrev = { desde: d, hasta: d };
         }
-        const { data } = await api.get('/estadisticas/', { params });
+        const [{ data }, prev] = await Promise.all([
+          api.get('/estadisticas/', { params }),
+          paramsPrev ? api.get('/estadisticas/', { params: paramsPrev }) : Promise.resolve(null),
+        ]);
         setDatos(data);
+        setDatosPrev(prev ? prev.data : null);
       } catch (error) {
         console.error('Error al cargar estadísticas:', error);
       } finally {
@@ -175,24 +224,34 @@ export default function EstadisticasPage() {
           <>
             <div className="resumen-grid">
               <div className="resumen-tile resumen-tile-servicios">
+                <KpiIcono nombre="payments" />
                 <span>Ventas totales</span>
                 <strong>{formatearPrecio(datos.ventas_totales)}</strong>
+                {datosPrev && <DeltaKpi actual={datos.ventas_totales} previo={datosPrev.ventas_totales} />}
               </div>
               <div className="resumen-tile resumen-tile-otros">
+                <KpiIcono nombre="receipt_long" />
                 <span>Gastos totales</span>
                 <strong>{formatearPrecio(datos.gastos_totales)}</strong>
+                {datosPrev && <DeltaKpi actual={datos.gastos_totales} previo={datosPrev.gastos_totales} />}
               </div>
               <div className={`resumen-tile ${datos.ganancia_neta >= 0 ? 'resumen-tile-ganancia-positiva' : 'resumen-tile-ganancia-negativa'}`}>
+                <KpiIcono nombre="savings" />
                 <span>Ganancia neta</span>
                 <strong>{formatearPrecio(datos.ganancia_neta)}</strong>
+                {datosPrev && <DeltaKpi actual={datos.ganancia_neta} previo={datosPrev.ganancia_neta} />}
               </div>
               <div className="resumen-tile resumen-tile-insumos">
+                <KpiIcono nombre="local_offer" />
                 <span>Ticket promedio</span>
                 <strong>{formatearPrecio(datos.ticket_promedio)}</strong>
+                {datosPrev && <DeltaKpi actual={datos.ticket_promedio} previo={datosPrev.ticket_promedio} />}
               </div>
               <div className="resumen-tile resumen-tile-total">
+                <KpiIcono nombre="shopping_bag" />
                 <span>Pedidos totales</span>
                 <strong>{datos.total_pedidos}</strong>
+                {datosPrev && <DeltaKpi actual={datos.total_pedidos} previo={datosPrev.total_pedidos} />}
               </div>
             </div>
 
@@ -206,7 +265,7 @@ export default function EstadisticasPage() {
             )}
 
             <div className="estadisticas-tortas-grid">
-              <div>
+              <div className="panel">
                 <div className="seccion-header">
                   <h3>Con qué te pagaron las ventas</h3>
                 </div>
@@ -221,7 +280,7 @@ export default function EstadisticasPage() {
                 )}
               </div>
 
-              <div>
+              <div className="panel">
                 <div className="seccion-header">
                   <h3>Ventas por categoría</h3>
                 </div>

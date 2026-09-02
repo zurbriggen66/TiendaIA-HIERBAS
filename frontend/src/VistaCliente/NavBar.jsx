@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function NavBar({ configuracion, totalItems, onPedir, cliente, onAbrirCuenta, onCerrarSesion }) {
+export default function NavBar({ configuracion, totalItems, onPedir }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const scrollA = (id) => (e) => {
@@ -35,20 +35,8 @@ export default function NavBar({ configuracion, totalItems, onPedir, cliente, on
       <div className={`nav-links${menuAbierto ? ' abierto' : ''}`}>
         <a href="#categorias" onClick={scrollA('categorias')}>Categorías</a>
         <a href="#menu" onClick={scrollA('menu')}>Catálogo</a>
-        {configuracion.instagram && (
-          <a href={configuracion.instagram} target="_blank" rel="noopener noreferrer" onClick={() => setMenuAbierto(false)}>Instagram</a>
-        )}
-        {cliente ? (
-          <a
-            href="#"
-            className="nav-cuenta"
-            onClick={(e) => { e.preventDefault(); setMenuAbierto(false); onCerrarSesion(); }}
-            title="Cerrar sesión"
-          >
-            ⭐ {cliente.puntos} pts · {cliente.nombre.split(' ')[0]}
-          </a>
-        ) : (
-          <a href="#" onClick={(e) => { e.preventDefault(); setMenuAbierto(false); onAbrirCuenta(); }}>Mi cuenta</a>
+        {(configuracion.instagram || configuracion.instagram_secundario) && (
+          <a href="#redes" onClick={scrollA('redes')}>Instagram</a>
         )}
       </div>
 

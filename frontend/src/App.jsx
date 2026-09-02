@@ -5,6 +5,7 @@ import ClienteLayout from './VistaCliente/ClienteLayout';
 import Inicio from './VistaCliente/Inicio';
 import CategoriaDetalle from './VistaCliente/CategoriaDetalle';
 import ProductoDetalle from './VistaCliente/ProductoDetalle';
+import ContactoPage from './VistaCliente/ContactoPage';
 import Dashboard from './VistaNegocio/Dashboard/Dashboard';
 import DashboardLayout from './VistaNegocio/DashboardLayout';
 import RequiereAdmin from './VistaNegocio/RequiereAdmin';
@@ -36,6 +37,7 @@ function App() {
             <Route path="/" element={<Inicio />} />
             <Route path="/categoria/:id" element={<CategoriaDetalle />} />
             <Route path="/producto/:id" element={<ProductoDetalle />} />
+            <Route path="/contacto" element={<ContactoPage />} />
           </Route>
         </Route>
         <Route path="/admin" element={<RequiereAdmin><DashboardLayout /></RequiereAdmin>}>

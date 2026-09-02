@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import api from '../../services/api';
 import { notificar } from '../notificaciones';
 import { limpiarNumeroWhatsapp } from '../../utils/whatsapp';
+import ContactosWhatsappCard from './ContactosWhatsappCard';
 
 function CampoColor({ label, value, onChange }) {
   return (
@@ -499,6 +500,8 @@ export default function Dashboard() {
               </div>
             </form>
         </div>
+
+        <ContactosWhatsappCard />
 
         <div className="form-card qr-carta-card">
           <h3 className="form-card-title">Carta QR para el local</h3>

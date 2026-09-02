@@ -50,7 +50,7 @@ export default function Footer({ configuracion }) {
         );
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+          <div id="redes" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '10px', scrollMarginTop: '90px' }}>
             <span style={{ color: '#aac398', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
               Seguinos en redes
             </span>

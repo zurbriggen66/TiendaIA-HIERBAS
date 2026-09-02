@@ -5,14 +5,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config.permissions import EsAdminOSoloLectura
-from .models import ConfiguracionSitio
-from .serializers import ConfiguracionSitioSerializer
+from .models import ConfiguracionSitio, ContactoWhatsapp
+from .serializers import ConfiguracionSitioSerializer, ContactoWhatsappSerializer
 
 class ConfiguracionViewSet(viewsets.ModelViewSet):
     # Lectura pública (logo, colores, si la tienda está abierta); escribir es solo admin.
     permission_classes = [EsAdminOSoloLectura]
     queryset = ConfiguracionSitio.objects.all()
     serializer_class = ConfiguracionSitioSerializer
+
+
+class ContactoWhatsappViewSet(viewsets.ModelViewSet):
+    # La tienda los lee para la página "Chatear con..."; solo el admin los edita.
+    permission_classes = [EsAdminOSoloLectura]
+    queryset = ContactoWhatsapp.objects.all()
+    serializer_class = ContactoWhatsappSerializer
 
 
 class AdminLoginView(APIView):

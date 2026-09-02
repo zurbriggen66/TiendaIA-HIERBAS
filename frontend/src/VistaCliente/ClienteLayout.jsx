@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTienda } from './TiendaContext';
 import { aclararColor, colorContraste } from '../utils/colores';
 import NavBar from './NavBar';
 import CarritoDrawer from './CarritoDrawer';
-import CuentaModal from './CuentaModal';
 import IconoWhatsapp from './IconoWhatsapp';
-import { armarLinkWhatsapp } from '../utils/whatsapp';
 
 function Preloader({ configuracion }) {
   return (
@@ -34,7 +32,7 @@ export default function ClienteLayout() {
     configuracion, cargando, totalItems, items, categorias,
     carritoAbierto, abrirCarrito, cerrarCarrito, cambiarCantidad, quitarDelCarrito, vaciarCarrito,
     toast, limpiarToast,
-    cliente, setCliente, cerrarSesion, mostrarCuenta, abrirCuenta, cerrarCuenta,
+    cliente, setCliente,
   } = useTienda();
 
   useEffect(() => {
@@ -115,9 +113,6 @@ export default function ClienteLayout() {
         configuracion={configuracion}
         totalItems={totalItems}
         onPedir={pedirPorWhatsapp}
-        cliente={cliente}
-        onAbrirCuenta={abrirCuenta}
-        onCerrarSesion={cerrarSesion}
       />
 
       {!configuracion.tienda_abierta && (
@@ -132,16 +127,10 @@ export default function ClienteLayout() {
 
       <Outlet />
 
-      {configuracion.whatsapp && (
-        <a
-          href={armarLinkWhatsapp(configuracion.whatsapp)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="whatsapp-flotante"
-          aria-label="Escribinos por WhatsApp"
-        >
+      {pathname !== '/contacto' && (configuracion.whatsapp || (configuracion.contactos_whatsapp || []).length > 0) && (
+        <Link to="/contacto" className="whatsapp-flotante" aria-label="Chatear por WhatsApp">
           <IconoWhatsapp />
-        </a>
+        </Link>
       )}
 
       {toast && (
@@ -175,10 +164,6 @@ export default function ClienteLayout() {
           cliente={cliente}
           onClienteActualizado={setCliente}
         />
-      )}
-
-      {mostrarCuenta && (
-        <CuentaModal onClose={cerrarCuenta} onIngreso={setCliente} />
       )}
     </div>
   );

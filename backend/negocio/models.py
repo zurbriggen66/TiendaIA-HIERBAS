@@ -89,3 +89,23 @@ class ConfiguracionSitio(models.Model):
 
     def __str__(self):
         return "Configuración General del Sitio"
+
+class ContactoWhatsapp(models.Model):
+    """Un número de WhatsApp con nombre, para la página "Chatear con...". El negocio
+    puede tener varios (ventas, mayorista, consultas). El número se guarda como solo
+    dígitos en formato internacional (mismo criterio que ConfiguracionSitio.whatsapp)."""
+
+    nombre = models.CharField(max_length=60)
+    numero = models.CharField(max_length=20)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['orden', 'id']
+        verbose_name_plural = 'Contactos de WhatsApp'
+
+    def save(self, *args, **kwargs):
+        self.numero = ''.join(ch for ch in (self.numero or '') if ch.isdigit())
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.nombre} ({self.numero})'

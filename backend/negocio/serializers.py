@@ -1,7 +1,18 @@
 from rest_framework import serializers
-from .models import ConfiguracionSitio
+from .models import ConfiguracionSitio, ContactoWhatsapp
+
+
+class ContactoWhatsappSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactoWhatsapp
+        fields = ['id', 'nombre', 'numero', 'orden']
+
 
 class ConfiguracionSitioSerializer(serializers.ModelSerializer):
+    # La tienda ya trae toda la config en una sola llamada; los contactos de WhatsApp
+    # viajan acá para no sumar otro fetch en el cliente.
+    contactos_whatsapp = serializers.SerializerMethodField()
+
     class Meta:
         model = ConfiguracionSitio
         fields = [
@@ -18,6 +29,7 @@ class ConfiguracionSitioSerializer(serializers.ModelSerializer):
             'instagram_descripcion',
             'instagram_secundario',
             'instagram_secundario_descripcion',
+            'contactos_whatsapp',
             'color_navbar',
             'color_fondo',
             'color_superficie',
@@ -26,3 +38,6 @@ class ConfiguracionSitioSerializer(serializers.ModelSerializer):
             'tienda_abierta',
             'mensaje_cerrado',
         ]
+
+    def get_contactos_whatsapp(self, obj):
+        return ContactoWhatsappSerializer(ContactoWhatsapp.objects.all(), many=True).data

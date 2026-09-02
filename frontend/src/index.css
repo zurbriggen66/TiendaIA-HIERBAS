@@ -1237,6 +1237,90 @@ body {
   line-height: 1;
 }
 
+/* === Productos & Stock: filtro de categorías prolijo + tarjetas compactas === */
+.cat-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.cat-filtro-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cat-filtro-item:hover {
+  border-color: #8caa78;
+}
+
+.cat-filtro-item.activo {
+  background: #8caa78;
+  border-color: #8caa78;
+  color: #ffffff;
+}
+
+.cat-filtro-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.cat-filtro-item.activo .cat-filtro-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.productos-page .productos-grid {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.productos-page .producto-imagen-wrap {
+  height: 110px;
+}
+
+.productos-page .producto-info {
+  padding: 10px 12px;
+  gap: 4px;
+}
+
+.productos-page .producto-info h4 {
+  font-size: 0.9rem;
+}
+
+.productos-page .producto-descripcion {
+  font-size: 0.75rem;
+  -webkit-line-clamp: 1;
+}
+
+.productos-page .producto-precio {
+  font-size: 0.92rem;
+}
+
+.productos-page .producto-card-nueva {
+  min-height: 180px;
+}
+
+@media (max-width: 768px) {
+  .productos-page .productos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
 /* Presentaciones (ProductoModal.jsx): cada variante es su propia tarjeta, con sus
    insumos extra en un bloque anidado bien diferenciado, para que no se confunda con
    los insumos del producto base de más arriba ni entre variantes distintas. */

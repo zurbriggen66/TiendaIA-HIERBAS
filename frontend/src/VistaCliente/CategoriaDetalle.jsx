@@ -8,6 +8,17 @@ const formatearPrecio = (precio) =>
 
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'pack', caja: 'caja', unidad: 'unidad' };
 
+// A partir de acá la categoría muestra un buscador (categorías grandes como
+// "Hierbas Medicinales por Kg" o "Hierbas a Granel").
+const MIN_PRODUCTOS_BUSCADOR = 15;
+
+// Sin tildes ni mayúsculas: "man" encuentra "Manzanilla".
+const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
+// Coincide si alguna palabra del nombre empieza con lo tipeado (búsqueda por prefijo).
+const empiezaCon = (nombre, q) =>
+  q === '' || normalizar(nombre).split(/\s+/).some((palabra) => palabra.startsWith(q));
+
 // Tarjeta con selector de peso inline (Hierbas a Granel y cualquier otra categoría con
 // venta_cantidad_fija): a diferencia del resto del catálogo, acá se agrega directo
 // desde la lista, sin entrar al detalle del producto — porque solo hay 3 opciones
@@ -110,6 +121,15 @@ export default function CategoriaDetalle() {
   const galeriaRef = useRef(null);
   const [galeriaIndice, setGaleriaIndice] = useState(0);
   const [imagenAmpliada, setImagenAmpliada] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+
+  useEffect(() => { setBusqueda(''); }, [id]);
+
+  const hayBuscador = productosCategoria.length > MIN_PRODUCTOS_BUSCADOR;
+  const q = normalizar(busqueda.trim());
+  const productosVisibles = hayBuscador
+    ? productosCategoria.filter((p) => empiezaCon(p.nombre, q))
+    : productosCategoria;
 
   useEffect(() => {
     if (!imagenAmpliada) return;
@@ -252,11 +272,31 @@ export default function CategoriaDetalle() {
         </div>
       )}
 
+      {hayBuscador && (
+        <div className="categoria-detalle-buscador">
+          <span className="material-symbols-outlined" aria-hidden="true">search</span>
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="buscar hierba..."
+            aria-label="Buscar hierba"
+          />
+          {busqueda && (
+            <button type="button" onClick={() => setBusqueda('')} aria-label="Limpiar búsqueda">
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          )}
+        </div>
+      )}
+
       {productosCategoria.length === 0 ? (
         <p className="menu-vacio">Todavía no hay productos cargados en esta categoría.</p>
+      ) : productosVisibles.length === 0 ? (
+        <p className="menu-vacio">No hay hierbas que empiecen con “{busqueda}”.</p>
       ) : (
         <div className="categoria-detalle-grid">
-          {productosCategoria.map((producto) => {
+          {productosVisibles.map((producto) => {
             // Precio minorista (sin descuento por volumen): si la categoría tiene
             // escalones, el más bajo es el que rige comprando de a poco; si no, el
             // precio propio del producto.
@@ -550,6 +590,52 @@ export default function CategoriaDetalle() {
           flex: 1;
           height: 1px;
           background: var(--border);
+        }
+
+        /* Buscador sutil: solo aparece en categorías grandes. */
+        .categoria-detalle-buscador {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: 340px;
+          margin: 0 0 20px;
+          padding: 8px 12px;
+          border: 1px solid var(--border);
+          border-radius: 999px;
+          background: var(--surface);
+          transition: border-color 0.15s ease;
+        }
+
+        .categoria-detalle-buscador:focus-within {
+          border-color: var(--accent, #1a361b);
+        }
+
+        .categoria-detalle-buscador .material-symbols-outlined {
+          font-size: 1.1rem;
+          color: var(--text-muted);
+        }
+
+        .categoria-detalle-buscador input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          outline: none;
+          background: none;
+          color: var(--text);
+          font-size: 0.9rem;
+        }
+
+        .categoria-detalle-buscador input::placeholder {
+          color: var(--text-muted);
+        }
+
+        .categoria-detalle-buscador button {
+          display: flex;
+          border: none;
+          background: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 0;
         }
 
         .categoria-detalle-grid {

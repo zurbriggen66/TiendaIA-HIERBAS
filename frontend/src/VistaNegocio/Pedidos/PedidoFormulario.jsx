@@ -18,22 +18,28 @@ const formatearPrecio = (precio) =>
 // Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
 const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
-// Formulario de alta de pedido. `variante`:
+// Formulario de alta / edición de pedido. `variante`:
 //  - 'modal'  → una sola columna (lo usa PedidoModal).
 //  - 'inline' → dos columnas con el resumen fijo a la derecha (lo usa Inicio).
-export default function PedidoFormulario({ productos, categorias, localidades, onSaved, onCancelar, variante = 'modal' }) {
-  const [cliente, setCliente] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [tipoEntrega, setTipoEntrega] = useState('retiro');
-  const [direccion, setDireccion] = useState('');
-  const [localidadId, setLocalidadId] = useState('');
-  const [costoEnvio, setCostoEnvio] = useState('');
-  const [aplicarDescuento, setAplicarDescuento] = useState(false);
-  const [descuentoPct, setDescuentoPct] = useState('');
-  const [nota, setNota] = useState('');
+// Si viene `pedido`, el formulario arranca con sus datos y guarda con PATCH.
+export default function PedidoFormulario({ productos, categorias, localidades, pedido, onSaved, onCancelar, variante = 'modal' }) {
+  const esEdicion = Boolean(pedido);
+  const [cliente, setCliente] = useState(pedido?.cliente || '');
+  const [telefono, setTelefono] = useState(pedido?.telefono || '');
+  const [tipoEntrega, setTipoEntrega] = useState(pedido?.tipo_entrega || 'retiro');
+  const [direccion, setDireccion] = useState(pedido?.direccion || '');
+  const [localidadId, setLocalidadId] = useState(pedido?.localidad ? String(pedido.localidad) : '');
+  const [costoEnvio, setCostoEnvio] = useState(pedido?.costo_envio ?? '');
+  const [aplicarDescuento, setAplicarDescuento] = useState(Number(pedido?.descuento_pct) > 0);
+  const [descuentoPct, setDescuentoPct] = useState(pedido?.descuento_pct ? String(pedido.descuento_pct) : '');
+  const [nota, setNota] = useState(pedido?.nota || '');
   const [categoriaActiva, setCategoriaActiva] = useState('todas');
   const [busquedaProducto, setBusquedaProducto] = useState('');
-  const [filas, setFilas] = useState([]);
+  const [filas, setFilas] = useState(() => (pedido?.items || []).map((it) => nuevaFila(
+    productos.find((p) => p.id === it.producto)
+      || { id: it.producto, nombre: it.producto_nombre, categoria: it.categoria_id, unidad_medida: '' },
+    Number(it.cantidad),
+  )));
   const [guardando, setGuardando] = useState(false);
 
   const categoriasPorId = useMemo(() => new Map((categorias || []).map((c) => [c.id, c])), [categorias]);
@@ -101,24 +107,28 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
     }
 
     setGuardando(true);
+    const cuerpo = {
+      cliente,
+      telefono,
+      tipo_entrega: tipoEntrega,
+      direccion: tipoEntrega === 'envio' ? direccion : '',
+      localidad: tipoEntrega === 'envio' ? (localidadId || null) : null,
+      costo_envio: tipoEntrega === 'envio' ? (costoEnvio || 0) : 0,
+      descuento_pct: pctDescuento,
+      nota,
+      items: filasValidas.map((f) => ({ producto: f.producto.id, cantidad: f.cantidad })),
+    };
     try {
-      await api.post('/pedidos/', {
-        cliente,
-        telefono,
-        origen: 'admin',
-        tipo_entrega: tipoEntrega,
-        direccion: tipoEntrega === 'envio' ? direccion : '',
-        localidad: tipoEntrega === 'envio' ? (localidadId || null) : null,
-        costo_envio: tipoEntrega === 'envio' ? (costoEnvio || 0) : 0,
-        descuento_pct: pctDescuento,
-        nota,
-        items: filasValidas.map((f) => ({ producto: f.producto.id, cantidad: f.cantidad })),
-      });
+      if (esEdicion) {
+        await api.patch(`/pedidos/${pedido.id}/`, cuerpo);
+      } else {
+        await api.post('/pedidos/', { ...cuerpo, origen: 'admin' });
+      }
       onSaved();
     } catch (error) {
-      console.error('Error al crear el pedido:', error);
+      console.error(esEdicion ? 'Error al editar el pedido:' : 'Error al crear el pedido:', error);
       const detalle = error.response?.data?.non_field_errors?.[0];
-      notificar(detalle || 'Hubo un problema al crear el pedido.');
+      notificar(detalle || `Hubo un problema al ${esEdicion ? 'guardar los cambios del' : 'crear el'} pedido.`);
     } finally {
       setGuardando(false);
     }
@@ -437,8 +447,8 @@ export default function PedidoFormulario({ productos, categorias, localidades, o
             <button type="button" className="btn-secundario" onClick={onCancelar}>Cancelar</button>
           )}
           <button type="submit" className="btn-vibrante pf-btn-crear" disabled={guardando}>
-            <span className="material-symbols-outlined" aria-hidden="true">receipt_long</span>
-            {guardando ? 'Guardando...' : 'Crear pedido'}
+            <span className="material-symbols-outlined" aria-hidden="true">{esEdicion ? 'save' : 'receipt_long'}</span>
+            {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear pedido'}
           </button>
         </div>
       </aside>

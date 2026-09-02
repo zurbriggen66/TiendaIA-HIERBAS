@@ -7,6 +7,46 @@ from negocio.models import ConfiguracionSitio
 from clientes.puntos import calcular_descuento as calcular_descuento_puntos
 
 
+def _crear_detalles_con_precios(pedido, items_data):
+    """Crea los DetallePedido de un pedido calculando el precio unitario congelado de
+    cada línea: escalón por volumen total de la categoría y, si corresponde, modo
+    "a granel". Se usa tanto al crear un pedido como al editarlo (se borran las
+    líneas viejas y se rehacen)."""
+    cantidades_por_categoria = {}
+    cantidades_por_producto = {}
+    for item in items_data:
+        producto = item['producto']
+        cantidades_por_categoria.setdefault(producto.categoria, Decimal('0'))
+        cantidades_por_categoria[producto.categoria] += item['cantidad']
+        cantidades_por_producto.setdefault(producto, Decimal('0'))
+        cantidades_por_producto[producto] += item['cantidad']
+
+    categorias_en_modo_granel = set()
+    for categoria, cantidad_total in cantidades_por_categoria.items():
+        if not categoria.granel_cantidad_minima or cantidad_total < categoria.granel_cantidad_minima:
+            continue
+        productos_de_categoria = [p for p in cantidades_por_producto if p.categoria_id == categoria.id]
+        if all(
+            cantidades_por_producto[p] >= categoria.granel_cantidad_minima_variedad
+            for p in productos_de_categoria
+        ):
+            categorias_en_modo_granel.add(categoria.id)
+
+    for item in items_data:
+        producto = item['producto']
+        cantidad_categoria = cantidades_por_categoria[producto.categoria]
+        if producto.categoria_id in categorias_en_modo_granel and producto.precio_granel is not None:
+            precio_unitario = producto.precio_granel
+        else:
+            precio_unitario = producto.precio_para_cantidad_categoria(cantidad_categoria)
+        DetallePedido.objects.create(
+            pedido=pedido,
+            producto=producto,
+            cantidad=item['cantidad'],
+            precio_unitario=precio_unitario,
+        )
+
+
 class LocalidadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Localidad
@@ -155,46 +195,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         cliente = getattr(usuario, 'cliente', None) if usuario and usuario.is_authenticated else None
         pedido = Pedido.objects.create(cliente_registrado=cliente, **validated_data)
 
-        # Precio por escalón: se calcula una vez la cantidad total por categoría (todas
-        # las variedades del pedido que caen en esa categoría), y ese precio se congela
-        # en cada línea.
-        cantidades_por_categoria = {}
-        cantidades_por_producto = {}
-        for item in items_data:
-            producto = item['producto']
-            cantidades_por_categoria.setdefault(producto.categoria, Decimal('0'))
-            cantidades_por_categoria[producto.categoria] += item['cantidad']
-            cantidades_por_producto.setdefault(producto, Decimal('0'))
-            cantidades_por_producto[producto] += item['cantidad']
-
-        # Modo "a granel" (ej: Hierbas Medicinales por Kg): TODO el pedido de esa
-        # categoría pasa a precio_granel si junta el mínimo total Y cada variedad
-        # elegida llega a su propio mínimo — si una sola variedad no llega, ninguna
-        # línea de esa categoría entra en modo granel (no se mezclan los dos precios).
-        categorias_en_modo_granel = set()
-        for categoria, cantidad_total in cantidades_por_categoria.items():
-            if not categoria.granel_cantidad_minima or cantidad_total < categoria.granel_cantidad_minima:
-                continue
-            productos_de_categoria = [p for p in cantidades_por_producto if p.categoria_id == categoria.id]
-            if all(
-                cantidades_por_producto[p] >= categoria.granel_cantidad_minima_variedad
-                for p in productos_de_categoria
-            ):
-                categorias_en_modo_granel.add(categoria.id)
-
-        for item in items_data:
-            producto = item['producto']
-            cantidad_categoria = cantidades_por_categoria[producto.categoria]
-            if producto.categoria_id in categorias_en_modo_granel and producto.precio_granel is not None:
-                precio_unitario = producto.precio_granel
-            else:
-                precio_unitario = producto.precio_para_cantidad_categoria(cantidad_categoria)
-            DetallePedido.objects.create(
-                pedido=pedido,
-                producto=producto,
-                cantidad=item['cantidad'],
-                precio_unitario=precio_unitario,
-            )
+        _crear_detalles_con_precios(pedido, items_data)
 
         # El canje va al final: recién acá se conoce el total real del pedido.
         if usar_puntos and cliente:
@@ -207,3 +208,17 @@ class PedidoSerializer(serializers.ModelSerializer):
                 cliente.save(update_fields=['puntos'])
 
         return pedido
+
+    def update(self, instance, validated_data):
+        # Editar un pedido desde el admin: se pisan los datos sueltos y, si vienen
+        # items, se rehacen todas las líneas desde cero (recalculando los precios
+        # congelados). No toca puntos ya canjeados ni pagos ya registrados.
+        validated_data.pop('usar_puntos', None)
+        items_data = validated_data.pop('items', None)
+        for campo, valor in validated_data.items():
+            setattr(instance, campo, valor)
+        instance.save()
+        if items_data is not None:
+            instance.items.all().delete()
+            _crear_detalles_con_precios(instance, items_data)
+        return instance

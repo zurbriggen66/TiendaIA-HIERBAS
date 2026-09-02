@@ -2841,16 +2841,29 @@ body {
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
 }
 
-/* Deja lugar al chip del ícono (arriba a la derecha) solo en las cards que lo tienen. */
-.resumen-tile:has(.kpi-icon) span:not(.kpi-icon),
-.resumen-tile:has(.kpi-icon) strong {
+/* El label queda pegado arriba y el número (con su tendencia) se ancla abajo, así
+   todas las cards de una fila alinean el valor aunque unas tengan chip de
+   tendencia y otras no. El espacio sobrante que reparte el grid cae entre el
+   label y el número, donde no molesta. */
+.resumen-tile strong {
+  margin-top: auto;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* El label es lo único que puede chocar con el chip del ícono: solo él lleva
+   el espacio a la derecha. */
+.resumen-tile:has(.kpi-icon) > span:not(.kpi-icon) {
   padding-right: 42px;
 }
 
@@ -2860,14 +2873,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-}
-
-.resumen-tile strong {
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
 }
 
 /* Chip del ícono (lo agrega el JSX de cada card). */

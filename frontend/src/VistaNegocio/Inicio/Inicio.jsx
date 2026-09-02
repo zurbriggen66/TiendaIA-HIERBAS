@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import PedidoFormulario from '../Pedidos/PedidoFormulario';
+import PedidoModal from '../Pedidos/PedidoModal';
 import TablaPedidos from '../Pedidos/TablaPedidos';
 import PedidoPagoModal from '../Pedidos/PedidoPagoModal';
 import PedidoEnvioDescuentoModal from '../Pedidos/PedidoEnvioDescuentoModal';
@@ -88,6 +89,7 @@ export default function Inicio() {
   const [mostrarNuevoPedido, setMostrarNuevoPedido] = useState(false);
   const [modalPago, setModalPago] = useState(null);
   const [modalEnvio, setModalEnvio] = useState(null);
+  const [pedidoEditar, setPedidoEditar] = useState(null);
 
   const cargarInicio = async () => {
     setCargando(true);
@@ -338,6 +340,7 @@ export default function Inicio() {
               pedidos={pedidosRecientes}
               onCobrar={(p) => setModalPago(p.id)}
               onDetalle={setModalEnvio}
+              onEditar={setPedidoEditar}
               onImprimir={imprimirPedido}
               onEliminar={eliminarPedidoReciente}
               onCancelar={cancelarPedidoReciente}
@@ -458,6 +461,17 @@ export default function Inicio() {
           localidades={localidades}
           onClose={() => setModalEnvio(null)}
           onSaved={() => { setModalEnvio(null); cargarInicio(); }}
+        />
+      )}
+
+      {pedidoEditar && (
+        <PedidoModal
+          pedido={pedidoEditar}
+          productos={productos}
+          categorias={categorias}
+          localidades={localidades}
+          onClose={() => setPedidoEditar(null)}
+          onSaved={() => { setPedidoEditar(null); cargarInicio(); }}
         />
       )}
 

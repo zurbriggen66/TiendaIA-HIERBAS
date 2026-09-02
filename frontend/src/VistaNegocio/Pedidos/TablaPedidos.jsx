@@ -52,6 +52,7 @@ export default function TablaPedidos({
   pedidos,
   onCobrar,
   onDetalle,
+  onEditar,
   onImprimir,
   onEliminar,
   onConfirmar,
@@ -119,6 +120,11 @@ export default function TablaPedidos({
                     >
                       <Ico nombre="payments" />{pedido.estado_cobro === 'pagado' ? 'Cobrado' : 'Cobrar'}
                     </button>
+                    {onEditar && !cancelado && (
+                      <button type="button" className="tp-accion" onClick={() => onEditar(pedido)}>
+                        <Ico nombre="edit" />Editar
+                      </button>
+                    )}
                     <button type="button" className="tp-accion" onClick={() => onDetalle(pedido)}>
                       <Ico nombre="description" />Detalle
                     </button>

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from .models import Pedido
@@ -146,3 +147,55 @@ class MinimoPorVariedadTests(TestCase):
         }, content_type='application/json')
 
         self.assertEqual(respuesta.status_code, 201, respuesta.content)
+
+
+class EditarPedidoTests(TestCase):
+    """Editar un pedido desde el admin (PATCH): se rehacen las líneas y se recalcula
+    el precio congelado según el nuevo volumen total de la categoría."""
+
+    def setUp(self):
+        self.categoria = Categoria.objects.create(
+            nombre='Categoría editable', unidad_medida='unidad', cantidad_minima=10,
+        )
+        EscalonPrecio.objects.create(categoria=self.categoria, cantidad_desde=10, precio_unitario=500)
+        EscalonPrecio.objects.create(categoria=self.categoria, cantidad_desde=50, precio_unitario=400)
+        self.manzanilla = Producto.objects.create(categoria=self.categoria, nombre='Manzanilla')
+        self.tilo = Producto.objects.create(categoria=self.categoria, nombre='Tilo')
+
+        alta = self.client.post('/api/pedidos/', data={
+            'cliente': 'Dietética Sol',
+            'items': [{'producto': self.manzanilla.id, 'cantidad': 12}],
+        }, content_type='application/json')
+        self.assertEqual(alta.status_code, 201, alta.content)
+        self.pedido_id = alta.data['id']
+
+        admin = get_user_model().objects.create_user('admin', password='x', is_staff=True)
+        self.client.force_login(admin)
+
+    def test_editar_reemplaza_items_y_recalcula_el_escalon(self):
+        respuesta = self.client.patch(f'/api/pedidos/{self.pedido_id}/', data={
+            'cliente': 'Dietética Sol',
+            'items': [
+                {'producto': self.manzanilla.id, 'cantidad': 30},
+                {'producto': self.tilo.id, 'cantidad': 25},
+            ],
+        }, content_type='application/json')
+
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        pedido = Pedido.objects.get(id=self.pedido_id)
+        detalles = {d.producto.nombre: d for d in pedido.items.all()}
+        self.assertEqual(set(detalles), {'Manzanilla', 'Tilo'})
+        # 55 unidades en total -> escalón de 50+ -> 400 c/u en todas las líneas.
+        self.assertEqual(detalles['Manzanilla'].precio_unitario, 400)
+        self.assertEqual(detalles['Tilo'].precio_unitario, 400)
+
+    def test_editar_a_un_pedido_bajo_el_minimo_lo_rechaza(self):
+        respuesta = self.client.patch(f'/api/pedidos/{self.pedido_id}/', data={
+            'items': [{'producto': self.manzanilla.id, 'cantidad': 3}],
+        }, content_type='application/json')
+
+        self.assertEqual(respuesta.status_code, 400)
+        # El pedido original queda intacto.
+        pedido = Pedido.objects.get(id=self.pedido_id)
+        self.assertEqual(pedido.items.count(), 1)
+        self.assertEqual(pedido.items.first().cantidad, 12)

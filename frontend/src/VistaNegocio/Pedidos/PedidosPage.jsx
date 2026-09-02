@@ -45,7 +45,7 @@ export default function PedidosPage() {
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoyISO());
   const [desdeRango, setDesdeRango] = useState(hace7DiasISO());
   const [hastaRango, setHastaRango] = useState(hoyISO());
-  const [mostrarModal, setMostrarModal] = useState(false);
+  const [modalPedido, setModalPedido] = useState(null); // null | { pedido: null|obj }
   const [modalEnvio, setModalEnvio] = useState(null);
   const [modalPago, setModalPago] = useState(null);
 
@@ -228,7 +228,7 @@ export default function PedidosPage() {
               {filtroPeriodo === 'general' ? (
                 <>
                   <p>Todavía no hay pedidos cargados.</p>
-                  <button type="button" className="btn-vibrante" onClick={() => setMostrarModal(true)}>
+                  <button type="button" className="btn-vibrante" onClick={() => setModalPedido({ pedido: null })}>
                     Crear el primer pedido
                   </button>
                 </>
@@ -239,7 +239,7 @@ export default function PedidosPage() {
           ) : (
             <>
               <div className="pedidos-tabla-acciones">
-                <button type="button" className="btn-vibrante" onClick={() => setMostrarModal(true)}>
+                <button type="button" className="btn-vibrante" onClick={() => setModalPedido({ pedido: null })}>
                   <span className="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
                   Nuevo pedido
                 </button>
@@ -248,6 +248,7 @@ export default function PedidosPage() {
                 pedidos={pedidos}
                 onCobrar={(p) => setModalPago(p.id)}
                 onDetalle={setModalEnvio}
+                onEditar={(p) => setModalPedido({ pedido: p })}
                 onImprimir={imprimirPedido}
                 onEliminar={eliminarPedido}
                 onConfirmar={confirmarPedido}
@@ -277,13 +278,14 @@ export default function PedidosPage() {
 
       </div>
 
-      {mostrarModal && (
+      {modalPedido && (
         <PedidoModal
+          pedido={modalPedido.pedido}
           productos={productos}
           categorias={categorias}
           localidades={localidades}
-          onClose={() => setMostrarModal(false)}
-          onSaved={() => { setMostrarModal(false); cargarDatos(); }}
+          onClose={() => setModalPedido(null)}
+          onSaved={() => { setModalPedido(null); cargarDatos(); }}
         />
       )}
 

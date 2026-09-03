@@ -16,7 +16,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Datos que tienen que sobrevivir a un redeploy: la base SQLite, las imágenes
+# subidas y los estáticos recolectados. Por defecto viven dentro de backend/ (local
+# y PythonAnywhere, sin cambios). En el VPS, DJANGO_DATA_DIR apunta a /data, un
+# volumen de Docker montado FUERA del checkout, así ni un `git pull` ni un
+# `docker compose up --force-recreate` los pisa.
+DATA_DIR = Path(os.environ.get('DJANGO_DATA_DIR', BASE_DIR))
+
+MEDIA_ROOT = DATA_DIR / 'media'
 MEDIA_URL = '/media/'
 
 
@@ -130,7 +137,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
@@ -189,4 +196,4 @@ if DEBUG:
         r'^http://127\.0\.0\.1:\d+$',
     ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = DATA_DIR / 'staticfiles'

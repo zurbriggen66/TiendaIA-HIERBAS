@@ -26,6 +26,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
   const esEdicion = Boolean(pedido);
   const [cliente, setCliente] = useState(pedido?.cliente || '');
   const [telefono, setTelefono] = useState(pedido?.telefono || '');
+  const [cuit, setCuit] = useState(pedido?.cuit || '');
   const [tipoEntrega, setTipoEntrega] = useState(pedido?.tipo_entrega || 'retiro');
   const [direccion, setDireccion] = useState(pedido?.direccion || '');
   const [localidadId, setLocalidadId] = useState(pedido?.localidad ? String(pedido.localidad) : '');
@@ -110,6 +111,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
     const cuerpo = {
       cliente,
       telefono,
+      cuit,
       tipo_entrega: tipoEntrega,
       direccion: tipoEntrega === 'envio' ? direccion : '',
       localidad: tipoEntrega === 'envio' ? (localidadId || null) : null,
@@ -163,6 +165,20 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
                 onChange={(e) => setTelefono(e.target.value)}
               />
             </div>
+            <div className="form-group">
+              {/* Solo hace falta para facturar a nombre del comprador (Factura A a un
+                  mayorista). Vacío, la factura sale a consumidor final. */}
+              <label className="form-label">CUIT (opcional)</label>
+              <input
+                className="input-vibrante"
+                placeholder="30-71234567-8"
+                value={cuit}
+                onChange={(e) => setCuit(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label className="form-label">Entrega</label>
               <div className="tipo-entrega-selector">

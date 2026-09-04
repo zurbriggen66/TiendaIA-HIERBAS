@@ -157,6 +157,7 @@ export default function DashboardLayout() {
           <Item to="/admin/gastos" icono="account_balance_wallet">Gastos</Item>
           <Item to="/admin/proveedores" icono="local_shipping">Proveedores</Item>
           <Item to="/admin/compras" icono="shopping_cart">Compras</Item>
+          <Item to="/admin/facturacion" icono="request_quote">Facturación</Item>
         </nav>
 
         <div className="sidebar-footer">

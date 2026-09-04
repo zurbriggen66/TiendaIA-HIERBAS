@@ -11,6 +11,8 @@ from config.permissions import EsAdmin, es_staff
 from .models import Pedido, Localidad, Pago
 from .serializers import PedidoSerializer, LocalidadSerializer, PagoSerializer
 from clientes.puntos import acreditar as acreditar_puntos
+from fiscal.afip import ErrorFiscal
+from fiscal.services import config_vigente, emitir_factura, facturar_si_corresponde
 
 
 class PedidoPermiso(BasePermission):
@@ -89,6 +91,38 @@ class PedidoViewSet(viewsets.ModelViewSet):
         acreditar_puntos(pedido)
         return Response(self.get_serializer(pedido).data)
 
+    @action(detail=True, methods=['post'])
+    def facturar(self, request, pk=None):
+        """Emite la factura electrónica del pedido contra ARCA (botón manual).
+
+        Devuelve 400 con el motivo si ARCA rechaza o no responde; el pedido queda
+        igual que antes y el intento queda registrado en la cola de comprobantes,
+        para reintentarlo desde Facturación.
+        """
+        pedido = self.get_object()
+        if pedido.facturado:
+            return Response(
+                {'detail': 'Este pedido ya está facturado.'}, status=status.HTTP_400_BAD_REQUEST)
+        if pedido.estado == 'cancelado':
+            return Response(
+                {'detail': 'No se puede facturar un pedido cancelado.'}, status=status.HTTP_400_BAD_REQUEST)
+        if pedido.excluir_fiscal:
+            return Response(
+                {'detail': 'Este pedido está marcado como "no facturar".'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        config = config_vigente()
+        if config is None:
+            return Response(
+                {'detail': 'Todavía no hay datos fiscales cargados (Facturación > Datos fiscales).'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            emitir_factura(pedido, config)
+        except ErrorFiscal as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(self.get_serializer(pedido).data)
+
     def perform_destroy(self, instance):
         instance.delete()
 
@@ -103,3 +137,10 @@ class PagoViewSet(viewsets.ModelViewSet):
     permission_classes = [EsAdmin]
     queryset = Pago.objects.select_related('pedido')
     serializer_class = PagoSerializer
+
+    def perform_create(self, serializer):
+        pago = serializer.save()
+        # Facturación automática: si con este pago el pedido quedó cobrado y entra en
+        # la regla configurada, se emite el CAE solo. Nunca puede fallar hacia atrás —
+        # el pago ya está guardado (ver fiscal.services.facturar_si_corresponde).
+        facturar_si_corresponde(pago.pedido)

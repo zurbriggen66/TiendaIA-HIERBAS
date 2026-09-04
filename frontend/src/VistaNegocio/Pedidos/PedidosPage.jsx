@@ -24,6 +24,9 @@ const primerYUltimoDiaDelMes = (mesStr) => {
   return { primero: `${mesStr}-01`, ultimo: `${mesStr}-${String(ultimoDia).padStart(2, '0')}` };
 };
 
+const formatearPrecioARS = (precio) =>
+  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio || 0);
+
 const hace7DiasISO = () => {
   const d = new Date();
   d.setDate(d.getDate() - 6);
@@ -135,6 +138,19 @@ export default function PedidosPage() {
   const cancelarPedido = async (pedido) => {
     if (!(await confirmar('¿Cancelar este pedido?'))) return;
     cambiarEstado(pedido, 'cancelado');
+  };
+
+  const facturarPedido = async (pedido) => {
+    // Emitir un CAE es irreversible (solo se corrige con una nota de crédito), así
+    // que el botón pregunta siempre antes.
+    if (!(await confirmar(`¿Facturar el pedido #${pedido.id} por ${formatearPrecioARS(pedido.total)}?`))) return;
+    try {
+      const { data } = await api.post(`/pedidos/${pedido.id}/facturar/`);
+      setPedidos((prev) => prev.map((p) => (p.id === pedido.id ? data : p)));
+      notificar(`Factura ${data.tipo_factura} N° ${data.numero_factura} emitida. CAE ${data.cae}.`, 'exito');
+    } catch (error) {
+      notificar(error.response?.data?.detail || 'No se pudo facturar el pedido.');
+    }
   };
 
   const eliminarPedido = async (pedido) => {
@@ -253,6 +269,7 @@ export default function PedidosPage() {
                 onEliminar={eliminarPedido}
                 onConfirmar={confirmarPedido}
                 onCancelar={cancelarPedido}
+                onFacturar={facturarPedido}
               />
             </>
           )

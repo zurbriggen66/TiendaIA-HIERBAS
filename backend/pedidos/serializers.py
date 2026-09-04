@@ -96,10 +96,20 @@ class PedidoSerializer(serializers.ModelSerializer):
             'localidad', 'localidad_nombre', 'origen', 'confirmado', 'costo_envio', 'descuento_pct',
             'nota', 'pagos', 'subtotal', 'total', 'cobrado', 'estado_cobro',
             'puntos_usados', 'descuento_puntos', 'usar_puntos',
+            'cuit', 'excluir_fiscal', 'facturado', 'cae', 'cae_vencimiento',
+            'tipo_factura', 'numero_factura', 'punto_venta_factura', 'fecha_facturacion',
         ]
         extra_kwargs = {
             'localidad': {'required': False, 'allow_null': True},
             'confirmado': {'read_only': True},
+            # Lo que devolvió ARCA lo escribe solo fiscal.services: nunca llega por API.
+            'facturado': {'read_only': True},
+            'cae': {'read_only': True},
+            'cae_vencimiento': {'read_only': True},
+            'tipo_factura': {'read_only': True},
+            'numero_factura': {'read_only': True},
+            'punto_venta_factura': {'read_only': True},
+            'fecha_facturacion': {'read_only': True},
             # El monto del canje lo decide el servidor; el frontend solo pide usar_puntos.
             'puntos_usados': {'read_only': True},
             'descuento_puntos': {'read_only': True},
@@ -193,6 +203,9 @@ class PedidoSerializer(serializers.ModelSerializer):
         # El pedido se asocia al cliente logueado (si lo hay), nunca a uno que venga por body.
         usuario = getattr(self.context.get('request'), 'user', None)
         cliente = getattr(usuario, 'cliente', None) if usuario and usuario.is_authenticated else None
+        # "No facturar" es una decisión del negocio sobre un pedido ya existente, no
+        # algo que pueda venir en el POST público de la tienda.
+        validated_data.pop('excluir_fiscal', None)
         pedido = Pedido.objects.create(cliente_registrado=cliente, **validated_data)
 
         _crear_detalles_con_precios(pedido, items_data)

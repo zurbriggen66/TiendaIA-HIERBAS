@@ -5,6 +5,11 @@ backend/**/__pycache__/
 backend/**/migrations/__pycache__/
 backend/db.sqlite3
 backend/media/
+# Certificado y clave privada de ARCA: NUNCA en el repo. Se copian a mano al servidor
+# (DJANGO_DATA_DIR/fiscal_certs/, ver backend/fiscal/afip.py).
+backend/fiscal_certs/
+fiscal_certs/
+backend/cache/
 *.pyc
 
 # Frontend (Node/React/Vite)

@@ -137,6 +137,10 @@ class Producto(models.Model):
     # tiene precio a granel propio (aunque la categoría tenga el modo activado).
     precio_granel = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     imagen = models.ImageField(upload_to='productos/productos/', null=True, blank=True)
+    # Alícuota de IVA para la facturación electrónica (21 / 10.5 / 0 / 27). Solo se
+    # usa si el negocio es responsable inscripto: un monotributista emite Factura C,
+    # que no discrimina IVA, y este campo no interviene.
+    alicuota_iva = models.DecimalField(max_digits=5, decimal_places=2, default=21)
     destacado = models.BooleanField(default=False)
     activo = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0)

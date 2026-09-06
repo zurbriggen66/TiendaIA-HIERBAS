@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'estadisticas',
     'clientes',
     'compras',
+    'fiscal',
 ]
 
 # Token de DRF: sin esto las vistas quedarían con la autenticación por sesión solamente,
@@ -138,6 +139,19 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': DATA_DIR / 'db.sqlite3',
+    }
+}
+
+
+# El ticket de acceso a ARCA (WSAA) dura 12hs y ARCA rechaza pedir uno nuevo
+# mientras el anterior siga vigente. Con el cache en memoria (el default de Django)
+# cada worker de gunicorn tendría el suyo y pedirían de más, así que se usa un cache
+# en archivos, compartido por todos los procesos y dentro de DATA_DIR (el volumen
+# que sobrevive a los redeploys).
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': str(DATA_DIR / 'cache'),
     }
 }
 

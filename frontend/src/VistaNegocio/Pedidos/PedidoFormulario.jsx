@@ -26,6 +26,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
   const esEdicion = Boolean(pedido);
   const [cliente, setCliente] = useState(pedido?.cliente || '');
   const [telefono, setTelefono] = useState(pedido?.telefono || '');
+  const [cuit, setCuit] = useState(pedido?.cuit || '');
   const [tipoEntrega, setTipoEntrega] = useState(pedido?.tipo_entrega || 'retiro');
   const [direccion, setDireccion] = useState(pedido?.direccion || '');
   const [localidadId, setLocalidadId] = useState(pedido?.localidad ? String(pedido.localidad) : '');
@@ -110,6 +111,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
     const cuerpo = {
       cliente,
       telefono,
+      cuit,
       tipo_entrega: tipoEntrega,
       direccion: tipoEntrega === 'envio' ? direccion : '',
       localidad: tipoEntrega === 'envio' ? (localidadId || null) : null,
@@ -163,6 +165,20 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
                 onChange={(e) => setTelefono(e.target.value)}
               />
             </div>
+            <div className="form-group">
+              {/* Solo hace falta para facturar a nombre del comprador (Factura A a un
+                  mayorista). Vacío, la factura sale a consumidor final. */}
+              <label className="form-label">CUIT (opcional)</label>
+              <input
+                className="input-vibrante"
+                placeholder="30-71234567-8"
+                value={cuit}
+                onChange={(e) => setCuit(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label className="form-label">Entrega</label>
               <div className="tipo-entrega-selector">
@@ -405,7 +421,7 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
           const unidadEtiqueta = ETIQUETA_UNIDAD[grupo.categoria.unidad_medida] || grupo.categoria.unidad_medida;
           return (
             <div key={grupo.categoria.id} className="pf-resumen-aviso-grupo">
-              <p className={grupo.faltante > 0 ? 'pedido-fila-aviso' : 'form-ayuda'} style={grupo.faltante > 0 ? { color: '#f59e0b' } : undefined}>
+              <p className={grupo.faltante > 0 ? 'pedido-fila-aviso' : 'form-ayuda'} style={grupo.faltante > 0 ? { color: 'var(--alerta)' } : undefined}>
                 {grupo.categoria.nombre}: {grupo.cantidadTotal} {unidadEtiqueta}
                 {grupo.faltante > 0
                   ? ` — falta ${grupo.faltante} para el mínimo de ${grupo.categoria.cantidad_minima}`
@@ -414,13 +430,13 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
                     : ''}
               </p>
               {grupo.variedadesBajoMinimo.map((v) => (
-                <p key={v.nombre} className="pedido-fila-aviso" style={{ color: '#f59e0b' }}>
+                <p key={v.nombre} className="pedido-fila-aviso" style={{ color: 'var(--alerta)' }}>
                   Faltan {v.falta} {unidadEtiqueta} de {v.nombre} (mínimo {grupo.minimoVariedad} por variedad)
                 </p>
               ))}
               {grupo.granelMinimoTotal > 0 && (
                 grupo.enModoGranel ? (
-                  <p className="form-ayuda" style={{ color: '#4ade80' }}>🎉 Precio a granel aplicado en esta categoría</p>
+                  <p className="form-ayuda" style={{ color: 'var(--exito)' }}>🎉 Precio a granel aplicado en esta categoría</p>
                 ) : grupo.faltaParaGranel > 0 ? (
                   <p className="form-ayuda">
                     Sumá {grupo.faltaParaGranel} {unidadEtiqueta} más (con al menos {grupo.granelMinimoVariedad} {unidadEtiqueta} de cada variedad) para el precio a granel

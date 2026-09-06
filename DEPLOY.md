@@ -22,3 +22,14 @@ la base SQLite, `media/` y `staticfiles/` siguen viviendo dentro de `backend/`, 
 siempre. En el VPS apunta a `/data`, un volumen de Docker fuera del checkout.
 
 `frontend/.env.production` fija la URL de la API para el build de produccion.
+
+## Facturación electrónica (ARCA)
+
+El trámite ante ARCA, el certificado y la puesta en marcha están en
+[`FACTURACION.md`](FACTURACION.md). Dos cosas que afectan al deploy:
+
+- `pip install -r requirements.txt` ahora baja `pyafipws` **desde GitHub**, así que el
+  servidor (o la imagen de Docker) necesita `git` instalado.
+- El certificado y la clave de ARCA viven en `DJANGO_DATA_DIR/fiscal_certs/` (en el VPS,
+  `/data/fiscal_certs/`), fuera del checkout y fuera del repo.
+

@@ -1,10 +1,10 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Paleta categórica validada para fondo oscuro (skill dataviz), mismo orden en todo
-// el admin para que una categoría tenga siempre el mismo color.
+// Paleta categórica (skill dataviz), mismo orden en todo el admin para que una
+// categoría tenga siempre el mismo color. Son tonos medios: se leen igual sobre el
+// fondo claro que sobre el oscuro, así que no hace falta una paleta por tema.
 const PALETA = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
-const FONDO = '#1a2820';
 
 const formatearPrecio = (n) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
@@ -37,7 +37,6 @@ export default function GraficoTorta({ datos }) {
             innerRadius="48%"
             outerRadius="78%"
             paddingAngle={2}
-            stroke={FONDO}
             strokeWidth={2}
           >
             {data.map((_, i) => (
@@ -49,9 +48,6 @@ export default function GraficoTorta({ datos }) {
               `${formatearPrecio(value)} · ${Math.round((value / total) * 100)}%`,
               name,
             ]}
-            contentStyle={{ background: '#111827', border: 'none', borderRadius: 8, fontSize: 12 }}
-            itemStyle={{ color: '#ffffff' }}
-            labelStyle={{ color: '#d1d5db' }}
           />
         </PieChart>
       </ResponsiveContainer>

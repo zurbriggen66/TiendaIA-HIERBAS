@@ -67,6 +67,23 @@ class Pedido(models.Model):
     puntos_acreditados = models.BooleanField(default=False)
     nota = models.TextField(blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+
+    # --- Facturación electrónica (ARCA) ---------------------------------------
+    # CUIT del comprador. Vacío = consumidor final. Cargado, la factura sale a su
+    # nombre (y con IVA discriminado, si el negocio es responsable inscripto).
+    cuit = models.CharField(max_length=20, blank=True)
+    # No facturar este pedido nunca (ej. un ajuste interno): lo saltea la
+    # facturación automática y avisa el botón manual.
+    excluir_fiscal = models.BooleanField(default=False)
+    # Lo que devolvió ARCA. Se escribe una sola vez, al emitir el CAE, y no se toca
+    # más: un comprobante emitido no se modifica, se corrige con una nota de crédito.
+    facturado = models.BooleanField(default=False)
+    cae = models.CharField(max_length=40, blank=True)
+    cae_vencimiento = models.DateField(null=True, blank=True)
+    tipo_factura = models.CharField(max_length=5, blank=True)  # A | B | C
+    numero_factura = models.CharField(max_length=40, blank=True)
+    punto_venta_factura = models.CharField(max_length=20, blank=True)
+    fecha_facturacion = models.DateTimeField(null=True, blank=True)
     # Indexado: todos los filtros del admin (rango, día, mes, últimas horas) y el orden
     # por defecto pegan contra esta columna.
     creado = models.DateTimeField(auto_now_add=True, db_index=True)

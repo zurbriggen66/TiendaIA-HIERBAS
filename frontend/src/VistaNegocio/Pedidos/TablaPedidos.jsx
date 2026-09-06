@@ -1,5 +1,4 @@
 import React from 'react';
-import { notificar } from '../notificaciones';
 
 // Los pedidos solo se confirman (o se cancelan). No hay flujo de preparación
 // (en preparación / listo / entregado): esta tabla muestra fecha, cliente, qué
@@ -57,6 +56,7 @@ export default function TablaPedidos({
   onEliminar,
   onConfirmar,
   onCancelar,
+  onFacturar,
 }) {
   return (
     <div className="tabla-pedidos-scroll">
@@ -131,13 +131,21 @@ export default function TablaPedidos({
                     <button type="button" className="tp-accion" onClick={() => onImprimir(pedido)}>
                       <Ico nombre="print" />Imprimir
                     </button>
-                    <button
-                      type="button"
-                      className="tp-accion"
-                      onClick={() => notificar('La facturación todavía no está disponible — próximamente.')}
-                    >
-                      <Ico nombre="request_quote" />Facturar
-                    </button>
+                    {pedido.facturado ? (
+                      <span className="tp-accion" title={`CAE ${pedido.cae}`}>
+                        <Ico nombre="task_alt" />
+                        Factura {pedido.tipo_factura} {String(pedido.numero_factura).padStart(8, '0')}
+                      </span>
+                    ) : onFacturar ? (
+                      <button
+                        type="button"
+                        className="tp-accion"
+                        disabled={cancelado || pedido.excluir_fiscal}
+                        onClick={() => onFacturar(pedido)}
+                      >
+                        <Ico nombre="request_quote" />Facturar
+                      </button>
+                    ) : null}
                     {onCancelar && !cancelado && (
                       <button type="button" className="tp-accion tp-accion-peligro" onClick={() => onCancelar(pedido)}>
                         <Ico nombre="block" />Cancelar

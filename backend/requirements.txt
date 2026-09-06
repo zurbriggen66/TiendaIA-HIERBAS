@@ -7,3 +7,13 @@ python-dotenv==1.2.2
 sqlparse==0.6.0
 tzdata==2026.3
 gunicorn==23.0.0
+
+# Facturación electrónica ARCA/AFIP (WSAA + WSFEv1).
+# El paquete PyAfipWs de PyPI (2.7.1874) no instala en Python 3.12+: su .tar.gz trae
+# un symlink que la extracción segura de tarfile rechaza. Se instala desde GitHub, que
+# sí compila limpio. Requiere `git` disponible en la imagen/servidor al instalar.
+pyafipws @ git+https://github.com/reingart/pyafipws.git@d595b072110accec9dae1ddb58165ab847b8520a
+# pysimplesoap (dependencia de pyafipws) todavía usa `distutils`, que Python 3.12+ sacó
+# de la stdlib — setuptools trae el shim que lo vuelve a exponer.
+setuptools
+

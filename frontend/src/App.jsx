@@ -18,6 +18,7 @@ import GastosPage from './VistaNegocio/Gastos/GastosPage';
 import ProveedoresPage from './VistaNegocio/Proveedores/ProveedoresPage';
 import ComprasPage from './VistaNegocio/Compras/ComprasPage';
 import EstadisticasPage from './VistaNegocio/Estadisticas/EstadisticasPage';
+import FacturacionPage from './VistaNegocio/Facturacion/FacturacionPage';
 
 function ConTienda() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="proveedores" element={<ProveedoresPage />} />
           <Route path="compras" element={<ComprasPage />} />
           <Route path="estadisticas" element={<EstadisticasPage />} />
+          <Route path="facturacion" element={<FacturacionPage />} />
         </Route>
       </Routes>
     </Router>

@@ -8,7 +8,7 @@ const formatearPrecio = (precio) =>
 
 const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
 
-function armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, items, resumen, total }) {
+function armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, nota, items, resumen, total }) {
   const lineas = [
     '🌿 *Nuevo pedido mayorista*',
     '',
@@ -26,6 +26,7 @@ function armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, items,
     lineas.push(`${item.cantidad}x ${item.producto.nombre} - ${formatearPrecio(precio * item.cantidad)}`);
   });
   lineas.push('', `*Total: ${formatearPrecio(total)}*`);
+  if (nota.trim()) lineas.push('', `Nota: ${nota.trim()}`);
   return lineas.join('\n');
 }
 
@@ -35,6 +36,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
   const [usarPuntos, setUsarPuntos] = useState(false);
   const [tipoEntrega, setTipoEntrega] = useState('retiro');
   const [direccion, setDireccion] = useState('');
+  const [nota, setNota] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [exito, setExito] = useState(false);
   const [errores, setErrores] = useState({});
@@ -86,7 +88,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
     setErrorEnvio('');
     setEnviando(true);
 
-    const mensaje = armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, items, resumen, total });
+    const mensaje = armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, nota, items, resumen, total });
     const url = armarLinkWhatsapp(whatsapp, mensaje);
     const ventana = window.open(url, '_blank', 'noopener,noreferrer');
     setLinkWhatsapp(!ventana || ventana.closed ? url : null);
@@ -98,6 +100,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         telefono: telefono.trim(),
         tipo_entrega: tipoEntrega,
         direccion: tipoEntrega === 'envio' ? direccion.trim() : '',
+        nota: nota.trim(),
         origen: 'web',
         items: items.map((item) => ({ producto: item.producto.id, cantidad: item.cantidad })),
       });
@@ -105,6 +108,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         api.get('/clientes/mi-cuenta/').then((r) => onClienteActualizado?.(r.data)).catch(() => {});
       }
       setExito(true);
+      setNota('');
       onVaciar();
     } catch (error) {
       // El mínimo por categoría también lo valida el backend: si algo cambió (ej. otro
@@ -367,6 +371,23 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
               </>
             )}
 
+            <div className="pedido-seccion">
+              <div className="pedido-seccion-titulo">
+                <span className="pedido-seccion-icono">📝</span>
+                <span>Detalle del pedido (opcional)</span>
+              </div>
+              <div className="pedido-campo">
+                <textarea
+                  className="pedido-input pedido-textarea"
+                  rows={3}
+                  maxLength={500}
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  placeholder="Ej: entregar fraccionado en bolsas de 1kg, avisar antes de venir, etc."
+                />
+              </div>
+            </div>
+
             {errorEnvio && <p className="pedido-error-texto pedido-error-envio">{errorEnvio}</p>}
 
             {!tiendaAbierta ? (
@@ -559,6 +580,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         .pedido-input::placeholder { color: #9aa4b2; }
         .pedido-input:focus { outline: none; border-color: #8caa78; box-shadow: 0 0 0 3px rgba(140, 170, 120, 0.14); }
         .pedido-input-error { border-color: #ef4444; background: #fef4f3; }
+        .pedido-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
         .pedido-error-texto { display: block; margin-top: 6px; font-size: 0.76rem; color: #ef4444; font-weight: 600; }
         .pedido-error-envio { margin: 0 0 12px; }
 

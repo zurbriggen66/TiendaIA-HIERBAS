@@ -72,9 +72,10 @@ chmod 600 /data/fiscal_certs/*
 
 ## 3. Desplegar el backend
 
-La única dependencia nueva es `pyafipws`, que se instala **desde GitHub** (la versión de
-PyPI no compila en Python 3.12+), así que el servidor necesita `git` disponible al
-instalar:
+La única dependencia nueva es `pyafipws`, que se baja del `.tar.gz` de GitHub (la
+versión de PyPI no instala en Python 3.12+). Va por HTTPS y no por `git+`, porque el
+contenedor de la API corre `pip install` en cada arranque sobre `python:3.13-slim`, que
+no trae `git`:
 
 ```bash
 pip install -r requirements.txt

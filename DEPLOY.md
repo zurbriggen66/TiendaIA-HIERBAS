@@ -28,8 +28,9 @@ siempre. En el VPS apunta a `/data`, un volumen de Docker fuera del checkout.
 El trámite ante ARCA, el certificado y la puesta en marcha están en
 [`FACTURACION.md`](FACTURACION.md). Dos cosas que afectan al deploy:
 
-- `pip install -r requirements.txt` ahora baja `pyafipws` **desde GitHub**, así que el
-  servidor (o la imagen de Docker) necesita `git` instalado.
+- `pip install -r requirements.txt` ahora baja `pyafipws` del `.tar.gz` de GitHub por
+  HTTPS. No usar la forma `git+https://`: la imagen de la API (`python:3.13-slim`) no
+  trae `git` y el arranque falla.
 - El certificado y la clave de ARCA viven en `DJANGO_DATA_DIR/fiscal_certs/` (en el VPS,
   `/data/fiscal_certs/`), fuera del checkout y fuera del repo.
 

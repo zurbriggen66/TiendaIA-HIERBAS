@@ -5,6 +5,34 @@ import { notificar, confirmar } from '../notificaciones';
 // Sin tildes ni mayúsculas, para que buscar "ore" encuentre "Orégano".
 const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
+const formatearPrecio = (valor) =>
+  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(Number(valor) || 0);
+
+// "5" en vez de "5.00", pero "2.5" se mantiene — para que la cantidad se lea natural
+// tanto en categorías por unidad como en las que venden por kg.
+const formatearCantidad = (cantidad) => {
+  const n = Number(cantidad);
+  return Number.isInteger(n) ? String(n) : String(parseFloat(n.toFixed(2)));
+};
+
+const UNIDAD_SINGULAR = { kg: 'kg', pack: 'pack', caja: 'caja', unidad: 'unidad' };
+const UNIDAD_PLURAL = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
+const nombreUnidad = (cantidad, unidadMedida) =>
+  (Number(cantidad) === 1 ? UNIDAD_SINGULAR : UNIDAD_PLURAL)[unidadMedida] || UNIDAD_PLURAL.unidad;
+
+/** Etiqueta legible de un tramo de precio por volumen: "1 Unidad", "5 a 10 Unidades",
+ * "Más de 10 Unidades". Se calcula a partir de las cantidades "desde" de los tramos
+ * vecinos en vez de usar el campo `etiqueta` (libre, pensado para un cartel del
+ * mostrador) — así el resumen siempre tiene el mismo formato en toda la lista. */
+function etiquetaEscalon(escalones, indice, unidadMedida) {
+  const desde = Number(escalones[indice].cantidad_desde);
+  if (escalones.length === 1) return 'Todas las cantidades';
+  if (indice === escalones.length - 1) return `Más de ${formatearCantidad(desde)} ${nombreUnidad(desde, unidadMedida)}`;
+  if (indice === 0) return `${formatearCantidad(desde)} ${nombreUnidad(desde, unidadMedida)}`;
+  const hasta = Number(escalones[indice + 1].cantidad_desde);
+  return `${formatearCantidad(desde)} a ${formatearCantidad(hasta)} ${nombreUnidad(hasta, unidadMedida)}`;
+}
+
 export default function ListaPreciosPage() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -14,7 +42,15 @@ export default function ListaPreciosPage() {
   const [guardandoId, setGuardandoId] = useState(null);
   const [guardandoEscalon, setGuardandoEscalon] = useState(null); // id de la categoría
 
+  // Qué está abierto: los escalones de una categoría en modo edición, y el
+  // desplegable de "ver descuentos por volumen" de cada tarjeta de producto.
+  const [categoriasEditando, setCategoriasEditando] = useState(() => new Set());
+  const [productosAbiertos, setProductosAbiertos] = useState(() => new Set());
+  // Un solo precio de producto editándose a la vez: { id, campo }.
+  const [editandoCampo, setEditandoCampo] = useState(null);
+
   // Ajuste masivo de precios (porcentaje o monto fijo, opcionalmente por categoría).
+  const [accionesAbierto, setAccionesAbierto] = useState(false);
   const [ajusteAbierto, setAjusteAbierto] = useState(false);
   const [ajusteModo, setAjusteModo] = useState('porcentaje');
   const [ajusteValor, setAjusteValor] = useState('');
@@ -63,6 +99,16 @@ export default function ListaPreciosPage() {
       .sort((a, b) => (a.categoria?.nombre || '').localeCompare(b.categoria?.nombre || ''));
   }, [productosFiltrados, categoriaDe]);
 
+  const alternarEnSet = (setState) => (valor) =>
+    setState((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(valor)) siguiente.delete(valor);
+      else siguiente.add(valor);
+      return siguiente;
+    });
+  const toggleEditarEscalones = alternarEnSet(setCategoriasEditando);
+  const toggleProducto = alternarEnSet(setProductosAbiertos);
+
   const cambiarCampoLocal = (id, campo, valor) => {
     setProductos((prev) => prev.map((p) => (p.id === id ? { ...p, [campo]: valor } : p)));
   };
@@ -77,6 +123,15 @@ export default function ListaPreciosPage() {
     } finally {
       setGuardandoId((actual) => (actual === producto.id ? null : actual));
     }
+  };
+
+  const editarPrecioProducto = (prod, campo, valor) => {
+    cambiarCampoLocal(prod.id, campo, valor);
+  };
+
+  const cerrarYGuardarPrecioProducto = (prod, campo, valor) => {
+    guardarCampo(prod, campo, valor);
+    setEditandoCampo(null);
   };
 
   const cambiarEscalonLocal = (catId, escId, campo, valor) => {
@@ -167,14 +222,33 @@ export default function ListaPreciosPage() {
             </select>
           </label>
 
-          <button
-            type="button"
-            className="btn-secundario precios-ajuste-toggle"
-            onClick={() => setAjusteAbierto((v) => !v)}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">percent</span>
-            Aumentar precios
-          </button>
+          {/* Herramienta de gestión (afecta precios en masa), separada a propósito de la
+              lectura de precios de todos los días — así no se toca por accidente. */}
+          <div className="precios-acciones">
+            <button
+              type="button"
+              className="precios-acciones-toggle"
+              onClick={() => setAccionesAbierto((v) => !v)}
+              aria-expanded={accionesAbierto}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">settings</span>
+              Acciones
+            </button>
+            {accionesAbierto && (
+              <>
+                <div className="precios-acciones-backdrop" onClick={() => setAccionesAbierto(false)} />
+                <div className="precios-acciones-menu">
+                  <button
+                    type="button"
+                    onClick={() => { setAjusteAbierto(true); setAccionesAbierto(false); }}
+                  >
+                    <span className="material-symbols-outlined" aria-hidden="true">percent</span>
+                    Aumentar / bajar precios
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {ajusteAbierto && (
@@ -233,15 +307,33 @@ export default function ListaPreciosPage() {
                 .sort((a, b) => Number(a.cantidad_desde) - Number(b.cantidad_desde));
               const usaEscalones = escalones.length > 0;
               const usaGranel = categoria && Number(categoria.granel_cantidad_minima) > 0;
+              const editandoEstaCategoria = categoriasEditando.has(categoria?.id);
+
               return (
                 <div key={categoria?.id ?? 'sin'} className="precios-grupo">
                   <div className="precios-grupo-cabecera">
                     <h3>{categoria?.nombre ?? 'Sin categoría'}</h3>
-                    {usaEscalones && (
-                      <div className="precios-escalones">
+                  </div>
+
+                  {usaEscalones && (
+                    <div className="precios-escalones">
+                      <div className="precios-escalones-cabecera">
                         <span className="precios-escalones-titulo">
                           Precio por volumen — aplica a toda la categoría
                         </span>
+                        <button
+                          type="button"
+                          className="precios-escalones-editar-btn"
+                          onClick={() => toggleEditarEscalones(categoria.id)}
+                        >
+                          <span className="material-symbols-outlined" aria-hidden="true">
+                            {editandoEstaCategoria ? 'check' : 'edit'}
+                          </span>
+                          {editandoEstaCategoria ? 'Listo' : 'Editar'}
+                        </button>
+                      </div>
+
+                      {editandoEstaCategoria ? (
                         <div className="precios-escalones-campos">
                           {escalones.map((esc) => (
                             <div key={esc.id} className="precios-escalon">
@@ -276,66 +368,142 @@ export default function ListaPreciosPage() {
                             Guardando...
                           </span>
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {prods.map((prod) => (
-                    <div key={prod.id} className="precios-fila">
-                      <div className="precios-fila-imagen">
-                        {prod.imagen ? (
-                          <img src={prod.imagen} alt={prod.nombre} />
-                        ) : (
-                          <span className="material-symbols-outlined" aria-hidden="true">eco</span>
-                        )}
-                      </div>
-
-                      <div className="precios-fila-info">
-                        <strong>{prod.nombre}</strong>
-                        <span className="precios-fila-categoria">{prod.categoria_nombre}</span>
-                      </div>
-
-                      {(!usaEscalones || usaGranel) && (
-                        <div className="precios-fila-campos">
-                          {!usaEscalones && (
-                            <label className="precios-campo">
-                              <span>Precio propio</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={prod.precio_base ?? ''}
-                                onChange={(e) => cambiarCampoLocal(prod.id, 'precio_base', e.target.value)}
-                                onBlur={(e) => guardarCampo(prod, 'precio_base', e.target.value)}
-                              />
-                            </label>
-                          )}
-
-                          {usaGranel && (
-                            <label className="precios-campo">
-                              <span>Precio a granel</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={prod.precio_granel ?? ''}
-                                onChange={(e) => cambiarCampoLocal(prod.id, 'precio_granel', e.target.value)}
-                                onBlur={(e) => guardarCampo(prod, 'precio_granel', e.target.value)}
-                              />
-                            </label>
-                          )}
-
-                          <span className={`precios-guardado ${guardandoId === prod.id ? 'precios-guardado-visible' : ''}`}>
-                            Guardando...
-                          </span>
-                        </div>
-                      )}
-
-                      {usaEscalones && !usaGranel && (
-                        <span className="precios-fila-nota">precio por volumen ↑</span>
+                      ) : (
+                        <ul className="precios-escalones-resumen">
+                          {escalones.map((esc, i) => (
+                            <li key={esc.id}>
+                              <span>{etiquetaEscalon(escalones, i, categoria.unidad_medida)}</span>
+                              <strong>{formatearPrecio(esc.precio_unitario)}</strong>
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                  ))}
+                  )}
+
+                  <div className="precios-fila-lista">
+                    {prods.map((prod) => {
+                      const abierto = productosAbiertos.has(prod.id);
+                      const editandoBase = editandoCampo?.id === prod.id && editandoCampo.campo === 'precio_base';
+                      const editandoGranel = editandoCampo?.id === prod.id && editandoCampo.campo === 'precio_granel';
+                      const precioBaseMostrado = usaEscalones
+                        ? Number(escalones[0]?.precio_unitario ?? 0)
+                        : Number(prod.precio_base ?? 0);
+
+                      return (
+                        <div key={prod.id} className="precios-fila">
+                          <div className="precios-fila-cabecera">
+                            <div className="precios-fila-imagen">
+                              {prod.imagen ? (
+                                <img src={prod.imagen} alt={prod.nombre} />
+                              ) : (
+                                <span className="material-symbols-outlined" aria-hidden="true">eco</span>
+                              )}
+                            </div>
+
+                            <div className="precios-fila-info">
+                              <strong>{prod.nombre}</strong>
+                              <span className="precios-fila-categoria">{prod.categoria_nombre}</span>
+                            </div>
+                          </div>
+
+                          <div className="precios-fila-precios">
+                            <div className="precios-fila-precio">
+                              <span className="precios-fila-precio-label">Precio Base</span>
+                              {usaEscalones ? (
+                                <strong>{formatearPrecio(precioBaseMostrado)}</strong>
+                              ) : editandoBase ? (
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  autoFocus
+                                  className="precios-input-inline"
+                                  value={prod.precio_base ?? ''}
+                                  onChange={(e) => editarPrecioProducto(prod, 'precio_base', e.target.value)}
+                                  onBlur={(e) => cerrarYGuardarPrecioProducto(prod, 'precio_base', e.target.value)}
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="precios-precio-editable"
+                                  onClick={() => setEditandoCampo({ id: prod.id, campo: 'precio_base' })}
+                                >
+                                  <strong>{formatearPrecio(precioBaseMostrado)}</strong>
+                                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {usaGranel && (
+                              <div className="precios-fila-precio">
+                                <span className="precios-fila-precio-label">Precio a granel</span>
+                                {editandoGranel ? (
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    autoFocus
+                                    className="precios-input-inline"
+                                    value={prod.precio_granel ?? ''}
+                                    onChange={(e) => editarPrecioProducto(prod, 'precio_granel', e.target.value)}
+                                    onBlur={(e) => cerrarYGuardarPrecioProducto(prod, 'precio_granel', e.target.value)}
+                                  />
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="precios-precio-editable"
+                                    onClick={() => setEditandoCampo({ id: prod.id, campo: 'precio_granel' })}
+                                  >
+                                    <strong>{prod.precio_granel != null ? formatearPrecio(prod.precio_granel) : 'Sin definir'}</strong>
+                                    <span className="material-symbols-outlined" aria-hidden="true">edit</span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {guardandoId === prod.id && <span className="precios-guardando-fila">Guardando...</span>}
+                          </div>
+
+                          {usaEscalones && (
+                            <div className="precios-fila-acordeon">
+                              <button
+                                type="button"
+                                className="precios-fila-acordeon-toggle"
+                                onClick={() => toggleProducto(prod.id)}
+                                aria-expanded={abierto}
+                              >
+                                Ver descuentos por volumen
+                                <span className="material-symbols-outlined" aria-hidden="true">
+                                  {abierto ? 'expand_less' : 'expand_more'}
+                                </span>
+                              </button>
+                              {abierto && (
+                                <div className="precios-fila-tabla-wrap">
+                                  <table className="precios-fila-tabla">
+                                    <thead>
+                                      <tr>
+                                        <th>Cantidad</th>
+                                        <th>Precio unitario</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {escalones.map((esc, i) => (
+                                        <tr key={esc.id}>
+                                          <td>{etiquetaEscalon(escalones, i, categoria.unidad_medida)}</td>
+                                          <td>{formatearPrecio(esc.precio_unitario)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}

@@ -29,7 +29,11 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
   const [cuit, setCuit] = useState(pedido?.cuit || '');
   const [tipoEntrega, setTipoEntrega] = useState(pedido?.tipo_entrega || 'retiro');
   const [direccion, setDireccion] = useState(pedido?.direccion || '');
+  // La localidad se escribe a mano (con sugerencias de las ya cargadas). `localidadId`
+  // queda seteado solo cuando el nombre coincide con una que ya existe; si es nueva, se
+  // da de alta al guardar el pedido.
   const [localidadId, setLocalidadId] = useState(pedido?.localidad ? String(pedido.localidad) : '');
+  const [localidadNombre, setLocalidadNombre] = useState(pedido?.localidad_nombre || '');
   const [costoEnvio, setCostoEnvio] = useState(pedido?.costo_envio ?? '');
   const [aplicarDescuento, setAplicarDescuento] = useState(Number(pedido?.descuento_pct) > 0);
   const [descuentoPct, setDescuentoPct] = useState(pedido?.descuento_pct ? String(pedido.descuento_pct) : '');
@@ -50,10 +54,17 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
     .filter((p) => categoriaActiva === 'todas' || p.categoria === categoriaActiva)
     .filter((p) => !textoBusqueda || normalizar(p.nombre).includes(textoBusqueda));
 
-  const elegirLocalidad = (id) => {
-    setLocalidadId(id);
-    const localidad = (localidades || []).find((l) => String(l.id) === id);
-    if (localidad) setCostoEnvio(localidad.costo_envio);
+  /** Al tipear la localidad: si el nombre coincide con una que ya existe se reusa esa
+   * (y se trae su costo de envío); si no, queda solo el texto y se crea al guardar.
+   * La comparación ignora mayúsculas y espacios para no duplicar "Yerba Buena" con
+   * "yerba buena". */
+  const escribirLocalidad = (nombre) => {
+    setLocalidadNombre(nombre);
+    const existente = (localidades || []).find(
+      (l) => l.nombre.trim().toLowerCase() === nombre.trim().toLowerCase(),
+    );
+    setLocalidadId(existente ? String(existente.id) : '');
+    if (existente) setCostoEnvio(existente.costo_envio);
   };
 
   const actualizarFila = (key, cambios) => {
@@ -108,19 +119,31 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
     }
 
     setGuardando(true);
-    const cuerpo = {
-      cliente,
-      telefono,
-      cuit,
-      tipo_entrega: tipoEntrega,
-      direccion: tipoEntrega === 'envio' ? direccion : '',
-      localidad: tipoEntrega === 'envio' ? (localidadId || null) : null,
-      costo_envio: tipoEntrega === 'envio' ? (costoEnvio || 0) : 0,
-      descuento_pct: pctDescuento,
-      nota,
-      items: filasValidas.map((f) => ({ producto: f.producto.id, cantidad: f.cantidad })),
-    };
     try {
+      // Localidad escrita a mano que todavía no existe: se da de alta con el costo de
+      // envío cargado, así la próxima vez aparece sola entre las sugerencias.
+      let localidad = tipoEntrega === 'envio' ? (localidadId || null) : null;
+      const nombreNuevo = localidadNombre.trim();
+      if (tipoEntrega === 'envio' && !localidad && nombreNuevo) {
+        const { data } = await api.post('/localidades/', {
+          nombre: nombreNuevo,
+          costo_envio: costoEnvio || 0,
+        });
+        localidad = data.id;
+      }
+
+      const cuerpo = {
+        cliente,
+        telefono,
+        cuit,
+        tipo_entrega: tipoEntrega,
+        direccion: tipoEntrega === 'envio' ? direccion : '',
+        localidad,
+        costo_envio: tipoEntrega === 'envio' ? (costoEnvio || 0) : 0,
+        descuento_pct: pctDescuento,
+        nota,
+        items: filasValidas.map((f) => ({ producto: f.producto.id, cantidad: f.cantidad })),
+      };
       if (esEdicion) {
         await api.patch(`/pedidos/${pedido.id}/`, cuerpo);
       } else {
@@ -129,7 +152,11 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
       onSaved();
     } catch (error) {
       console.error(esEdicion ? 'Error al editar el pedido:' : 'Error al crear el pedido:', error);
-      const detalle = error.response?.data?.non_field_errors?.[0];
+      // `nombre` cubre el alta de la localidad (ej. el nombre ya estaba usado): sin
+      // esto el error salía como "hubo un problema al crear el pedido" y no se
+      // entendía que lo que falló era la localidad.
+      const datos = error.response?.data;
+      const detalle = datos?.non_field_errors?.[0] || datos?.nombre?.[0] || datos?.detail;
       notificar(detalle || `Hubo un problema al ${esEdicion ? 'guardar los cambios del' : 'crear el'} pedido.`);
     } finally {
       setGuardando(false);
@@ -208,12 +235,26 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Localidad (opcional)</label>
-                  <select className="input-vibrante" value={localidadId} onChange={(e) => elegirLocalidad(e.target.value)}>
-                    <option value="">Sin localidad específica</option>
+                  <input
+                    type="text"
+                    className="input-vibrante"
+                    /* El id lleva la variante porque el formulario se puede montar dos
+                       veces a la vez (embebido en Inicio + el modal de edición). */
+                    list={`pf-localidades-${variante}`}
+                    placeholder="Escribí la localidad"
+                    value={localidadNombre}
+                    onChange={(e) => escribirLocalidad(e.target.value)}
+                  />
+                  <datalist id={`pf-localidades-${variante}`}>
                     {(localidades || []).map((l) => (
-                      <option key={l.id} value={l.id}>{l.nombre} — {formatearPrecio(l.costo_envio)}</option>
+                      <option key={l.id} value={l.nombre}>{formatearPrecio(l.costo_envio)}</option>
                     ))}
-                  </select>
+                  </datalist>
+                  <small className="form-ayuda">
+                    {localidadId
+                      ? 'Ya cargada: se usó su costo de envío.'
+                      : 'Si es nueva, se guarda con este costo de envío para la próxima vez.'}
+                  </small>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Costo de envío</label>

@@ -550,8 +550,8 @@ export default function Inicio() {
 
           .inicio-card-icono {
             font-size: 1.4rem;
-            color: #aac398;
-            filter: drop-shadow(0 0 6px rgba(140, 170, 120, 0.35));
+            color: var(--accent-texto);
+            filter: none;
           }
 
           .inicio-inline-ico {
@@ -603,7 +603,7 @@ export default function Inicio() {
           }
 
           .inicio-card-subtexto {
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
             margin-top: 10px;
             font-size: 0.85rem;
           }
@@ -612,7 +612,7 @@ export default function Inicio() {
             font-size: 2.4rem;
             font-weight: 800;
             margin: 12px 0 0;
-            background: linear-gradient(90deg, #aac398, #8caa78);
+            background: linear-gradient(90deg, var(--accent-texto), var(--accent));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -641,18 +641,18 @@ export default function Inicio() {
           .inicio-btn-cerrar-caja {
             background: none;
             border: none;
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             padding: 6px 4px;
           }
           .inicio-btn-cerrar-caja:hover {
-            color: #f87171;
+            color: var(--error);
           }
 
           .inicio-link-caja {
-            color: #8caa78;
+            color: var(--accent-texto);
             text-decoration: none;
             font-weight: 600;
           }
@@ -683,7 +683,7 @@ export default function Inicio() {
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
           }
 
           .inicio-caja-stats strong {
@@ -692,13 +692,13 @@ export default function Inicio() {
           }
 
           .inicio-card-confirmar {
-            border-color: rgba(251, 191, 36, 0.35);
+            border-color: var(--alerta);
           }
 
           .inicio-contador-confirmar {
-            background: rgba(251, 191, 36, 0.18);
-            color: #fbbf24;
-            border-color: rgba(251, 191, 36, 0.4);
+            background: var(--alerta-suave);
+            color: var(--alerta);
+            border-color: var(--alerta);
           }
 
           .inicio-confirmar-aviso {
@@ -727,14 +727,14 @@ export default function Inicio() {
           .inicio-btn-cancelar {
             background: none;
             border: none;
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
             font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             padding: 6px 8px;
           }
           .inicio-btn-cancelar:hover {
-            color: #f87171;
+            color: var(--error);
           }
 
           .inicio-btn-confirmar {
@@ -787,9 +787,9 @@ export default function Inicio() {
 
           .inicio-contador-pedidos {
             margin-left: auto;
-            background: rgba(140, 170, 120, 0.15);
-            color: #8caa78;
-            border: 1px solid rgba(140, 170, 120, 0.35);
+            background: var(--accent-suave);
+            color: var(--accent-texto);
+            border: 1px solid var(--accent);
             border-radius: 20px;
             padding: 2px 12px;
             font-size: 0.8rem;
@@ -827,7 +827,7 @@ export default function Inicio() {
             gap: 14px;
             margin-top: 4px;
             font-size: 0.8rem;
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
           }
 
           .inicio-pedidos-grid {
@@ -841,27 +841,27 @@ export default function Inicio() {
           }
 
           .inicio-card-alerta {
-            border-color: rgba(239, 68, 68, 0.4);
+            border-color: var(--error);
           }
           .inicio-card-alerta::before {
-            background: linear-gradient(180deg, rgba(239,68,68,0.9), rgba(239,68,68,0.1));
+            background: linear-gradient(180deg, var(--error), transparent);
           }
 
           .inicio-contador-alerta {
-            background: rgba(239, 68, 68, 0.18);
-            color: #f87171;
-            border-color: rgba(239, 68, 68, 0.4);
+            background: var(--error-suave);
+            color: var(--error);
+            border-color: var(--error);
           }
 
           .inicio-falta-juntar {
-            color: #fbbf24;
+            color: var(--alerta);
           }
           .inicio-falta-juntar strong {
-            color: #fbbf24;
+            color: var(--alerta);
           }
 
           .inicio-cubierto {
-            color: #4ade80;
+            color: var(--exito);
           }
 
           .inicio-gastos-fijos-lista {
@@ -896,11 +896,11 @@ export default function Inicio() {
 
           .inicio-gasto-fijo-info span {
             font-size: 0.76rem;
-            color: var(--text-muted, rgba(255,255,255,0.5));
+            color: var(--text-muted);
           }
 
           .inicio-gasto-fijo-alerta {
-            color: #f87171 !important;
+            color: var(--error) !important;
             font-weight: 700;
           }
 

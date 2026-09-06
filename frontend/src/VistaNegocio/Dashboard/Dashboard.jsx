@@ -443,7 +443,7 @@ export default function Dashboard() {
                 {whatsapp.trim() && (() => {
                   const limpio = limpiarNumeroWhatsapp(whatsapp);
                   return limpio.length < 10 || limpio.length > 15 ? (
-                    <p className="form-ayuda" style={{ color: '#f59e0b' }}>
+                    <p className="form-ayuda" style={{ color: 'var(--alerta)' }}>
                       Este número no parece completo — tiene que ser código de país + código de área (sin el 0) + número,
                       sin espacios ni guiones. Para un celular argentino, agregá un 9 después del 54. Ej: 5493511234567.
                     </p>

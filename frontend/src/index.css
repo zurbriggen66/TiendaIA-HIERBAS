@@ -4,37 +4,152 @@
    encadenado (HTML → index.css → CSS de la fuente → woff2) es lento y frágil en
    móvil, y hacía que en algunos iPhone los íconos aparecieran como texto. */
 
-:root {
-  /* Paleta del panel de administración (Vista Negocio): se mantiene en verde
-     oscuro, independiente del tema de la tienda pública. */
-  --bg: #26382c;
-  --surface: #324a3a;
-  --surface-2: #3d5844;
-  --border: #4c6b54;
-  --text: #f3f1ea;
-  --text-muted: #b9c7b3;
+/* ---------------------------------------------------------------------------
+   TOKENS DEL PANEL DE ADMINISTRACIÓN
 
-  --accent: #8caa78;
-  --accent-light: #aac398;
-  --accent-dark: #6f8c5c;
+   `:root` viste SOLO el admin: la Vista Cliente redeclara su propia paleta sobre
+   `.cliente-container` (y lo que el dueño cargue en "Diseño & Colores" la pisa por
+   encima), así que el panel puede cambiar de tema sin que la tienda se entere.
+
+   Las superficies son NEUTRAS a propósito. El verde sigue siendo la marca, pero
+   pinta lo que se resalta (botón, foco, ítem activo) en vez del fondo entero: eso
+   es lo que deja respirar al resto de los colores —cada estado y cada módulo con
+   el suyo— y lo único que hace posible un modo claro decente.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: dark;
+
+  --bg: #101512;
+  --surface: #171d19;
+  --surface-2: #1e2621;
+  --surface-3: #28322c;
+  --border: #2b3730;
+  --border-fuerte: #3c4a42;
+  --text: #e9ede9;
+  --text-muted: #9aa79f;
+  --text-sutil: #6d7a73;
+
+  /* Verde de la marca. `--accent` es relleno (botones, barras), `--accent-texto` es
+     el verde legible SOBRE el fondo del tema — no son el mismo tono y confundirlos
+     es lo que deja textos verdes ilegibles al cambiar de modo. */
+  --accent: #47854c;
+  --accent-light: #5d9f62;
+  --accent-dark: #33633a;
+  --accent-texto: #8fcf95;
+  --accent-contraste: #ffffff;
+  --accent-suave: rgba(103, 173, 108, 0.16);
   --accent-gradient: linear-gradient(135deg, var(--accent-light), var(--accent));
 
-  /* Colores semánticos de las métricas del admin. Son tonos claros a propósito:
-     el número va sobre --surface (verde oscuro), así que un verde/rojo saturado
-     quedaría con poco contraste. */
-  --color-positive: #34d399;
-  --color-positive-soft: rgba(52, 211, 153, 0.15);
-  --color-negative: #f87171;
-  --color-negative-soft: rgba(248, 113, 113, 0.15);
-  --color-neutral: #9bb0bd;
-  --color-neutral-soft: rgba(155, 176, 189, 0.16);
-  --color-highlight: #fbbf24;
-  --color-highlight-soft: rgba(251, 191, 36, 0.16);
+  /* Semánticos: verde = salió bien, ámbar = ojo, rojo = error, azul = informativo.
+     No se tocan al cambiar la marca; cambiarlos rompería esa lectura. */
+  --exito: #4ade80;
+  --exito-suave: rgba(74, 222, 128, 0.15);
+  --alerta: #fbbf24;
+  --alerta-suave: rgba(251, 191, 36, 0.16);
+  --error: #f87171;
+  --error-suave: rgba(248, 113, 113, 0.15);
+  --info: #60a5fa;
+  --info-suave: rgba(96, 165, 250, 0.15);
+  /* Rellenos sólidos para chips y botones de color pleno: van siempre con texto
+     blanco, así que son oscuros en los DOS temas (los tonos claros de arriba son
+     para texto sobre el fondo, no para fondo). */
+  --exito-fuerte: #197f42;
+  --info-fuerte: #1f6fbf;
+
+  /* Paleta categórica: para separar cosas que NO son mejores ni peores entre sí
+     (módulos del menú, rubros de gasto, series de un gráfico). Orden fijo: el color
+     sigue a la entidad, no a su posición en un ranking. */
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --serie-4: #c98500;
+  --serie-5: #d55181;
+  --serie-6: #7c6ce0;
+  --serie-1-suave: rgba(57, 135, 229, 0.16);
+  --serie-2-suave: rgba(217, 89, 38, 0.16);
+  --serie-3-suave: rgba(25, 158, 112, 0.16);
+  --serie-4-suave: rgba(201, 133, 0, 0.16);
+  --serie-5-suave: rgba(213, 81, 129, 0.16);
+  --serie-6-suave: rgba(124, 108, 224, 0.16);
+
+  /* Alias de los nombres viejos: las reglas que ya usaban --color-positive y
+     compañía siguen funcionando sin tocarlas una por una. */
+  --color-positive: var(--exito);
+  --color-positive-soft: var(--exito-suave);
+  --color-negative: var(--error);
+  --color-negative-soft: var(--error-suave);
+  --color-neutral: var(--text-muted);
+  --color-neutral-soft: rgba(154, 167, 159, 0.16);
+  --color-highlight: var(--alerta);
+  --color-highlight-soft: var(--alerta-suave);
+
+  /* Fondos que antes eran negros/blancos fijos y por eso no sobrevivían al cambio
+     de tema: overlay de los modales, hover de las filas de una tabla, tooltips. */
+  --overlay: rgba(8, 12, 10, 0.62);
+  --hover-sutil: rgba(255, 255, 255, 0.04);
+  --tooltip-bg: #28322c;
+  --tooltip-texto: #f3f4f2;
 
   /* Radios y sombra uniformes en todo el panel. */
   --radius: 12px;
   --radius-sm: 8px;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.16), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f4f6f3;
+  --surface: #ffffff;
+  --surface-2: #eef1ec;
+  --surface-3: #e3e8e1;
+  --border: #e0e5dd;
+  --border-fuerte: #c6cec2;
+  --text: #171c18;
+  --text-muted: #5a6459;
+  --text-sutil: #858e83;
+
+  --accent: #2f6d36;
+  --accent-light: #3f8447;
+  --accent-dark: #24542a;
+  --accent-texto: #2a6130;
+  --accent-suave: rgba(53, 112, 60, 0.1);
+
+  /* En claro los semánticos se oscurecen: los tonos pensados para fondo oscuro no
+     llegan al contraste mínimo sobre blanco. */
+  --exito: #15803d;
+  --exito-suave: rgba(21, 128, 61, 0.1);
+  --alerta: #b45309;
+  --alerta-suave: rgba(180, 83, 9, 0.1);
+  --error: #dc2626;
+  --error-suave: rgba(220, 38, 38, 0.1);
+  --info: #1d5fb0;
+  --info-suave: rgba(29, 95, 176, 0.1);
+  --exito-fuerte: #15803d;
+  --info-fuerte: #1d5fb0;
+
+  /* Los mismos seis hues re-escalonados para fondo claro. */
+  --serie-1: #2a78d6;
+  --serie-2: #c94e1f;
+  --serie-3: #157f5b;
+  --serie-4: #a06a00;
+  --serie-5: #bd3f6f;
+  --serie-6: #6354c9;
+  --serie-1-suave: rgba(42, 120, 214, 0.12);
+  --serie-2-suave: rgba(201, 78, 31, 0.12);
+  --serie-3-suave: rgba(21, 127, 91, 0.12);
+  --serie-4-suave: rgba(160, 106, 0, 0.12);
+  --serie-5-suave: rgba(189, 63, 111, 0.12);
+  --serie-6-suave: rgba(99, 84, 201, 0.12);
+
+  --color-neutral-soft: rgba(90, 100, 89, 0.12);
+
+  --overlay: rgba(23, 28, 24, 0.45);
+  --hover-sutil: rgba(23, 28, 24, 0.04);
+  --tooltip-bg: #171c18;
+  --tooltip-texto: #ffffff;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 20px -12px rgba(16, 24, 40, 0.18);
 }
 
 /* Paleta de la Vista Cliente ("Apothecary Harvest": pergamino + verde bosque),
@@ -51,7 +166,29 @@
   --accent: #1a361b;
   --accent-light: #2f4f30;
   --accent-dark: #0e2410;
+  --accent-texto: #1a361b;
+  --accent-contraste: #ffffff;
+  --accent-suave: rgba(26, 54, 27, 0.1);
   --accent-gradient: linear-gradient(135deg, var(--accent-light), var(--accent));
+
+  /* Blindaje contra el tema del panel: la tienda es SIEMPRE clara, tenga el admin
+     el tema que tenga. Sin estos, el modo oscuro del panel se colaría por cualquier
+     token que la tienda no redeclare (superficies, semánticos, overlays). */
+  --surface-3: #d3dccd;
+  --border-fuerte: #a9b3a3;
+  --text-sutil: #6d7568;
+  --exito: #15803d;
+  --exito-suave: rgba(21, 128, 61, 0.1);
+  --alerta: #b45309;
+  --alerta-suave: rgba(180, 83, 9, 0.1);
+  --error: #dc2626;
+  --error-suave: rgba(220, 38, 38, 0.1);
+  --info: #1d5fb0;
+  --info-suave: rgba(29, 95, 176, 0.1);
+  --overlay: rgba(23, 28, 24, 0.45);
+  --hover-sutil: rgba(23, 28, 24, 0.04);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 20px -12px rgba(16, 24, 40, 0.18);
+  color-scheme: light;
 
   /* body (fuera de este contenedor) ya fija color: var(--text), pero con el --text
      del admin (claro, para fondo oscuro). Sin este color acá, cualquier texto de la
@@ -185,25 +322,13 @@ body {
   width: 248px;
   min-width: 248px;
   height: 100%;
-  /* El sidebar va en blanco aunque el resto del admin sea verde oscuro. Se redefine
-     acá la paleta local: así las reglas de adentro (menú, marca, footer) que usan
-     var(--text), var(--border), var(--surface-2), var(--accent-light) se adaptan
-     solas al fondo claro sin tocar cada una. */
-  --text: #1f2a22;
-  --text-muted: #5f6d63;
-  --border: #e4e8e1;
-  --surface: #ffffff;
-  --surface-2: #eef2ec;
-  --accent-light: #2f4f30;
-  background-color: #ffffff;
-  border-right: 1px solid #e4e8e1;
+  /* Sin paleta propia: el sidebar sigue al tema como el resto del panel. Antes
+     redeclaraba acá una paleta clara fija, que en modo oscuro dejaba una franja
+     blanca al costado de un panel entero en verde oscuro. */
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-}
-
-/* El pill del ítem activo: tinte verde suave sobre blanco. */
-.sidebar .menu-item.active {
-  background: rgba(47, 79, 48, 0.1);
 }
 
 .sidebar-brand {
@@ -218,7 +343,7 @@ body {
 
 .sidebar-brand-icono {
   font-size: 1.6rem;
-  color: var(--accent-light, #aac398);
+  color: var(--accent-texto);
 }
 
 .sidebar-brand-texto {
@@ -276,6 +401,14 @@ body {
 .menu-item .material-symbols-outlined {
   font-size: 1.2rem;
   flex-shrink: 0;
+  /* Color propio de cada módulo (lo pasa DashboardLayout como --item-color): el ícono
+     es lo que hace que el menú se recorra de un vistazo en vez de leerse entero. */
+  color: var(--item-color, var(--text-sutil));
+  transition: color 0.15s ease;
+}
+
+.menu-item:hover .material-symbols-outlined {
+  color: var(--item-color, var(--text-muted));
 }
 
 .menu-item-texto {
@@ -292,7 +425,7 @@ body {
 }
 
 .sidebar-badge {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--error);
   color: #ffffff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -310,14 +443,16 @@ body {
   color: var(--text);
 }
 
+/* El ítem activo se pinta con el color de su propio módulo, no con el verde de la
+   marca: así el panel dice "estás en Gastos" con el mismo color que el ícono. */
 .menu-item.active {
-  background: rgba(140, 170, 120, 0.16);
-  color: var(--accent-light, #aac398);
+  background: color-mix(in srgb, var(--item-color, var(--accent)) 16%, transparent);
+  color: var(--item-color, var(--accent-texto));
   font-weight: 600;
 }
 
 .menu-item.active .material-symbols-outlined {
-  color: var(--accent-light, #aac398);
+  color: var(--item-color, var(--accent-texto));
 }
 
 .sidebar-footer {
@@ -338,8 +473,8 @@ body {
   color: var(--text-muted);
 }
 .sidebar-cerrar-sesion:hover {
-  color: #f87171;
-  border-color: #f87171;
+  color: var(--error);
+  border-color: var(--error);
 }
 
 /* Login del panel de administración */
@@ -366,7 +501,7 @@ body {
   text-align: center;
   font-family: 'Anton', 'Segoe UI', sans-serif;
   letter-spacing: 0.02em;
-  color: #8caa78;
+  color: var(--accent-texto);
   font-size: 1.3rem;
   margin-bottom: 6px;
 }
@@ -379,7 +514,7 @@ body {
 }
 
 .admin-login-error {
-  color: #f87171;
+  color: var(--error);
   font-size: 0.85rem;
   font-weight: 600;
   margin: -8px 0 16px;
@@ -423,7 +558,7 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f4a35c, #8caa78);
+  background: linear-gradient(135deg, var(--serie-2), var(--accent));
   color: white;
   display: flex;
   align-items: center;
@@ -474,7 +609,7 @@ body {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--overlay);
     z-index: 190;
   }
 
@@ -601,12 +736,12 @@ body {
 }
 
 .upload-link {
-  color: #8caa78;
+  color: var(--accent-texto);
   font-weight: 600;
 }
 
 .upload-file-name {
-  color: #10b981;
+  color: var(--exito);
   font-weight: 700;
   display: inline-block;
   word-break: break-word;
@@ -614,7 +749,7 @@ body {
 
 .upload-hint {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-sutil);
   margin-top: 4px;
 }
 
@@ -655,6 +790,52 @@ body {
   justify-content: center;
   color: var(--bg);
   font-size: 0.85rem;
+}
+
+/* Selector de tema del pie del sidebar (SelectorTema.jsx). */
+.selector-tema {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.selector-tema-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.selector-tema-opcion:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.selector-tema-activa {
+  background: var(--surface);
+  color: var(--accent-texto);
+  box-shadow: var(--shadow-card);
+}
+
+.selector-tema-etiqueta {
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
 }
 
 /* === VISTA NEGOCIO - PRODUCTOS (ProductosPage.jsx) === */
@@ -732,20 +913,20 @@ body {
 }
 
 .chip-mostaza {
-  background: linear-gradient(135deg, #f4a35c, #8caa78);
+  background: linear-gradient(135deg, var(--serie-2), var(--accent));
 }
 
 .chip-naranja {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--accent-gradient);
 }
 
 .chip-tomate {
-  background: linear-gradient(135deg, #8caa78, #6f8c5c);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
 }
 
 .chip-nueva {
   background: var(--surface);
-  color: #8caa78;
+  color: var(--accent-texto);
   border: 2px dashed var(--border);
 }
 
@@ -823,7 +1004,7 @@ body {
   top: 12px;
   left: 12px;
   z-index: 2;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, var(--alerta), #f59e0b);
   color: #78350f;
   font-size: 0.7rem;
   font-weight: 700;
@@ -837,7 +1018,7 @@ body {
   top: 12px;
   right: 12px;
   z-index: 2;
-  background: linear-gradient(135deg, #38bdf8, #0891b2);
+  background: var(--info-fuerte);
   color: #ffffff;
   font-size: 0.7rem;
   font-weight: 700;
@@ -849,7 +1030,7 @@ body {
 .badge-descuento {
   display: inline-flex;
   align-self: flex-start;
-  background: linear-gradient(135deg, #f4a35c, #8caa78);
+  background: linear-gradient(135deg, var(--serie-2), var(--accent));
   color: #ffffff;
   font-weight: 700;
   font-size: 0.7rem;
@@ -988,7 +1169,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--accent-light, #aac398);
+  color: var(--accent-texto);
 }
 
 .precios-escalones-campos {
@@ -1088,7 +1269,7 @@ body {
   width: 70px;
   flex-shrink: 0;
   font-size: 0.7rem;
-  color: var(--accent-light, #5a6e5b);
+  color: var(--accent-texto);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -1299,7 +1480,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #8caa78;
+  color: var(--accent-texto);
   background: var(--surface-2);
   padding: 2px 10px;
   border-radius: 999px;
@@ -1330,7 +1511,7 @@ body {
 .producto-precio {
   font-weight: 800;
   font-size: 1.1rem;
-  color: #16a34a;
+  color: var(--exito);
 }
 
 .producto-acciones {
@@ -1341,7 +1522,7 @@ body {
 .producto-acciones button {
   border: 1px solid var(--border);
   background: var(--surface-2);
-  color: #f4a35c;
+  color: var(--serie-2);
   border-radius: 8px;
   width: 28px;
   height: 28px;
@@ -1350,13 +1531,13 @@ body {
 }
 
 .producto-acciones button:hover {
-  background: #4a2f1f;
+  background: var(--serie-2-suave);
 }
 
 .producto-card-nueva {
   border: 2px dashed var(--border);
   background: var(--surface);
-  color: #8caa78;
+  color: var(--accent-texto);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1400,12 +1581,12 @@ body {
 }
 
 .cat-filtro-item:hover {
-  border-color: #8caa78;
+  border-color: var(--accent);
 }
 
 .cat-filtro-item.activo {
-  background: #8caa78;
-  border-color: #8caa78;
+  background: var(--accent);
+  border-color: var(--accent);
   color: #ffffff;
 }
 
@@ -1497,7 +1678,7 @@ body {
   min-width: 96px;
   text-align: right;
   font-weight: 700;
-  color: #4ade80;
+  color: var(--exito);
   font-size: 0.9rem;
 }
 
@@ -1512,7 +1693,7 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.55);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1558,8 +1739,8 @@ body {
 }
 
 .modal-close:hover {
-  background: #4a1f1f;
-  color: #ef4444;
+  background: var(--error-suave);
+  color: var(--error);
 }
 
 .modal-actions {
@@ -1693,7 +1874,7 @@ body {
 
 .input-vibrante:focus {
   outline: none;
-  border-color: #8caa78;
+  border-color: var(--accent);
 }
 
 .input-con-sufijo {
@@ -1749,7 +1930,7 @@ body {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: #f4a35c;
+  color: var(--serie-2);
   cursor: pointer;
 }
 
@@ -1795,7 +1976,7 @@ body {
 }
 
 .galeria-categoria-item-nueva {
-  border-color: #4ade80;
+  border-color: var(--exito);
 }
 
 .galeria-categoria-item button {
@@ -1816,11 +1997,11 @@ body {
 }
 
 .upload-box-vibrante:hover {
-  border-color: #8caa78;
+  border-color: var(--accent);
 }
 
 .btn-vibrante {
-  background: var(--accent-gradient, linear-gradient(135deg, #aac398, #8caa78));
+  background: var(--accent-gradient);
   color: #ffffff;
   border: none;
   padding: 12px 24px;
@@ -1881,7 +2062,7 @@ body {
 }
 
 .admin-toast-exito {
-  background: linear-gradient(135deg, #4ade80, #16a34a);
+  background: var(--exito-fuerte);
 }
 
 @keyframes adminToastAparece {
@@ -1893,7 +2074,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2064,9 +2245,9 @@ body {
 }
 
 .pedido-nota {
-  background: rgba(251, 191, 36, 0.12);
+  background: var(--alerta-suave);
   border: 1px dashed #d69b2f;
-  color: #fcd34d;
+  color: var(--alerta);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 0.85rem;
@@ -2133,17 +2314,17 @@ body {
 }
 
 .pedido-accion-cobrar {
-  color: #4ade80;
+  color: var(--exito);
 }
 .pedido-accion-cobrar:hover {
-  background: rgba(74, 222, 128, 0.12);
-  border-color: #4ade80;
+  background: var(--exito-suave);
+  border-color: var(--exito);
 }
 
 /* Mientras el pedido no esté cobrado, "Cobrar" es la acción principal de la tarjeta:
    va relleno, más grande y con un latido suave para que no se pase por alto. */
 .pedido-accion-cobrar-pendiente {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: var(--exito-fuerte);
   border-color: transparent;
   color: #ffffff;
   font-size: 0.82rem;
@@ -2153,7 +2334,8 @@ body {
 }
 
 .pedido-accion-cobrar-pendiente:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: var(--exito-fuerte);
+  filter: brightness(1.12);
   border-color: transparent;
   color: #ffffff;
   animation: none;
@@ -2175,11 +2357,11 @@ body {
 }
 
 .pedido-accion-detalle {
-  color: #60a5fa;
+  color: var(--info);
 }
 .pedido-accion-detalle:hover {
-  background: rgba(96, 165, 250, 0.12);
-  border-color: #60a5fa;
+  background: var(--info-suave);
+  border-color: var(--info);
 }
 
 .pedido-accion-imprimir {
@@ -2191,11 +2373,11 @@ body {
 }
 
 .pedido-accion-eliminar {
-  color: #f87171;
+  color: var(--error);
 }
 .pedido-accion-eliminar:hover {
-  background: rgba(248, 113, 113, 0.14);
-  border-color: #f87171;
+  background: var(--error-suave);
+  border-color: var(--error);
 }
 
 .badge-estado {
@@ -2211,25 +2393,27 @@ body {
 }
 
 .estado-pendiente {
-  background: linear-gradient(135deg, #d1d5db, #9ca3af);
-  color: #1f2937;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  border: 1px solid var(--border-fuerte);
 }
 
 .estado-en_preparacion {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--accent-gradient);
 }
 
 .estado-listo {
-  background: linear-gradient(135deg, #4ade80, #16a34a);
+  background: var(--exito-fuerte);
 }
 
 .estado-entregado {
-  background: linear-gradient(135deg, #38bdf8, #0891b2);
+  background: var(--serie-1);
 }
 
 .estado-cancelado {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--error-suave);
+  color: var(--error);
+  border: 1px solid var(--error);
 }
 
 .badge-cobro {
@@ -2243,21 +2427,21 @@ body {
 }
 
 .cobro-pagado {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
-  border-color: rgba(74, 222, 128, 0.4);
+  background: var(--exito-suave);
+  color: var(--exito);
+  border-color: var(--exito);
 }
 
 .cobro-parcial {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.4);
+  background: var(--alerta-suave);
+  color: var(--alerta);
+  border-color: var(--alerta);
 }
 
 .cobro-pendiente {
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
-  border-color: rgba(248, 113, 113, 0.4);
+  background: var(--error-suave);
+  color: var(--error);
+  border-color: var(--error);
 }
 
 .pedido-items-lista {
@@ -2299,7 +2483,7 @@ body {
 .pedido-total {
   font-weight: 800;
   font-size: 1.2rem;
-  color: #16a34a;
+  color: var(--exito);
 }
 
 .pedido-desglose {
@@ -2338,7 +2522,7 @@ body {
 .btn-cancelar-pedido {
   background: none;
   border: none;
-  color: #ef4444;
+  color: var(--error);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -2352,7 +2536,7 @@ body {
 .pedido-card-nuevo {
   border: 2px dashed var(--border);
   background: var(--surface);
-  color: #8caa78;
+  color: var(--accent-texto);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2425,7 +2609,7 @@ body {
 .pedido-fila-quitar {
   border: 1px solid var(--border);
   background: var(--surface-2);
-  color: #f4a35c;
+  color: var(--serie-2);
   border-radius: 8px;
   width: 32px;
   height: 32px;
@@ -2434,7 +2618,7 @@ body {
 }
 
 .pedido-fila-quitar:hover {
-  background: #4a2f1f;
+  background: var(--serie-2-suave);
 }
 
 .pedido-fila-quitar:disabled {
@@ -2547,7 +2731,7 @@ body {
 }
 
 .pedido-producto-picker-item:hover {
-  border-color: #8caa78;
+  border-color: var(--accent);
   transform: translateY(-1px);
 }
 
@@ -2560,7 +2744,7 @@ body {
 
 .pedido-producto-picker-item strong {
   font-size: 0.78rem;
-  color: #4ade80;
+  color: var(--exito);
 }
 
 .pedido-fila-nombre {
@@ -2608,7 +2792,7 @@ body {
 }
 
 .pedido-fila-cantidad-stepper button:not(:disabled):hover {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--accent-gradient);
   color: #ffffff;
 }
 
@@ -2647,7 +2831,7 @@ body {
 .btn-agregar-fila {
   background: none;
   border: none;
-  color: #8caa78;
+  color: var(--accent-texto);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
@@ -2666,7 +2850,7 @@ body {
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 0.9rem;
-  color: #f4a35c;
+  color: var(--serie-2);
   margin-bottom: 8px;
 }
 
@@ -2712,7 +2896,7 @@ body {
   height: 24px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-contraste);
   font-size: 0.8rem;
 }
 
@@ -2754,7 +2938,7 @@ body {
 }
 
 .pf-chip-activo {
-  background: var(--accent-gradient, linear-gradient(135deg, #aac398, #8caa78));
+  background: var(--accent-gradient);
   border-color: transparent;
   color: #ffffff;
 }
@@ -2790,7 +2974,7 @@ body {
 .pf-picker-item-info span {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4ade80;
+  color: var(--exito);
 }
 
 .pf-picker-item-mas {
@@ -2801,14 +2985,14 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: rgba(140, 170, 120, 0.18);
-  color: var(--accent-light, #aac398);
+  background: var(--accent-suave);
+  color: var(--accent-texto);
   font-size: 1.1rem;
 }
 
 .pf-picker-item-activo {
-  border-color: var(--accent, #8caa78) !important;
-  background: rgba(140, 170, 120, 0.12);
+  border-color: var(--accent) !important;
+  background: var(--accent-suave);
 }
 
 .pf-resumen-titulo {
@@ -2843,7 +3027,7 @@ body {
 }
 
 .pf-descuento {
-  color: #4ade80;
+  color: var(--exito);
 }
 
 .pf-resumen-total {
@@ -2856,7 +3040,7 @@ body {
 
 .pf-resumen-total strong {
   font-size: 1.35rem;
-  color: var(--accent-light, #aac398);
+  color: var(--accent-texto);
 }
 
 .pf-resumen-acciones {
@@ -3045,13 +3229,24 @@ body {
   --kpi-accent-soft: var(--color-negative-soft);
 }
 .resumen-tile-insumos {
-  --kpi-accent: var(--color-highlight);
-  --kpi-accent-soft: var(--color-highlight-soft);
+  --kpi-accent: var(--serie-4);
+  --kpi-accent-soft: var(--serie-4-suave);
 }
-.resumen-tile-total,
-.resumen-tile-otros,
-.resumen-tile-sueldos,
+/* Un color por tipo de métrica: son categorías, no un ranking, así que el color
+   sigue a la entidad (sueldos siempre violeta) y no a su posición en la fila. */
+.resumen-tile-total {
+  --kpi-accent: var(--serie-1);
+  --kpi-accent-soft: var(--serie-1-suave);
+}
+.resumen-tile-sueldos {
+  --kpi-accent: var(--serie-6);
+  --kpi-accent-soft: var(--serie-6-suave);
+}
 .resumen-tile-rubro {
+  --kpi-accent: var(--serie-5);
+  --kpi-accent-soft: var(--serie-5-suave);
+}
+.resumen-tile-otros {
   --kpi-accent: var(--color-neutral);
   --kpi-accent-soft: var(--color-neutral-soft);
 }
@@ -3059,7 +3254,7 @@ body {
 .resumen-tile-servicios strong,
 .resumen-tile-ganancia-positiva strong { color: var(--color-positive); }
 .resumen-tile-ganancia-negativa strong { color: var(--color-negative); }
-.resumen-tile-insumos strong { color: var(--color-highlight); }
+.resumen-tile-insumos strong { color: var(--serie-4); }
 
 /* Encabezado de sección con línea divisoria, para cortar bien entre bloques. */
 .seccion-header {
@@ -3218,19 +3413,19 @@ body {
 }
 
 .stock-card:hover {
-  border-color: #8caa78;
+  border-color: var(--accent);
   transform: translateY(-1px);
 }
 
 .stock-card-bajo {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--error);
+  background: var(--error-suave);
 }
 
 .stock-card-aviso {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--error);
 }
 
 .stock-card-nombre {
@@ -3242,7 +3437,7 @@ body {
 .stock-card-cantidad {
   font-size: 2rem;
   font-weight: 800;
-  color: #8caa78;
+  color: var(--accent-texto);
   line-height: 1.1;
 }
 
@@ -3296,14 +3491,14 @@ body {
 
 .gasto-fila-monto {
   font-weight: 800;
-  color: #dc2626;
+  color: var(--error);
   white-space: nowrap;
 }
 
 .gasto-fila-borrar {
   border: 1px solid var(--border);
   background: var(--surface-2);
-  color: #f4a35c;
+  color: var(--serie-2);
   border-radius: 8px;
   width: 28px;
   height: 28px;
@@ -3312,7 +3507,7 @@ body {
 }
 
 .gasto-fila-borrar:hover {
-  background: #4a2f1f;
+  background: var(--serie-2-suave);
 }
 
 /* Filas de gastos fijos: suman el botón de pagar y el de editar a la grilla base */
@@ -3321,12 +3516,12 @@ body {
 }
 
 .gasto-fila-vence {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--error);
+  background: var(--error-suave);
 }
 
 .gasto-fila-vence-texto {
-  color: #ef4444;
+  color: var(--error);
   font-weight: 700;
 }
 
@@ -3373,7 +3568,7 @@ body {
 }
 
 .desglose-fila:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--hover-sutil);
 }
 
 .desglose-flecha {
@@ -3436,7 +3631,7 @@ body {
   padding: 4px 10px;
   border-radius: 999px;
   color: #ffffff;
-  background: linear-gradient(135deg, var(--accent-light, #aac398), var(--accent, #8caa78));
+  background: var(--accent-gradient);
   white-space: nowrap;
 }
 
@@ -3446,25 +3641,25 @@ body {
 }
 
 .badge-categoria-insumos {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #78350f;
+  background: var(--serie-4);
+  color: #2e1f00;
 }
 
 .badge-categoria-servicios {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--serie-3);
 }
 
 .badge-categoria-sueldos {
-  background: linear-gradient(135deg, #38bdf8, #0891b2);
+  background: var(--serie-6);
 }
 
 .badge-categoria-otros {
-  background: linear-gradient(135deg, #a3a3a3, #737373);
+  background: var(--text-sutil);
 }
 
 .aviso-sin-insumos {
   font-size: 0.85rem;
-  color: #f4a35c;
+  color: var(--serie-2);
   background: var(--surface-2);
   border: 1px dashed var(--border);
   border-radius: 10px;
@@ -3474,7 +3669,7 @@ body {
 
 .aviso-envio {
   font-size: 0.82rem;
-  color: #f4a35c;
+  color: var(--serie-2);
   background: var(--surface-2);
   border: 1px dashed var(--border);
   border-radius: 10px;
@@ -3502,11 +3697,11 @@ body {
 }
 
 .badge-entrega-retiro {
-  background: linear-gradient(135deg, #a3a3a3, #737373);
+  background: var(--text-sutil);
 }
 
 .badge-entrega-delivery {
-  background: linear-gradient(135deg, #38bdf8, #0891b2);
+  background: var(--serie-1);
 }
 
 .tipo-entrega-selector {
@@ -3529,7 +3724,7 @@ body {
 }
 
 .tipo-entrega-selector button.activo {
-  background: var(--accent-gradient, linear-gradient(135deg, #aac398, #8caa78));
+  background: var(--accent-gradient);
   border-color: transparent;
   color: #ffffff;
 }
@@ -4342,7 +4537,7 @@ body {
 }
 
 .grafico-ventas-linea {
-  stroke: #8caa78;
+  stroke: var(--accent-texto);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -4359,7 +4554,7 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #8caa78;
+  background: var(--accent);
   box-shadow: 0 0 0 2px var(--surface);
   transition: width 0.12s ease, height 0.12s ease;
 }
@@ -4367,7 +4562,7 @@ body {
 .grafico-ventas-punto-activo {
   width: 11px;
   height: 11px;
-  background: #6f8c5c;
+  background: var(--accent-dark);
 }
 
 .grafico-ventas-tooltip {
@@ -4376,8 +4571,8 @@ body {
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 8px;
-  background: #111827;
-  color: #ffffff;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-texto);
   padding: 6px 10px;
   border-radius: 8px;
   font-size: 0.75rem;
@@ -4391,7 +4586,8 @@ body {
 }
 
 .grafico-ventas-tooltip span {
-  color: #d1d5db;
+  color: var(--tooltip-texto);
+  opacity: 0.75;
   font-size: 0.68rem;
 }
 
@@ -4426,7 +4622,7 @@ body {
   flex-shrink: 0;
   width: 28px;
   font-weight: 800;
-  color: #8caa78;
+  color: var(--accent-texto);
   text-align: center;
 }
 
@@ -4464,7 +4660,7 @@ body {
 .ranking-barra {
   height: 100%;
   width: var(--bar-width, 0%);
-  background: var(--serie-color, linear-gradient(90deg, #aac398, #8caa78));
+  background: var(--serie-color, linear-gradient(90deg, var(--accent-light), var(--accent)));
   border-radius: 999px;
 }
 
@@ -4477,7 +4673,7 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 3px;
-  background: var(--serie-color, #8caa78);
+  background: var(--serie-color, var(--accent));
   vertical-align: baseline;
 }
 
@@ -4593,7 +4789,7 @@ body {
 }
 
 .tabla-datos tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--hover-sutil);
 }
 
 .tabla-datos-rank {
@@ -4647,6 +4843,25 @@ body {
   font-size: 1.1rem;
 }
 
+/* Recharts pinta el borde de los gajos y el tooltip con estilos propios (inline y
+   presentation attributes), que no saben nada del tema. Se imponen desde acá para que
+   la torta siga al panel en claro y en oscuro. */
+.grafico-torta .recharts-sector {
+  stroke: var(--surface);
+}
+
+.grafico-torta .recharts-default-tooltip {
+  background: var(--tooltip-bg) !important;
+  border: none !important;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.grafico-torta .recharts-tooltip-label,
+.grafico-torta .recharts-tooltip-item {
+  color: var(--tooltip-texto) !important;
+}
+
 /* === Tabla de pedidos (Inicio y Ventas & Pedidos) ===
    En desktop es una tabla horizontal; abajo de 860px cada pedido se apila como
    ficha. Los pedidos solo se confirman/cancelan: no hay estado de preparación. */
@@ -4694,7 +4909,7 @@ body {
 }
 
 .tabla-pedidos tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--hover-sutil);
 }
 
 .tp-id {
@@ -4788,13 +5003,13 @@ body {
 }
 
 .tp-tag-espera {
-  background: rgba(251, 191, 36, 0.18);
-  color: #fbbf24;
+  background: var(--alerta-suave);
+  color: var(--alerta);
 }
 
 .tp-tag-cancelado {
-  background: rgba(239, 68, 68, 0.18);
-  color: #f87171;
+  background: var(--error-suave);
+  color: var(--error);
 }
 
 .tp-fila-cancelada td {
@@ -4843,28 +5058,28 @@ body {
 }
 
 .tp-accion-cobrar {
-  color: #4ade80;
+  color: var(--exito);
 }
 
 .tp-accion-cobrar-pendiente {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: var(--exito-fuerte);
   border-color: transparent;
   color: #ffffff;
 }
 
 .tp-accion-confirmar {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--accent-gradient);
   border-color: transparent;
-  color: #1a2820;
+  color: var(--accent-contraste);
 }
 
 .tp-accion-peligro {
-  color: #f87171;
+  color: var(--error);
 }
 
 .tp-accion-peligro:hover {
-  border-color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--error);
+  background: var(--error-suave);
 }
 
 @media (max-width: 860px) {
@@ -5009,7 +5224,7 @@ body {
   gap: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 4px solid #8caa78;
+  border-left: 4px solid var(--accent);
   border-radius: 12px;
   padding: 14px 16px;
   max-width: 340px;
@@ -5053,8 +5268,8 @@ body {
 }
 
 .toast-pedido-nuevo-cerrar:hover {
-  background: #4a1f1f;
-  color: #f87171;
+  background: var(--error-suave);
+  color: var(--error);
 }
 
 /* === VISTA NEGOCIO - IMPRESION (ImpresionPage.jsx) === */
@@ -5065,9 +5280,9 @@ body {
 }
 
 .impresion-banner {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background: var(--info-suave);
+  border: 1px solid var(--info);
+  color: var(--info);
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 0.85rem;
@@ -5076,7 +5291,7 @@ body {
 }
 
 .impresion-banner strong {
-  color: #ffffff;
+  color: var(--text);
 }
 
 .impresion-switch-fila {
@@ -5145,7 +5360,7 @@ body {
 }
 
 .switch-vibrante input:checked + .switch-track {
-  background: linear-gradient(135deg, #aac398, #8caa78);
+  background: var(--accent-gradient);
   border-color: transparent;
 }
 
@@ -5185,11 +5400,11 @@ body {
 }
 
 .pago-resumen-cobrado {
-  color: #4ade80 !important;
+  color: var(--exito) !important;
 }
 
 .pago-resumen-falta {
-  color: #f87171 !important;
+  color: var(--error) !important;
 }
 
 .pago-lista {
@@ -5224,7 +5439,7 @@ body {
 .pago-fila-registrado button {
   border: 1px solid var(--border);
   background: var(--surface);
-  color: #f87171;
+  color: var(--error);
   border-radius: 6px;
   width: 22px;
   height: 22px;
@@ -5234,7 +5449,7 @@ body {
 }
 
 .pago-fila-registrado button:hover {
-  background: #4a1f1f;
+  background: var(--error-suave);
 }
 
 .pago-form {
@@ -5259,8 +5474,8 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: rgba(248, 113, 113, 0.1);
-  border: 1.5px solid rgba(248, 113, 113, 0.45);
+  background: var(--error-suave);
+  border: 1.5px solid var(--error);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 14px;
@@ -5276,17 +5491,17 @@ body {
 .pago-falta-destacado strong {
   font-size: 2rem;
   font-weight: 800;
-  color: #f87171;
+  color: var(--error);
   line-height: 1.1;
 }
 
 .pago-falta-saldado {
-  background: rgba(74, 222, 128, 0.1);
-  border-color: rgba(74, 222, 128, 0.45);
+  background: var(--exito-suave);
+  border-color: var(--exito);
 }
 
 .pago-falta-saldado strong {
-  color: #4ade80;
+  color: var(--exito);
 }
 
 .pago-lista-titulo {
@@ -5321,7 +5536,7 @@ body {
 .pago-aviso-parcial {
   margin: 8px 0 0;
   font-size: 0.78rem;
-  color: #fbbf24;
+  color: var(--alerta);
 }
 
 .pago-btn-confirmar {
@@ -5341,7 +5556,7 @@ body {
 }
 
 .cuenta-error {
-  color: #f87171;
+  color: var(--error);
   font-size: 0.85rem;
   margin: 4px 0 0;
 }
@@ -5392,7 +5607,7 @@ body {
 .cobranza-pendiente-falta {
   flex-shrink: 0;
   font-weight: 700;
-  color: #f87171;
+  color: var(--error);
   white-space: nowrap;
 }
 
@@ -5435,7 +5650,7 @@ body {
 }
 
 .caja-banner-cerrada {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(239, 68, 68, 0.03));
+  background: linear-gradient(135deg, var(--error-suave), rgba(239, 68, 68, 0.03));
   border-color: rgba(239, 68, 68, 0.35);
 }
 
@@ -5480,7 +5695,7 @@ body {
 }
 
 .btn-cerrar-caja {
-  background: linear-gradient(135deg, #f87171, #dc2626);
+  background: linear-gradient(135deg, var(--error), var(--error));
 }
 
 .cajas-historial {
@@ -5528,7 +5743,7 @@ body {
 
 .btn-eliminar-caja:hover {
   opacity: 1;
-  border-color: #ef4444;
+  border-color: var(--error);
 }
 
 .badge-caja {
@@ -5542,11 +5757,11 @@ body {
 }
 
 .badge-caja-abierta {
-  background: linear-gradient(135deg, #4ade80, #16a34a);
+  background: var(--exito-fuerte);
 }
 
 .badge-caja-cerrada {
-  background: linear-gradient(135deg, #a3a3a3, #737373);
+  background: var(--text-sutil);
 }
 
 .caja-historial-horario {
@@ -5571,7 +5786,7 @@ body {
 
 .caja-historial-total {
   font-weight: 700;
-  color: #f4a35c;
+  color: var(--serie-2);
   white-space: nowrap;
 }
 

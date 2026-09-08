@@ -65,11 +65,14 @@ class DetallePedidoSerializer(serializers.ModelSerializer):
     producto_nombre = serializers.SerializerMethodField()
     categoria_id = serializers.IntegerField(source='producto.categoria_id', read_only=True)
     categoria_nombre = serializers.CharField(source='producto.categoria.nombre', read_only=True)
+    # La unidad vive en la categoría: sin esto una línea dice "2 Manzanilla" y no se
+    # sabe si son 2 kg o 2 packs.
+    unidad_medida = serializers.CharField(source='producto.categoria.unidad_medida', read_only=True)
     subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = DetallePedido
-        fields = ['id', 'producto', 'producto_nombre', 'categoria_id', 'categoria_nombre', 'cantidad', 'precio_unitario', 'subtotal']
+        fields = ['id', 'producto', 'producto_nombre', 'categoria_id', 'categoria_nombre', 'unidad_medida', 'cantidad', 'precio_unitario', 'subtotal']
         read_only_fields = ['precio_unitario']
 
     def get_producto_nombre(self, obj):

@@ -3547,10 +3547,31 @@ body {
   white-space: nowrap;
 }
 
+/* Colapsado por defecto: con varios pedidos por confirmar, el detalle completo
+   de cada uno (líneas, desglose, teléfono, dirección) no entra en pantalla sin
+   scrollear. Este botón lo destapa solo cuando hace falta cotejarlo. */
+.ipc-toggle-detalle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent-texto);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ipc-toggle-detalle:hover {
+  text-decoration: underline;
+}
+
 /* Lo que pidió: la razón de ser de este cambio. */
 .ipc-items {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   padding: 10px 0 0;
   border-top: 1px solid var(--border);
   display: flex;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { armarLinkWhatsapp } from '../../utils/whatsapp';
 import {
   UNIDAD_CORTA,
@@ -10,16 +10,17 @@ import {
 /**
  * Un pedido de la tienda web esperando confirmación.
  *
- * Antes la tarjeta mostraba sólo nombre, hora y total: para saber qué le habían
- * pedido había que salir a la sección Pedidos. Ahora trae todo lo que hace falta
- * para cotejarlo contra el WhatsApp del cliente y decidir en el momento — las
- * líneas del pedido, el desglose del total, el teléfono (con link directo a
- * WhatsApp) y, si es envío, a dónde va.
+ * Colapsada (el estado por defecto) muestra lo justo para decidir de un
+ * vistazo: quién, cuándo, cómo lo recibe, cuántos productos y el total — así
+ * entran varios pedidos en la pantalla sin scrollear. El detalle completo
+ * (líneas, desglose, teléfono, dirección, nota) se despliega con "Ver
+ * detalle", para cuando hay que cotejarlo contra el WhatsApp del cliente.
  *
  * Todo esto ya venía en la respuesta de /pedidos/ (el viewset hace prefetch de
  * items y categoría), así que no agrega ni un request.
  */
 export default function PedidoPorConfirmar({ pedido, ocupado, onConfirmar, onCancelar }) {
+  const [detalleAbierto, setDetalleAbierto] = useState(false);
   const items = pedido.items || [];
   const esEnvio = pedido.tipo_entrega === 'envio';
 
@@ -51,86 +52,107 @@ export default function PedidoPorConfirmar({ pedido, ocupado, onConfirmar, onCan
               </span>
               {esEnvio ? 'Envío' : 'Retiro'}
             </span>
+            {items.length > 0 && (
+              <span className="ipc-meta-dato">
+                {items.length} producto{items.length === 1 ? '' : 's'}
+              </span>
+            )}
           </div>
         </div>
         <p className="ipc-total">{formatearPrecio(total)}</p>
       </header>
 
-      {items.length > 0 ? (
-        <ul className="ipc-items">
-          {items.map((item) => (
-            <li key={item.id} className="ipc-linea">
-              <span className="ipc-cant">
-                {formatearCantidad(item.cantidad)}
-                {UNIDAD_CORTA[item.unidad_medida] ? (
-                  <span className="ipc-unidad">{UNIDAD_CORTA[item.unidad_medida]}</span>
-                ) : null}
-              </span>
-              <span className="ipc-producto">
-                <span className="ipc-producto-nombre">{item.producto_nombre}</span>
-                <span className="ipc-precio-unit">{formatearPrecio(item.precio_unitario)} c/u</span>
-              </span>
-              <span className="ipc-subtotal">{formatearPrecio(item.subtotal)}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="ipc-sin-items">Este pedido llegó sin líneas cargadas.</p>
-      )}
+      <button
+        type="button"
+        className="ipc-toggle-detalle"
+        onClick={() => setDetalleAbierto((v) => !v)}
+        aria-expanded={detalleAbierto}
+      >
+        {detalleAbierto ? 'Ocultar detalle' : 'Ver detalle'}
+        <span className="material-symbols-outlined ipc-ico" aria-hidden="true">
+          {detalleAbierto ? 'expand_less' : 'expand_more'}
+        </span>
+      </button>
 
-      {hayDesglose && (
-        <dl className="ipc-desglose">
-          <div>
-            <dt>Subtotal</dt>
-            <dd>{formatearPrecio(subtotal)}</dd>
-          </div>
-          {envio > 0 && (
-            <div>
-              <dt>Envío</dt>
-              <dd>{formatearPrecio(envio)}</dd>
-            </div>
+      {detalleAbierto && (
+        <>
+          {items.length > 0 ? (
+            <ul className="ipc-items">
+              {items.map((item) => (
+                <li key={item.id} className="ipc-linea">
+                  <span className="ipc-cant">
+                    {formatearCantidad(item.cantidad)}
+                    {UNIDAD_CORTA[item.unidad_medida] ? (
+                      <span className="ipc-unidad">{UNIDAD_CORTA[item.unidad_medida]}</span>
+                    ) : null}
+                  </span>
+                  <span className="ipc-producto">
+                    <span className="ipc-producto-nombre">{item.producto_nombre}</span>
+                    <span className="ipc-precio-unit">{formatearPrecio(item.precio_unitario)} c/u</span>
+                  </span>
+                  <span className="ipc-subtotal">{formatearPrecio(item.subtotal)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ipc-sin-items">Este pedido llegó sin líneas cargadas.</p>
           )}
-          {montoDescuentoPct > 0 && (
-            <div className="ipc-desglose-resta">
-              <dt>{`Descuento ${descuentoPct}%`}</dt>
-              <dd>{`− ${formatearPrecio(montoDescuentoPct)}`}</dd>
-            </div>
-          )}
-          {descuentoPuntos > 0 && (
-            <div className="ipc-desglose-resta">
-              <dt>Puntos canjeados</dt>
-              <dd>{`− ${formatearPrecio(descuentoPuntos)}`}</dd>
-            </div>
-          )}
-        </dl>
-      )}
 
-      <div className="ipc-datos">
-        {pedido.telefono && (
-          <span className="ipc-dato">
-            <span className="material-symbols-outlined ipc-ico" aria-hidden="true">call</span>
-            {linkWa ? (
-              <a href={linkWa} target="_blank" rel="noreferrer" className="ipc-link-wa">
-                {pedido.telefono}
-              </a>
-            ) : (
-              pedido.telefono
+          {hayDesglose && (
+            <dl className="ipc-desglose">
+              <div>
+                <dt>Subtotal</dt>
+                <dd>{formatearPrecio(subtotal)}</dd>
+              </div>
+              {envio > 0 && (
+                <div>
+                  <dt>Envío</dt>
+                  <dd>{formatearPrecio(envio)}</dd>
+                </div>
+              )}
+              {montoDescuentoPct > 0 && (
+                <div className="ipc-desglose-resta">
+                  <dt>{`Descuento ${descuentoPct}%`}</dt>
+                  <dd>{`− ${formatearPrecio(montoDescuentoPct)}`}</dd>
+                </div>
+              )}
+              {descuentoPuntos > 0 && (
+                <div className="ipc-desglose-resta">
+                  <dt>Puntos canjeados</dt>
+                  <dd>{`− ${formatearPrecio(descuentoPuntos)}`}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          <div className="ipc-datos">
+            {pedido.telefono && (
+              <span className="ipc-dato">
+                <span className="material-symbols-outlined ipc-ico" aria-hidden="true">call</span>
+                {linkWa ? (
+                  <a href={linkWa} target="_blank" rel="noreferrer" className="ipc-link-wa">
+                    {pedido.telefono}
+                  </a>
+                ) : (
+                  pedido.telefono
+                )}
+              </span>
             )}
-          </span>
-        )}
-        {esEnvio && destino && (
-          <span className="ipc-dato">
-            <span className="material-symbols-outlined ipc-ico" aria-hidden="true">location_on</span>
-            {destino}
-          </span>
-        )}
-        {pedido.nota && (
-          <span className="ipc-dato ipc-dato-nota">
-            <span className="material-symbols-outlined ipc-ico" aria-hidden="true">sticky_note_2</span>
-            {pedido.nota}
-          </span>
-        )}
-      </div>
+            {esEnvio && destino && (
+              <span className="ipc-dato">
+                <span className="material-symbols-outlined ipc-ico" aria-hidden="true">location_on</span>
+                {destino}
+              </span>
+            )}
+            {pedido.nota && (
+              <span className="ipc-dato ipc-dato-nota">
+                <span className="material-symbols-outlined ipc-ico" aria-hidden="true">sticky_note_2</span>
+                {pedido.nota}
+              </span>
+            )}
+          </div>
+        </>
+      )}
 
       <div className="ipc-acciones">
         <button type="button" className="ipc-btn-cancelar" onClick={onCancelar} disabled={ocupado}>

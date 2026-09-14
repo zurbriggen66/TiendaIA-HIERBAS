@@ -1,34 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
 import { resumenPorCategoria, precioUnitarioItem } from '../utils/escalones';
+import { ETIQUETA_UNIDAD, formatearPrecio } from '../utils/formato';
+import { armarMensajeWhatsapp } from '../utils/mensajePedido';
 import { armarLinkWhatsapp } from '../utils/whatsapp';
-
-const formatearPrecio = (precio) =>
-  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(precio);
-
-const ETIQUETA_UNIDAD = { kg: 'kg', pack: 'packs', caja: 'cajas', unidad: 'unidades' };
-
-function armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, nota, items, resumen, total }) {
-  const lineas = [
-    '🌿 *Nuevo pedido mayorista*',
-    '',
-    `Cliente: ${nombre}`,
-    `Teléfono: ${telefono}`,
-    `Entrega: ${tipoEntrega === 'envio' ? 'Envío' : 'Retiro en local'}`,
-  ];
-  if (tipoEntrega === 'envio') {
-    lineas.push(`Dirección: ${direccion}`);
-    lineas.push('(El costo de envío se coordina por WhatsApp)');
-  }
-  lineas.push('', 'Productos:');
-  items.forEach((item) => {
-    const precio = precioUnitarioItem(item, resumen);
-    lineas.push(`${item.cantidad}x ${item.producto.nombre} - ${formatearPrecio(precio * item.cantidad)}`);
-  });
-  lineas.push('', `*Total: ${formatearPrecio(total)}*`);
-  if (nota.trim()) lineas.push('', `Nota: ${nota.trim()}`);
-  return lineas.join('\n');
-}
 
 export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsapp, onClose, onCambiarCantidad, onQuitar, onVaciar, cliente, onClienteActualizado, tiendaAbierta = true, mensajeCerrado }) {
   const [nombre, setNombre] = useState(cliente?.nombre || '');

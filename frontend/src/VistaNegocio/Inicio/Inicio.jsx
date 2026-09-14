@@ -10,6 +10,8 @@ import { imprimirPedido } from '../../utils/impresion';
 import GraficoVentas from '../Estadisticas/GraficoVentas';
 import BarrasDesglose from '../Estadisticas/BarrasDesglose';
 import { notificar, confirmar } from '../notificaciones';
+import PedidoPorConfirmar from './PedidoPorConfirmar';
+import { formatearPrecio } from '../../utils/formato';
 
 // recharts pesa ~100 KB gzip: se carga aparte, solo al abrir Inicio, para no
 // engordar el bundle de la tienda pública.
@@ -35,20 +37,6 @@ const compararConAyer = (valorHoy, valorAyer) => {
   if (pct === 0) return { signo: 'igual', texto: 'igual que ayer' };
   return { signo: pct > 0 ? 'sube' : 'baja', texto: `${pct > 0 ? '+' : ''}${pct}% vs ayer` };
 };
-
-const formatearPrecio = (valor) =>
-  new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 0,
-  }).format(valor);
-
-const formatearHora = (fecha) =>
-  new Date(fecha).toLocaleTimeString('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
 
 const ICONO_DELTA = { sube: 'trending_up', baja: 'trending_down', igual: 'trending_flat' };
 
@@ -211,41 +199,13 @@ export default function Inicio() {
 
               <div className="inicio-pedidos-lista inicio-confirmar-lista">
                 {porConfirmar.map((pedido) => (
-                  <div key={pedido.id} className="inicio-pedido-confirmar-item">
-                    <div className="inicio-pedido-info">
-                      <div className="inicio-pedido-info-top">
-                        <h4>{pedido.cliente || `Pedido #${pedido.id}`}</h4>
-                      </div>
-                      <div className="inicio-pedido-info-bottom">
-                        <span><span className="material-symbols-outlined inicio-inline-ico" aria-hidden="true">schedule</span>{formatearHora(pedido.creado)}</span>
-                        <span>
-                          <span className="material-symbols-outlined inicio-inline-ico" aria-hidden="true">
-                            {pedido.tipo_entrega === 'envio' ? 'local_shipping' : 'storefront'}
-                          </span>
-                          {pedido.tipo_entrega === 'envio' ? 'Envío' : 'Retiro'}
-                        </span>
-                        <span>{formatearPrecio(pedido.total)}</span>
-                      </div>
-                    </div>
-                    <div className="inicio-pedido-confirmar-acciones">
-                      <button
-                        type="button"
-                        className="inicio-btn-cancelar"
-                        onClick={() => cancelarPedido(pedido)}
-                        disabled={confirmando === pedido.id}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-vibrante inicio-btn-confirmar"
-                        onClick={() => confirmarPedido(pedido)}
-                        disabled={confirmando === pedido.id}
-                      >
-                        {confirmando === pedido.id ? 'Confirmando...' : '✓ Confirmar pedido'}
-                      </button>
-                    </div>
-                  </div>
+                  <PedidoPorConfirmar
+                    key={pedido.id}
+                    pedido={pedido}
+                    ocupado={confirmando === pedido.id}
+                    onConfirmar={() => confirmarPedido(pedido)}
+                    onCancelar={() => cancelarPedido(pedido)}
+                  />
                 ))}
               </div>
             </div>

@@ -3382,6 +3382,351 @@ body {
   font-size: 0.88rem;
 }
 
+/* ---------------------------------------------------------------------------
+   INICIO — TARJETAS DEL RESUMEN
+
+   El marcado de estas tarjetas existía desde antes pero nunca tuvo estilos: se
+   veían como texto suelto sobre el fondo. Todo va con tokens, así que sigue al
+   tema claro/oscuro del panel sin reglas duplicadas.
+   --------------------------------------------------------------------------- */
+.inicio-resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.inicio-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+/* Pide una acción del dueño: se distingue del resto con el ámbar semántico. */
+.inicio-card-confirmar {
+  border-color: var(--alerta);
+  background: linear-gradient(var(--alerta-suave), var(--alerta-suave)), var(--surface);
+}
+
+.inicio-card-alerta {
+  border-color: var(--error);
+}
+
+.inicio-card-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.inicio-card-icono {
+  color: var(--accent-texto);
+  font-size: 22px;
+}
+
+.inicio-card-confirmar .inicio-card-icono {
+  color: var(--alerta);
+}
+
+.inicio-card-titulo {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.inicio-card-subtexto {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.inicio-contador-pedidos {
+  margin-left: auto;
+  min-width: 26px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.inicio-contador-confirmar {
+  background: var(--alerta);
+  color: #1a1408;
+}
+
+.inicio-contador-alerta {
+  background: var(--error);
+  color: #fff;
+}
+
+.inicio-confirmar-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- Un pedido por confirmar (PedidoPorConfirmar.jsx) --- */
+.ipc-item {
+  display: block;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.ipc-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ipc-quien {
+  min-width: 0;
+}
+
+.ipc-nombre {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+  /* Sin truncar: el nombre completo es lo que se coteja con el WhatsApp. */
+  overflow-wrap: anywhere;
+}
+
+.ipc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ipc-meta-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.ipc-ico {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.ipc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ipc-chip-envio {
+  background: var(--info-suave);
+  color: var(--info);
+}
+
+.ipc-chip-retiro {
+  background: var(--accent-suave);
+  color: var(--accent-texto);
+}
+
+.ipc-total {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Lo que pidió: la razón de ser de este cambio. */
+.ipc-items {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ipc-linea {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ipc-cant {
+  font-weight: 700;
+  color: var(--accent-texto);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.ipc-unidad {
+  margin-left: 2px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ipc-producto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ipc-producto-nombre {
+  color: var(--text);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.ipc-precio-unit {
+  color: var(--text-sutil);
+  font-size: 0.76rem;
+}
+
+.ipc-subtotal {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ipc-sin-items {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--alerta);
+  font-size: 0.85rem;
+}
+
+.ipc-desglose {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ipc-desglose > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ipc-desglose dt,
+.ipc-desglose dd {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.ipc-desglose dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.ipc-desglose-resta dd {
+  color: var(--accent-texto);
+}
+
+.ipc-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+}
+
+.ipc-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.ipc-dato-nota {
+  width: 100%;
+  align-items: flex-start;
+  font-style: italic;
+}
+
+.ipc-link-wa {
+  color: var(--accent-texto);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ipc-link-wa:hover {
+  text-decoration: underline;
+}
+
+.ipc-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ipc-btn-cancelar {
+  background: transparent;
+  border: 1px solid var(--border-fuerte);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ipc-btn-cancelar:hover:not(:disabled) {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.ipc-btn-cancelar:disabled,
+.ipc-btn-confirmar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ipc-btn-confirmar {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+/* En el celular: los botones a lo ancho, que es donde se tocan. */
+@media (max-width: 600px) {
+  .ipc-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .ipc-acciones button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .ipc-cabecera {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ipc-total {
+    font-size: 1.3rem;
+  }
+}
+
 @media (max-width: 820px) {
   .pedido-formulario-inline {
     grid-template-columns: minmax(0, 1fr);

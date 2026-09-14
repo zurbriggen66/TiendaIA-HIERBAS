@@ -21,6 +21,9 @@ import { ETIQUETA_UNIDAD, formatearPrecio } from './formato.js';
 export function armarMensajeWhatsapp({
   nombre,
   telefono,
+  dni = '',
+  ciudad = '',
+  codigoPostal = '',
   tipoEntrega,
   direccion,
   nota = '',
@@ -31,6 +34,11 @@ export function armarMensajeWhatsapp({
   const lineas = ['🌿 *NUEVO PEDIDO MAYORISTA*', ''];
 
   lineas.push(`👤 ${nombre}  ·  ${telefono}`);
+  const datos = [
+    dni.trim() && `DNI ${dni.trim()}`,
+    [ciudad.trim(), codigoPostal.trim() && `(CP ${codigoPostal.trim()})`].filter(Boolean).join(' '),
+  ].filter(Boolean);
+  if (datos.length > 0) lineas.push(datos.join('  ·  '));
   if (tipoEntrega === 'envio') {
     lineas.push(`🚚 Envío a ${direccion}`);
     lineas.push('_El costo de envío se coordina por WhatsApp._');

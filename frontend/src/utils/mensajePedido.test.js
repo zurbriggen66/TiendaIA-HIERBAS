@@ -88,6 +88,10 @@ test('el total va al final y con los datos del cliente arriba', () => {
   const msg = armar([{ producto: teVerde, cantidad: 3 }], { total: 12000 });
   assert.match(msg, /^🌿 \*NUEVO PEDIDO MAYORISTA\*/);
   assert.match(msg, /👤 Alejandra {2}· {2}3511234567/);
+  assert.match(
+    armar([{ producto: teVerde, cantidad: 1 }], { dni: '30123456', ciudad: 'Córdoba', codigoPostal: '5000' }),
+    /👤 Alejandra {2}· {2}3511234567\nDNI 30123456 {2}· {2}Córdoba \(CP 5000\)/,
+  );
   assert.match(msg, /💰 \*TOTAL: \$\s?12\.000\*$/);
 });
 

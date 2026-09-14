@@ -8,6 +8,9 @@ import { armarLinkWhatsapp } from '../utils/whatsapp';
 export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsapp, onClose, onCambiarCantidad, onQuitar, onVaciar, cliente, onClienteActualizado, tiendaAbierta = true, mensajeCerrado }) {
   const [nombre, setNombre] = useState(cliente?.nombre || '');
   const [telefono, setTelefono] = useState(cliente?.telefono || '');
+  const [dni, setDni] = useState('');
+  const [ciudad, setCiudad] = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
   const [usarPuntos, setUsarPuntos] = useState(false);
   const [tipoEntrega, setTipoEntrega] = useState('retiro');
   const [direccion, setDireccion] = useState('');
@@ -53,6 +56,9 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
     const nuevosErrores = {};
     if (!nombre.trim()) nuevosErrores.nombre = 'Falta tu nombre';
     if (!telefono.trim()) nuevosErrores.telefono = 'Falta tu teléfono';
+    if (!dni.trim()) nuevosErrores.dni = 'Falta tu DNI';
+    if (!ciudad.trim()) nuevosErrores.ciudad = 'Falta la ciudad';
+    if (!codigoPostal.trim()) nuevosErrores.codigoPostal = 'Falta el código postal';
     if (tipoEntrega === 'envio' && !direccion.trim()) nuevosErrores.direccion = 'Falta la dirección de envío';
 
     if (Object.keys(nuevosErrores).length > 0) {
@@ -63,7 +69,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
     setErrorEnvio('');
     setEnviando(true);
 
-    const mensaje = armarMensajeWhatsapp({ nombre, telefono, tipoEntrega, direccion, nota, items, resumen, total });
+    const mensaje = armarMensajeWhatsapp({ nombre, telefono, dni, ciudad, codigoPostal, tipoEntrega, direccion, nota, items, resumen, total });
     const url = armarLinkWhatsapp(whatsapp, mensaje);
     const ventana = window.open(url, '_blank', 'noopener,noreferrer');
     setLinkWhatsapp(!ventana || ventana.closed ? url : null);
@@ -299,6 +305,39 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                 />
                 {errores.telefono && <span className="pedido-error-texto">{errores.telefono}</span>}
               </div>
+              <div className="pedido-campo">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={`pedido-input ${errores.dni ? 'pedido-input-error' : ''}`}
+                  value={dni}
+                  onChange={(e) => { setDni(e.target.value); setErrores((prev) => ({ ...prev, dni: undefined })); }}
+                  placeholder="DNI"
+                />
+                {errores.dni && <span className="pedido-error-texto">{errores.dni}</span>}
+              </div>
+              <div className="pedido-campos-fila">
+                <div className="pedido-campo">
+                  <input
+                    type="text"
+                    className={`pedido-input ${errores.ciudad ? 'pedido-input-error' : ''}`}
+                    value={ciudad}
+                    onChange={(e) => { setCiudad(e.target.value); setErrores((prev) => ({ ...prev, ciudad: undefined })); }}
+                    placeholder="Ciudad"
+                  />
+                  {errores.ciudad && <span className="pedido-error-texto">{errores.ciudad}</span>}
+                </div>
+                <div className="pedido-campo">
+                  <input
+                    type="text"
+                    className={`pedido-input ${errores.codigoPostal ? 'pedido-input-error' : ''}`}
+                    value={codigoPostal}
+                    onChange={(e) => { setCodigoPostal(e.target.value); setErrores((prev) => ({ ...prev, codigoPostal: undefined })); }}
+                    placeholder="Código postal"
+                  />
+                  {errores.codigoPostal && <span className="pedido-error-texto">{errores.codigoPostal}</span>}
+                </div>
+              </div>
             </div>
 
             <div className="pedido-seccion">
@@ -338,7 +377,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
                     className={`pedido-input ${errores.direccion ? 'pedido-input-error' : ''}`}
                     value={direccion}
                     onChange={(e) => { setDireccion(e.target.value); setErrores((prev) => ({ ...prev, direccion: undefined })); }}
-                    placeholder="Dirección y localidad"
+                    placeholder="Dirección (calle, número, piso)"
                   />
                   {errores.direccion && <span className="pedido-error-texto">{errores.direccion}</span>}
                 </div>
@@ -548,6 +587,7 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         .pedido-seccion-icono-contacto { background: #ede9fe; }
 
         .pedido-campo { margin-bottom: 10px; }
+        .pedido-campos-fila { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
         .pedido-input {
           width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #eef0f3;
           background: #ffffff; font-size: 0.9rem; font-family: inherit; color: #1a2333;

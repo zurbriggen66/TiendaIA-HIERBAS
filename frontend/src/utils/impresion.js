@@ -55,6 +55,8 @@ function construirBloqueTicket(pedido) {
       <div class="ticket-dato">${fechaTexto}</div>
       ${pedido.cliente ? `<div class="ticket-dato">Cliente: ${escapeHtml(pedido.cliente)}</div>` : ''}
       ${pedido.telefono ? `<div class="ticket-dato">Tel: ${escapeHtml(pedido.telefono)}</div>` : ''}
+      ${pedido.dni ? `<div class="ticket-dato">DNI: ${escapeHtml(pedido.dni)}</div>` : ''}
+      ${pedido.ciudad || pedido.codigo_postal ? `<div class="ticket-dato">${escapeHtml([pedido.ciudad, pedido.codigo_postal && `CP ${pedido.codigo_postal}`].filter(Boolean).join(' - '))}</div>` : ''}
       <div class="ticket-dato">${pedido.tipo_entrega === 'envio' ? 'Envío' : 'Retiro en local'}</div>
       ${pedido.tipo_entrega === 'envio' && pedido.direccion ? `<div class="ticket-dato">Dir: ${escapeHtml(pedido.direccion)}</div>` : ''}
       <div class="ticket-linea"></div>

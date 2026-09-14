@@ -42,6 +42,16 @@ class MinimoYEscalonPorCategoriaTests(TestCase):
         for detalle in pedido.items.all():
             self.assertEqual(detalle.precio_unitario, 500)
 
+    def test_guarda_dni_ciudad_y_codigo_postal_del_cliente(self):
+        respuesta = self.client.post('/api/pedidos/', data={
+            'dni': '32456789', 'ciudad': 'Rosario', 'codigo_postal': '2000',
+            'items': [{'producto': self.manzanilla.id, 'cantidad': 10}],
+        }, content_type='application/json')
+
+        self.assertEqual(respuesta.status_code, 201, respuesta.content)
+        pedido = Pedido.objects.get(id=respuesta.data['id'])
+        self.assertEqual((pedido.dni, pedido.ciudad, pedido.codigo_postal), ('32456789', 'Rosario', '2000'))
+
     def test_escalon_sube_cuando_el_total_de_la_categoria_supera_el_siguiente_umbral(self):
         respuesta = self.client.post('/api/pedidos/', data={
             'items': [

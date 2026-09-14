@@ -27,6 +27,9 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
   const [cliente, setCliente] = useState(pedido?.cliente || '');
   const [telefono, setTelefono] = useState(pedido?.telefono || '');
   const [cuit, setCuit] = useState(pedido?.cuit || '');
+  const [dni, setDni] = useState(pedido?.dni || '');
+  const [ciudad, setCiudad] = useState(pedido?.ciudad || '');
+  const [codigoPostal, setCodigoPostal] = useState(pedido?.codigo_postal || '');
   const [tipoEntrega, setTipoEntrega] = useState(pedido?.tipo_entrega || 'retiro');
   const [direccion, setDireccion] = useState(pedido?.direccion || '');
   // La localidad se escribe a mano (con sugerencias de las ya cargadas). `localidadId`
@@ -136,6 +139,9 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
         cliente,
         telefono,
         cuit,
+        dni,
+        ciudad,
+        codigo_postal: codigoPostal,
         tipo_entrega: tipoEntrega,
         direccion: tipoEntrega === 'envio' ? direccion : '',
         localidad,
@@ -201,6 +207,37 @@ export default function PedidoFormulario({ productos, categorias, localidades, p
                 placeholder="30-71234567-8"
                 value={cuit}
                 onChange={(e) => setCuit(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">DNI (opcional)</label>
+              <input
+                className="input-vibrante"
+                inputMode="numeric"
+                placeholder="30123456"
+                value={dni}
+                onChange={(e) => setDni(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Ciudad (opcional)</label>
+              <input
+                className="input-vibrante"
+                placeholder="Ciudad"
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Código postal (opcional)</label>
+              <input
+                className="input-vibrante"
+                placeholder="5000"
+                value={codigoPostal}
+                onChange={(e) => setCodigoPostal(e.target.value)}
               />
             </div>
           </div>

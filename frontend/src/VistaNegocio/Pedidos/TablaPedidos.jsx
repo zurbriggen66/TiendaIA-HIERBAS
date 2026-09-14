@@ -93,6 +93,10 @@ export default function TablaPedidos({
                 <td data-label="Cliente">
                   <span className="tp-cliente">{pedido.cliente || `Pedido #${pedido.id}`}</span>
                   {pedido.telefono && <span className="tp-sub">{pedido.telefono}</span>}
+                  {pedido.dni && <span className="tp-sub">DNI {pedido.dni}</span>}
+                  {(pedido.ciudad || pedido.codigo_postal) && (
+                    <span className="tp-sub">{[pedido.ciudad, pedido.codigo_postal && `CP ${pedido.codigo_postal}`].filter(Boolean).join(' · ')}</span>
+                  )}
                   {pedido.localidad_nombre && <span className="tp-sub">{pedido.localidad_nombre}</span>}
                 </td>
                 <td data-label="Productos">

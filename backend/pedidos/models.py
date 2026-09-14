@@ -47,6 +47,9 @@ class Pedido(models.Model):
 
     cliente = models.CharField(max_length=100, blank=True)
     telefono = models.CharField(max_length=30, blank=True)
+    dni = models.CharField(max_length=20, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
+    codigo_postal = models.CharField(max_length=10, blank=True)
     tipo_entrega = models.CharField(max_length=20, choices=TIPOS_ENTREGA, default='retiro')
     direccion = models.CharField(max_length=200, blank=True)
     localidad = models.ForeignKey(Localidad, null=True, blank=True, on_delete=models.SET_NULL, related_name='pedidos')

@@ -138,6 +138,18 @@ export default function PedidoPorConfirmar({ pedido, ocupado, onConfirmar, onCan
                 )}
               </span>
             )}
+            {pedido.dni && (
+              <span className="ipc-dato">
+                <span className="material-symbols-outlined ipc-ico" aria-hidden="true">badge</span>
+                DNI {pedido.dni}
+              </span>
+            )}
+            {(pedido.ciudad || pedido.codigo_postal) && (
+              <span className="ipc-dato">
+                <span className="material-symbols-outlined ipc-ico" aria-hidden="true">location_city</span>
+                {[pedido.ciudad, pedido.codigo_postal && `CP ${pedido.codigo_postal}`].filter(Boolean).join(' · ')}
+              </span>
+            )}
             {esEnvio && destino && (
               <span className="ipc-dato">
                 <span className="material-symbols-outlined ipc-ico" aria-hidden="true">location_on</span>

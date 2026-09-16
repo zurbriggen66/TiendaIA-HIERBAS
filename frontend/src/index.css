@@ -5602,6 +5602,20 @@ body {
   color: var(--text-muted);
   font-size: 0.72rem;
   margin-top: 4px;
+  /* Es un <button> para que se pueda abrir con teclado, pero se ve como el
+     texto al pie de la lista que era antes. */
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.tp-productos-mas:hover {
+  color: var(--text);
 }
 
 .tp-entrega {

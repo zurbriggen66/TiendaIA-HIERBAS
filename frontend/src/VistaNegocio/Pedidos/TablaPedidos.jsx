@@ -21,7 +21,11 @@ const Ico = ({ nombre }) => (
 // cada línea (ej: "Hierbas Medicinales por Kg — 46 × Manzanilla").
 function ResumenProductos({ items }) {
   const LIMITE = 6;
-  const visibles = items.slice(0, LIMITE);
+  // Los pedidos largos se cortan para que la fila no se estire, pero el corte
+  // se despliega acá mismo: abrir el detalle sólo para ver dos líneas más era
+  // un clic de más en la pantalla que más se usa.
+  const [abierto, setAbierto] = React.useState(false);
+  const visibles = abierto ? items : items.slice(0, LIMITE);
   const resto = items.length - visibles.length;
 
   const grupos = [];
@@ -42,7 +46,11 @@ function ResumenProductos({ items }) {
           ))}
         </div>
       ))}
-      {resto > 0 && <span className="tp-productos-mas">+{resto} producto{resto > 1 ? 's' : ''} más</span>}
+      {(resto > 0 || abierto) && (
+        <button type="button" className="tp-productos-mas" onClick={() => setAbierto(!abierto)}>
+          {abierto ? 'Ver menos' : `+${resto} producto${resto > 1 ? 's' : ''} más`}
+        </button>
+      )}
     </div>
   );
 }

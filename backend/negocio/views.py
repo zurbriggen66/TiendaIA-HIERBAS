@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -31,10 +31,17 @@ class AdminLoginView(APIView):
     permission_classes = []
 
     def post(self, request):
-        usuario = authenticate(
-            username=(request.data.get('usuario') or '').strip(),
-            password=request.data.get('password') or '',
-        )
+        nombre = (request.data.get('usuario') or '').strip()
+        password = request.data.get('password') or ''
+        usuario = authenticate(username=nombre, password=password)
+        # "Kevin" tiene que entrar igual que "kevin": el celular capitaliza la primera
+        # letra solo y el dueño no tiene forma de darse cuenta de por qué lo rechaza.
+        # ponytail: si algún día hay dos usuarios que sólo difieren en mayúsculas, esto
+        # elige el primero; hoy el panel tiene una sola cuenta.
+        if not usuario and nombre:
+            real = get_user_model().objects.filter(username__iexact=nombre).first()
+            if real:
+                usuario = authenticate(username=real.username, password=password)
         if not usuario or not usuario.is_staff:
             return Response({'detail': 'Usuario o contraseña incorrectos.'}, status=status.HTTP_401_UNAUTHORIZED)
         token, _ = Token.objects.get_or_create(user=usuario)

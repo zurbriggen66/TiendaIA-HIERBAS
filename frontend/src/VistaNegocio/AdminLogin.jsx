@@ -37,6 +37,11 @@ export default function AdminLogin({ onIngreso }) {
             onChange={(e) => setUsuario(e.target.value)}
             autoFocus
             autoComplete="username"
+            /* En el celular el teclado arranca en mayúscula y manda "Kevin" en vez de
+               "kevin": el usuario se escribe tal cual, sin autocorrector. */
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
           />
         </div>
 

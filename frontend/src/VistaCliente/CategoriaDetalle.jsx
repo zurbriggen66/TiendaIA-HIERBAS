@@ -31,7 +31,7 @@ function TarjetaProductoGranel({ producto, categoria, unidadLabel, onAgregar }) 
     <div className="categoria-detalle-producto-granel">
       <div className="categoria-detalle-producto-granel-encabezado">
         <div className="categoria-detalle-producto-imagen">
-          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
+          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} loading="lazy" decoding="async" /> : <span>🌿</span>}
         </div>
         <div className="categoria-detalle-producto-info">
           <h3>{producto.nombre}</h3>
@@ -78,7 +78,7 @@ function TarjetaProductoSelector({ producto, categoria, unidadLabel, precio, onA
     <div className="categoria-detalle-producto-granel">
       <div className="categoria-detalle-producto-granel-encabezado">
         <button type="button" className="categoria-detalle-producto-imagen categoria-detalle-producto-imagen-link" onClick={onVerDetalle} aria-label={`Ver ${producto.nombre}`}>
-          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} /> : <span>🌿</span>}
+          {producto.imagen ? <img src={producto.imagen} alt={producto.nombre} loading="lazy" decoding="async" /> : <span>🌿</span>}
         </button>
         <div className="categoria-detalle-producto-info">
           <button type="button" className="categoria-detalle-producto-nombre-link" onClick={onVerDetalle}>{producto.nombre}</button>

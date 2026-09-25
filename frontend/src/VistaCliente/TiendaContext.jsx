@@ -32,6 +32,9 @@ const conLimiteDeTiempo = (promesa, ms) =>
   Promise.race([promesa, new Promise((resolve) => setTimeout(resolve, ms))]);
 
 const TIEMPO_MINIMO_PRECARGA_MS = 1200;
+// Con señal mala una request puede quedar colgada sin error: sin este tope la pantalla
+// de precarga no se iba nunca ("la página me queda en blanco").
+const TIEMPO_MAXIMO_REQUEST_MS = 15000;
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const CONFIG_INICIAL = {
@@ -68,7 +71,7 @@ export function TiendaProvider({ children }) {
 
     const obtenerConfiguracion = async () => {
       try {
-        const respuesta = await api.get('/configuracion/');
+        const respuesta = await api.get('/configuracion/', { timeout: TIEMPO_MAXIMO_REQUEST_MS });
         if (respuesta.data && respuesta.data.length > 0) {
           const ultimaConfig = respuesta.data[respuesta.data.length - 1];
           return {
@@ -87,8 +90,8 @@ export function TiendaProvider({ children }) {
     const obtenerCatalogo = async () => {
       try {
         const [resCategorias, resProductos] = await Promise.all([
-          api.get('/categorias/'),
-          api.get('/productos/'),
+          api.get('/categorias/', { timeout: TIEMPO_MAXIMO_REQUEST_MS }),
+          api.get('/productos/', { timeout: TIEMPO_MAXIMO_REQUEST_MS }),
         ]);
         if (!activo) return;
         setCategorias(resCategorias.data.filter((c) => c.activa));
@@ -114,7 +117,7 @@ export function TiendaProvider({ children }) {
 
       await Promise.all([
         precargaAssetPesado,
-        precargarImagen(configFinal.logo_precarga),
+        conLimiteDeTiempo(precargarImagen(configFinal.logo_precarga), 4000),
         esperar(TIEMPO_MINIMO_PRECARGA_MS),
       ]);
 

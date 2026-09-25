@@ -25,9 +25,21 @@
     />
 
     <title>Hierbas Serranas La Paz</title>
+    <style>
+      .pantalla-error-general { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; font-family: system-ui, sans-serif; color: #1a361b; background: #eaf0e6; }
+      .pantalla-error-general p { margin: 0; max-width: 320px; line-height: 1.5; }
+      .pantalla-error-general button { padding: 12px 28px; border: none; border-radius: 999px; background: #1a361b; color: #fff; font-size: 1rem; font-weight: 600; }
+      .carga-lenta { opacity: 0; animation: cargaLentaAparece 0.3s ease-out 8s forwards; }
+      @keyframes cargaLentaAparece { to { opacity: 1; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="pantalla-error-general carga-lenta">
+        <p>La página está tardando en cargar. Revisá la conexión y tocá Recargar. Si sigue sin cargar, abrí el link desde Chrome o Safari.</p>
+        <button type="button" onclick="location.reload()">Recargar</button>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

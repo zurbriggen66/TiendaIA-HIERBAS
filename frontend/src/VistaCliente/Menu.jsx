@@ -42,7 +42,7 @@ function TarjetaProducto({ producto, categoria, onAgregar }) {
     <div ref={ref} className={`menu-tarjeta reveal ${visible ? 'reveal-visible' : ''}`}>
       <div className="menu-tarjeta-imagen" onClick={irAlDetalle} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && irAlDetalle()}>
         {producto.imagen ? (
-          <img src={producto.imagen} alt={producto.nombre} />
+          <img src={producto.imagen} alt={producto.nombre} loading="lazy" decoding="async" />
         ) : (
           <div className="menu-tarjeta-imagen-placeholder">🌿</div>
         )}

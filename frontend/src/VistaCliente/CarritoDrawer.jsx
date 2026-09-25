@@ -63,6 +63,13 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
+      // El campo que falta puede quedar arriba, fuera de la pantalla: sin esto el botón
+      // parece no hacer nada.
+      requestAnimationFrame(() => {
+        const campo = document.querySelector('.pedido-drawer .pedido-input-error');
+        campo?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        campo?.focus({ preventScroll: true });
+      });
       return;
     }
     setErrores({});
@@ -71,9 +78,14 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
 
     const mensaje = armarMensajeWhatsapp({ nombre, telefono, dni, ciudad, codigoPostal, tipoEntrega, direccion, nota, items, resumen, total });
     const url = armarLinkWhatsapp(whatsapp, mensaje);
-    const ventana = window.open(url, '_blank', 'noopener,noreferrer');
-    setLinkWhatsapp(!ventana || ventana.closed ? url : null);
+    // El link queda siempre a mano en la pantalla de éxito/error, por si la
+    // navegación automática no llega a abrir WhatsApp.
+    setLinkWhatsapp(url);
 
+    // Primero se registra y recién después se va a WhatsApp, en la misma pestaña.
+    // Antes se abría una pestaña nueva con window.open: en el navegador interno de
+    // Instagram/Facebook y con el bloqueo de pop-ups del iPhone esa pestaña quedaba
+    // en blanco y el pedido no salía.
     try {
       await api.post('/pedidos/', {
         usar_puntos: usarPuntos,
@@ -87,19 +99,20 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         nota: nota.trim(),
         origen: 'web',
         items: items.map((item) => ({ producto: item.producto.id, cantidad: item.cantidad })),
-      });
+      }, { timeout: 15000 });
       if (usarPuntos && cliente) {
         api.get('/clientes/mi-cuenta/').then((r) => onClienteActualizado?.(r.data)).catch(() => {});
       }
       setExito(true);
       setNota('');
       onVaciar();
+      if (url) window.location.href = url;
     } catch (error) {
       // El mínimo por categoría también lo valida el backend: si algo cambió (ej. otro
-      // cliente pidió justo antes), este mensaje explica por qué no se pudo registrar
-      // aunque el WhatsApp ya se haya abierto.
+      // cliente pidió justo antes), este mensaje explica por qué no se pudo registrar.
+      // Debajo queda el botón para mandarlo igual por WhatsApp.
       const detalle = error.response?.data?.non_field_errors?.[0] || error.response?.data?.detail;
-      setErrorEnvio(detalle || 'El pedido se envió por WhatsApp, pero no pudimos registrarlo en el sistema. Te contactamos igual.');
+      setErrorEnvio(detalle || 'No pudimos registrar el pedido (¿se cortó la conexión?). Podés mandarlo igual por WhatsApp con el botón de abajo.');
       console.error('Error al registrar el pedido:', error);
     }
 
@@ -131,10 +144,10 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
         {exito ? (
           <div className="pedido-exito">
             <span className="pedido-exito-icono">✅</span>
-            <p>¡Pedido enviado! Te vamos a contactar por WhatsApp para confirmarlo.</p>
+            <p>¡Pedido registrado! Mandanos el mensaje por WhatsApp para confirmarlo.</p>
             {linkWhatsapp && (
-              <a href={linkWhatsapp} target="_blank" rel="noopener noreferrer" className="pedido-btn-whatsapp pedido-link-whatsapp">
-                📲 Tu navegador bloqueó la ventana, tocá acá para abrir WhatsApp
+              <a href={linkWhatsapp} className="pedido-btn-whatsapp pedido-link-whatsapp">
+                📲 Si WhatsApp no se abrió, tocá acá
               </a>
             )}
             <button type="button" className="pedido-btn-primario" onClick={onClose}>Cerrar</button>
@@ -405,7 +418,16 @@ export default function CarritoDrawer({ items, categorias, logoPrecarga, whatsap
               </div>
             </div>
 
-            {errorEnvio && <p className="pedido-error-texto pedido-error-envio">{errorEnvio}</p>}
+            {errorEnvio && (
+              <>
+                <p className="pedido-error-texto pedido-error-envio">{errorEnvio}</p>
+                {linkWhatsapp && (
+                  <a href={linkWhatsapp} className="pedido-btn-whatsapp pedido-link-whatsapp pedido-error-envio">
+                    📲 Enviar igual por WhatsApp
+                  </a>
+                )}
+              </>
+            )}
 
             {!tiendaAbierta ? (
               <p className="pedido-cerrado-aviso">

@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from django.core.files.base import ContentFile
+
 from .models import Categoria, EscalonPrecio, Producto
 
 
@@ -75,3 +77,84 @@ class AjusteMasivoDePreciosTests(TestCase):
         resp = self.client.post('/api/productos/ajuste-masivo/', data={'modo': 'porcentaje', 'valor': 'abc'},
                                 content_type='application/json')
         self.assertEqual(resp.status_code, 400)
+
+
+class CompresionDeImagenesTests(TestCase):
+    """La compresión a WebP vive en config/imagenes.py (compartida con `negocio`);
+    acá se prueba enchufada a un modelo real, como se usa en la práctica."""
+
+    def _crear_imagen(self, ancho=2000, alto=2000, formato='PNG'):
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buffer = BytesIO()
+        Image.new('RGB', (ancho, alto), color='green').save(buffer, format=formato)
+        return SimpleUploadedFile(f'foto.{formato.lower()}', buffer.getvalue(), content_type=f'image/{formato.lower()}')
+
+    def test_una_imagen_grande_se_guarda_como_webp_achicada(self):
+        categoria = Categoria.objects.create(nombre='Con foto', unidad_medida='kg')
+        producto = Producto.objects.create(categoria=categoria, nombre='Manzanilla', imagen=self._crear_imagen())
+
+        self.assertTrue(producto.imagen.name.endswith('.webp'))
+        from PIL import Image
+        with Image.open(producto.imagen) as img:
+            self.assertLessEqual(max(img.size), 1600)
+
+    def test_no_recomprime_en_un_save_posterior_sin_cambiar_la_imagen(self):
+        categoria = Categoria.objects.create(nombre='Con foto 2', unidad_medida='kg')
+        producto = Producto.objects.create(categoria=categoria, nombre='Tilo', imagen=self._crear_imagen())
+        nombre_original = producto.imagen.name
+
+        producto.destacado = True
+        producto.save()
+
+        self.assertEqual(producto.imagen.name, nombre_original)
+
+
+class ComandoComprimirImagenesTests(TestCase):
+    """El comando `comprimir_imagenes` es para las fotos que ya estaban subidas antes
+    de este cambio (`forzar=True`, salta el guard que evita recomprimir). Se prueba
+    contra el manejo real de archivos (no mockeado), incluido el borrado del
+    original, porque ahí es donde falló la primera vez (archivo todavía abierto)."""
+
+    def _crear_imagen_sin_comprimir(self, categoria):
+        # Salteamos Producto.save() (que ya comprimiría solo) escribiendo el archivo
+        # directo con el storage, para simular una foto subida ANTES de este cambio.
+        from io import BytesIO
+        from PIL import Image
+
+        producto = Producto.objects.create(categoria=categoria, nombre='Sin comprimir')
+        buffer = BytesIO()
+        Image.new('RGB', (2000, 2000), color='blue').save(buffer, format='PNG')
+        producto.imagen.storage.save('productos/productos/original.png', ContentFile(buffer.getvalue()))
+        Producto.objects.filter(pk=producto.pk).update(imagen='productos/productos/original.png')
+        return Producto.objects.get(pk=producto.pk)
+
+    def test_comprime_y_borra_el_archivo_original(self):
+        from django.core.management import call_command
+
+        categoria = Categoria.objects.create(nombre='Comando test', unidad_medida='kg')
+        producto = self._crear_imagen_sin_comprimir(categoria)
+        storage = producto.imagen.storage
+        nombre_original = producto.imagen.name
+        self.assertTrue(storage.exists(nombre_original))
+
+        call_command('comprimir_imagenes')
+
+        producto.refresh_from_db()
+        self.assertTrue(producto.imagen.name.endswith('.webp'))
+        self.assertFalse(storage.exists(nombre_original))
+        self.assertTrue(storage.exists(producto.imagen.name))
+
+    def test_dry_run_no_modifica_nada(self):
+        from django.core.management import call_command
+
+        categoria = Categoria.objects.create(nombre='Comando dry-run', unidad_medida='kg')
+        producto = self._crear_imagen_sin_comprimir(categoria)
+        nombre_original = producto.imagen.name
+
+        call_command('comprimir_imagenes', '--dry-run')
+
+        producto.refresh_from_db()
+        self.assertEqual(producto.imagen.name, nombre_original)

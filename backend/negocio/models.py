@@ -1,5 +1,7 @@
 from django.db import models
 
+from config.imagenes import comprimir_imagen
+
 class ConfiguracionSitio(models.Model):
     # Usamos blank=True y null=True para que no de error si aún no subieron la imagen
     logo = models.ImageField(upload_to='sitio/logos/', null=True, blank=True)
@@ -77,6 +79,9 @@ class ConfiguracionSitio(models.Model):
         return f'https://{valor}'
 
     def save(self, *args, **kwargs):
+        for campo in (self.logo, self.logo_secundario, self.logo_precarga,
+                      self.imagen_principal, self.imagen_banner_mayorista, self.imagen_quienes_somos):
+            comprimir_imagen(campo)
         self.instagram = self._normalizar_instagram(self.instagram)
         self.instagram_secundario = self._normalizar_instagram(self.instagram_secundario)
         # wa.me (y el link de "Escribinos por WhatsApp") solo funcionan bien en

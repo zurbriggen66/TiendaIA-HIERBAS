@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.db import models
 from django.utils.text import slugify
 
+from config.imagenes import comprimir_imagen
+
 
 class Categoria(models.Model):
     UNIDADES = [
@@ -58,6 +60,7 @@ class Categoria(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.nombre)
+        comprimir_imagen(self.imagen)
         super().save(*args, **kwargs)
 
     def precio_para_cantidad(self, cantidad):
@@ -118,6 +121,10 @@ class ImagenCategoria(models.Model):
         ordering = ['categoria', 'orden', 'creado']
         verbose_name_plural = 'Imágenes de categoría'
 
+    def save(self, *args, **kwargs):
+        comprimir_imagen(self.imagen)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'Foto de {self.categoria.nombre} (#{self.id})'
 
@@ -148,6 +155,10 @@ class Producto(models.Model):
 
     class Meta:
         ordering = ['categoria', 'orden', 'nombre']
+
+    def save(self, *args, **kwargs):
+        comprimir_imagen(self.imagen)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
